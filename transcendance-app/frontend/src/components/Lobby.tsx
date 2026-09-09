@@ -41,6 +41,7 @@ const Lobby: React.FC<LobbyProps> = ({ username, onBack, onMatchStart }) => {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
+	  color: 'purple',
       height: '100vh',
       fontSize: '2rem',
       fontFamily: 'Arial, sans-serif',

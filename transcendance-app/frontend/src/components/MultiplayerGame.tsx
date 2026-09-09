@@ -66,6 +66,7 @@ const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ match, onBack, onResu
     <div style={{
       display: 'flex',
       flexDirection: 'column',
+	  color: 'red',
       justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',

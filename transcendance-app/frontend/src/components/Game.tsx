@@ -42,6 +42,7 @@ const Game: React.FC<GameProps> = ({ onGameEnd }) => {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
+	  color: 'blue',
       height: '100vh',
       fontSize: '2rem',
       fontFamily: 'Arial, sans-serif',
