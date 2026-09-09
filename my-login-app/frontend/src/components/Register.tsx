@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { User } from "../types/User";
+import loginBackground from "../assets/login-background.gif";
 
 type RegisterProps = {
     onLogin: () => void;
@@ -35,30 +36,36 @@ function Register({ onLogin }: RegisterProps) {
 		};
 
 		try {
-    const response = await fetch("http://localhost:3000/register", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(user)
-    });
+			const response = await fetch("http://localhost:3000/register", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(user)
+			});
 
-    const data = await response.json();
+			const data = await response.json();
 
-    setMessage(data.message);
-} catch (error) {
-    console.error(error);
-    setMessage("Could not connect to server.");
-}
-
-    setMessage("Registration successful!");
+			setMessage(data.message);
+		} catch (error) {
+			console.error(error);
+			setMessage("Could not connect to server.");
+		}
 	}
 
     return (
-        <div>
+        <div style={{
+            backgroundImage: `url(${loginBackground})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            height: "100vh"
+        }}>
             <h1>Register</h1>
 
-            <form onSubmit={handleSubmit}>
+            <form
+                onSubmit={handleSubmit}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}
+            >
                 <input
                     type="text"
                     placeholder="Username"
@@ -82,16 +89,18 @@ function Register({ onLogin }: RegisterProps) {
                     }
                 />
 
-                <button type="submit">
-                    Register
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button type="submit">
+                        Register
+                    </button>
+
+                    <button type="button" onClick={onLogin}>
+                        Back to Login
+                    </button>
+                </div>
             </form>
 
             <p>{message}</p>
-
-            <button onClick={onLogin}>
-                Back to Login
-            </button>
         </div>
     );
 }
