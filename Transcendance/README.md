@@ -74,3 +74,54 @@ Frontend: http://localhost:5173 — Backend: http://localhost:3000
 ## Real-time flow (backend `lobby.ts` in one paragraph)
 
 A lobby is a `Map` entry keyed by a short generated code, which also doubles as a Socket.IO room name. Players browsing for a game join a `lobby-list` room and get pushed live updates of open lobbies; joining a specific lobby moves them into that lobby's room instead. The host can kick players or start the match once everyone's readied up; starting a match snapshots the current lobby roster into a `Match`, runs a server-side countdown, and tallies clicks per player until time runs out (or everyone but one player disconnects), at which point the winner's/losers' stats are written to the database and each player receives their own updated totals.
+
+
+To do List:
+
+Use a CSS framework or styling solution of your choice (e.g., Tailwind CSS,
+Bootstrap, Material-UI, Styled Components, etc.)
+
+Store credentials (API keys, environment variables, etc.) in a local .env file that is
+ignored by Git, and provide an .env.example file.
+
+Points, we need 14
+
+Major: Use a framework for both the frontend and backend. 2 points
+
+Minor: Use a frontend framework (React, Vue, Angular, Svelte, etc.). 1 point
+
+Minor: Use a backend framework (Express, Fastify, NestJS, Django, etc.). 1 point
+
+Major: Implement real-time features using WebSockets or similar technology. 2 point
+
+Minor: Support for multiple languages (at least 3 languages). 1 point
+
+Minor: Support for additional browsers. 1 point
+
+Major: Standard user management and authentication. 2 points
+
+Minor: Game statistics and match history (requires a game module). 1 point
+
+• Major: Advanced permissions system: 2 points (not sure if its too much work but if not its worth the points)
+◦ View, edit, and delete users (CRUD).
+◦ Roles management (admin, user, guest, moderator, etc.).
+◦ Different views and actions based on user role.
+
+• Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.). 1 point (same as the above not sure if its too much work)
+
+Major: Implement a complete web-based game where users can play against each other. 2 points
+
+Major: Multiplayer game (more than two players). 2 points
+
+Major: Add another game with user history and matchmaking. 2 points
+
+Minor: Advanced chat features (enhances the basic chat from "User interaction" module). 1 point
+
+Minor: Implement a tournament system. 1 point
+
+• Minor: Game customization options. 1 point (depends on what type of game we do)
+
+• Minor: A gamification system to reward users for their actions 1 point
+
+
+total 23 points, we need atleast 14.

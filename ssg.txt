@@ -1,0 +1,8 @@
+2 diamante 1
+2 pau 2
+2 coracao 3
+2 espadas 4
+3 5
+3 6
+3 7
+3 8
