@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import gameBackground from '../assets/game-background.gif';
+import gameBackground from '../assets/poker_table.png';
 
 type GameProps = {
   onGameEnd: (won: boolean) => void;

@@ -1,12 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { socket } from '../socket';
 import type { MatchStart } from './Lobby';
-import gameBackground from '../assets/game-background.gif';
+import gameBackground from '../assets/poker_table.png';
+
+const Avatar: React.FC<{ name: string }> = ({ name }) => (
+  <div style={{
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    background: '#333',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    fontSize: '0.9rem',
+    padding: '0.25rem',
+    boxSizing: 'border-box',
+    overflowWrap: 'break-word'
+  }}>
+    {name}
+  </div>
+);
+
+// Each entry is one seat's position as a percentage of the table container
+// (see the 70vmin x 70vmin div below) - 0% is the left/top edge, 100% is the
+// right/bottom edge, 50% is the center. Seat index N always renders here,
+// no matter how many players are in the match. Edit these numbers to line
+// each seat up with a chair on the table image, then reload to check.
+const SEAT_POSITIONS = [
+  { left: 15, top: 100 },   // seat 0 - top center
+  { left: 85, top: 100 }, // seat 1 - top right
+  { left: 145, top: 70 }, // seat 2 - right
+  { left: 145, top: 10 },   // seat 3 - bottom right
+  { left: 85, top: -15 }, // seat 4 - bottom, right of center
+  { left: 15, top: -15 }, // seat 5 - bottom, left of center
+  { left: -45, top: 70 },   // seat 6 - bottom left
+  { left: -45, top: 10 }, // seat 7 - left
+];
 
 type MatchEnd = {
-  player1Clicks: number;
-  player2Clicks: number;
-  winner: 0 | 1 | 2;
+  clicks: number[];
+  winnerIndex: number;
   multiplayerWins: number;
   multiplayerLosses: number;
 };
@@ -19,14 +54,12 @@ type MultiplayerGameProps = {
 
 const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ match, onBack, onResult }) => {
   const [secondsLeft, setSecondsLeft] = useState(10);
-  const [player1Clicks, setPlayer1Clicks] = useState(0);
-  const [player2Clicks, setPlayer2Clicks] = useState(0);
+  const [clicks, setClicks] = useState<number[]>(match.usernames.map(() => 0));
   const [result, setResult] = useState<MatchEnd | null>(null);
 
   useEffect(() => {
-    function handleUpdate({ player1Clicks, player2Clicks }: { player1Clicks: number; player2Clicks: number }) {
-      setPlayer1Clicks(player1Clicks);
-      setPlayer2Clicks(player2Clicks);
+    function handleUpdate({ clicks }: { clicks: number[] }) {
+      setClicks(clicks);
     }
 
     function handleEnd(matchEnd: MatchEnd) {
@@ -55,18 +88,17 @@ const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ match, onBack, onResu
       return null;
     }
 
-    if (result.winner === 0) {
+    if (result.winnerIndex === -1) {
       return "It's a draw!";
     }
 
-    return result.winner === match.playerNumber ? 'You win!' : 'You lose!';
+    return result.winnerIndex === match.you ? 'You win!' : 'You lose!';
   }
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',
       fontSize: '2rem',
@@ -74,35 +106,43 @@ const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ match, onBack, onResu
       gap: '1rem',
       backgroundImage: `url(${gameBackground})`,
       backgroundSize: 'cover',
-      backgroundPosition: 'center'
+      backgroundPosition: 'center',
+      boxSizing: 'border-box',
+      padding: '1rem'
     }}>
-      <h1>Multiplayer Game</h1>
+      <h1>.title.</h1>
       <p>{secondsLeft}</p>
 
-      <div style={{ display: 'flex', gap: '3rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>{match.player1Username}</span>
-          <span>{player1Clicks}</span>
-          <button
-            onClick={() => socket.emit('match:click')}
-            disabled={match.playerNumber !== 1 || !!result}
-            style={{ fontSize: '1rem' }}
-          >
-            Click
-          </button>
-        </div>
+      <div style={{ position: 'relative', width: '70vmin', height: '70vmin', flexGrow: 1 }}>
+        {match.usernames.map((username, index) => {
+          const { left, top } = SEAT_POSITIONS[index];
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>{match.player2Username}</span>
-          <span>{player2Clicks}</span>
-          <button
-            onClick={() => socket.emit('match:click')}
-            disabled={match.playerNumber !== 2 || !!result}
-            style={{ fontSize: '1rem' }}
-          >
-            Click
-          </button>
-        </div>
+          return (
+            <div
+              key={index}
+              style={{
+                position: 'absolute',
+                left: `${left}%`,
+                top: `${top}%`,
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <Avatar name={username} />
+              <span style={{ fontSize: '1.25rem' }}>{clicks[index]}</span>
+              <button
+                onClick={() => socket.emit('match:click')}
+                disabled={index !== match.you || !!result}
+                style={{ fontSize: '1rem' }}
+              >
+                Click
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {result && <p>{renderResultText()}</p>}

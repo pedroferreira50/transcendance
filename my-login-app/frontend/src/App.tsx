@@ -3,18 +3,20 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Game from "./components/Game";
+import LobbySelect from "./components/LobbySelect";
 import Lobby from "./components/Lobby";
-import type { MatchStart } from "./components/Lobby";
+import type { MatchStart, LobbyState } from "./components/Lobby";
 import MultiplayerGame from "./components/MultiplayerGame";
 
 function App() {
-    const [page, setPage] = useState<"login" | "register" | "dashboard" | "game" | "lobby" | "multiplayerGame">("login");
+    const [page, setPage] = useState<"login" | "register" | "dashboard" | "game" | "lobbySelect" | "lobby" | "multiplayerGame">("login");
     const [username, setUsername] = useState("");
     const [soloWins, setSoloWins] = useState(0);
     const [soloLosses, setSoloLosses] = useState(0);
     const [multiplayerWins, setMultiplayerWins] = useState(0);
     const [multiplayerLosses, setMultiplayerLosses] = useState(0);
     const [match, setMatch] = useState<MatchStart | null>(null);
+    const [lobby, setLobby] = useState<LobbyState | null>(null);
 
     if (page === "login") {
         return (
@@ -50,16 +52,29 @@ function App() {
                 multiplayerLosses={multiplayerLosses}
                 onLogout={() => setPage("login")}
                 onPlaySolo={() => setPage("game")}
-                onPlayMultiplayer={() => setPage("lobby")}
+                onPlayMultiplayer={() => setPage("lobbySelect")}
             />
         );
     }
 
-    if (page === "lobby") {
+    if (page === "lobbySelect") {
         return (
-            <Lobby
+            <LobbySelect
                 username={username}
                 onBack={() => setPage("dashboard")}
+                onLobbyJoined={(lobby) => {
+                    setLobby(lobby);
+                    setPage("lobby");
+                }}
+            />
+        );
+    }
+
+    if (page === "lobby" && lobby) {
+        return (
+            <Lobby
+                initialLobby={lobby}
+                onBack={() => setPage("lobbySelect")}
                 onMatchStart={(match) => {
                     setMatch(match);
                     setPage("multiplayerGame");
