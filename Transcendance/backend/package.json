@@ -12,7 +12,6 @@
   "keywords": [],
   "type": "commonjs",
   "dependencies": {
-    "approve": "^0.0.12",
     "argon2": "^0.45.1",
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",

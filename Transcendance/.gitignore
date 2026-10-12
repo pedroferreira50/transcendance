@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local database files (created when the backend runs)
+*.db
+
+# Environment variables / secrets (commit .env.example instead)
+.env
+.env.*
+!.env.example
