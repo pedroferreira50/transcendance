@@ -6,21 +6,17 @@ export type Position = {
 };
 export type Direction = "up" | "down" | "left" | "right";
 
-export type Coin = { 
-	owner: number; // owner = player slot (0..3)
-	pos: Position 
-};
+export type MapSize = "small" | "medium" | "large";
+export type Character = "goldfish" | "betta" | "angler" | "puffer";
+export type PowerUpType = "speed" | "freeze" | "enchant";
 
 // What a .ber file turns into after parseMap()
 export type MapData = {
 	width: number;
 	height: number;
 	walls: boolean[][]; // [y][x], true = wall
-	exit: Position;
+	exit: Position; // the turtle
 	spawns: Position[]; // index = slot (A=0, B=1, C=2, D=3)
-	coins: Coin[];
-	monsters: Position[];
-	freezeSpots: Position[]; // where the freeze item may appear
 };
 
 export type PlayerStatus = "playing" | "dead" | "disconnected" | "left" | "finished";
@@ -29,9 +25,10 @@ export type Player = {
 	userId: number | null; // null = guest (local mode)
 	username: string;
 	slot: number; // 0..3 -> A..D
+	character: Character;
 	pos: Position;
 	spawn: Position;
-	coinsLeft: number;
+	diamonds: number; // collected (stops at the goal)
 	moves: number;
 	deaths: number;
 	facing: "left" | "right";
@@ -40,8 +37,15 @@ export type Player = {
 	respawnAt: number;
 	invulnerableUntil: number;
 	frozenUntil: number;
-	hasFreeze: boolean;
+	speedUntil: number;
+	enchantedUntil: number;
+	powerUp: PowerUpType | null; // the one being held
 	disconnectedAt: number | null;
+};
+
+export type PowerUp = { 
+	type: PowerUpType; 
+	pos: Position 
 };
 
 export type GameState = {
@@ -51,11 +55,13 @@ export type GameState = {
 	height: number;
 	walls: boolean[][]; // fixed part, [y][x]
 	exit: Position;
+	goal: number; // diamonds needed to leave (5 or 10)
 	players: Player[];
 	monsters: Position[];
-	coins: Coin[];
-	freezeSpots: Position[];
-	freezeItem: Position | null; // freeze item on the floor (max 1)
+	monstersFrozenUntil: number;
+	diamonds: Position[]; // the ones still on the map
+	powerUps: PowerUp[];
+	nextPowerUpAt: number;
 	endsAt: number;
 	status: "countdown" | "running" | "finished";
 	winnerSlot: number | null;
