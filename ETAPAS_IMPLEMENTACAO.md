@@ -1,4 +1,4 @@
-# so_long: Arena (etapas de implementação)
+# Open Sea (etapas de implementação)
 
 Este é o plano de trabalho do jogo, etapa por etapa. As regras e a visão geral estão no `JOGO_SO_LONG_ARENA.md`. Leiam esse primeiro!
 
@@ -50,39 +50,36 @@ As **Etapas 1, 2 e 3 podem ser feitas ao mesmo tempo**, porque não dependem uma
 ## Etapa 0: Preparação (todos, 1–2 dias)
 
 ### 0.1 Organização
-- [ ] Reunião para apresentar o jogo (`JOGO_SO_LONG_ARENA.md`) e fechar as decisões pendentes (sessão, Prisma, nome).
+- [ ] Reunião para apresentar o jogo (`JOGO_SO_LONG_ARENA.md`) e fechar as decisões pendentes (sessão, Prisma).
 - [ ] Definir os papéis: PO, PM, Tech Lead (Luiz).
 - [ ] Criar o board no GitHub Projects com uma issue por tarefa deste documento.
 - [ ] Combinar o canal de comunicação (Discord) e uma reunião fixa por semana.
 - [ ] Combinar o padrão de branches: `nome/assunto` (ex.: `luiz/game-engine`, `pedro/socket-auth`).
 
 ### 0.2 Limpeza do repositório
-- [ ] Apagar as sobras na raiz do `Transcendance/`: `package.json`, `package-lock.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `index.html`. O README diz que não são usadas, mas confirmem rodando o projeto depois.
-- [ ] Apagar os arquivos `*Zone.Identifier` em `frontend/src/assets/`.
-- [ ] Remover a dependência `approve` do `backend/package.json` (não é usada).
-- [ ] Tirar o `backend/users.db` do Git: `git rm --cached backend/users.db` e adicionar `*.db` ao `.gitignore`.
-- [ ] Adicionar `.env` ao `.gitignore`.
+- [x] Apagar as sobras na raiz do `Transcendance/`: `package.json`, `package-lock.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `index.html`. O README diz que não são usadas, mas confirmem rodando o projeto depois.
+- [x] Apagar os arquivos `*Zone.Identifier` em `frontend/src/assets/`.
+- [x] Remover a dependência `approve` do `backend/package.json` (não é usada).
+- [x] Tirar o `backend/users.db` do Git: `git rm --cached backend/users.db` e adicionar `*.db` ao `.gitignore`.
+- [x] Adicionar `.env` ao `.gitignore`.
 
 ### 0.3 Ambiente de cada um
-- [ ] Instalar o Node 22 **no WSL/Linux** (não só dentro do Docker), para rodar testes e ter o autocompletar no VS Code:
+- [x] Instalar o Node 22 **no WSL/Linux** (não só dentro do Docker), para rodar testes e ter o autocompletar no VS Code:
   ```bash
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
   # fechar e abrir o terminal
   nvm install 22
   node -v   # deve mostrar v22.x
   ```
-- [ ] Rodar `npm install` dentro de `backend/` e de `frontend/` (fora do Docker), para o VS Code encontrar os tipos.
+- [x] Rodar `npm install` dentro de `backend/` e de `frontend/` (fora do Docker), para o VS Code encontrar os tipos.
 - [ ] Testar que `docker compose up --build` continua funcionando.
 
 ### 0.4 Recursos do jogo (Luiz)
-- [ ] Converter as sprites do so_long para PNG:
-  ```bash
-  sudo apt install imagemagick
-  mkdir -p frontend/public/sprites
-  for f in ~/so_long/img/*.xpm; do convert "$f" "frontend/public/sprites/$(basename "${f%.xpm}").png"; done
-  ```
-- [ ] Desenhar uma sprite (ou escolher uma cor/ícone) para o **gelo** no chão e o **cubinho de gelo** ao lado do personagem.
-- [ ] Desenhar os **6 mapas** (primeiro no papel, pensando na simetria): `small-1`, `small-2` (2 jogadores), `medium-1`, `medium-2` (3), `large-1`, `large-2` (4). Salvar em `backend/maps/`.
+- [x] Sprites próprias do Open Sea em `frontend/public/sprites/` (peixes, tubarões, itens, ícones, barras de diamantes).
+- [x] Telas em `frontend/public/interface/` (em `.webp`; para converter: `convert arquivo.jpeg -quality 90 nome.webp`).
+- [x] **Refazer os 6 mapas** no formato novo (só `1`, `0`, `E` e `A`–`D`), com a tartaruga no centro e os pontos iniciais nas extremidades. `A` e `B` em cantos opostos; médios e grandes simétricos nos 4 cantos. Salvar em `backend/maps/`: `small-1`, `small-2` (2 jogadores), `medium-1`, `medium-2` (2–3), `large-1`, `large-2` (2–4).
+- [x] Gerar de novo as imagens-guia em blocos (`mapas-guia/`, fora do Git), com a tartaruga sempre entre duas paredes (só se entra por cima ou por baixo).
+- [ ] Desenhar a imagem final de cada mapa em `frontend/public/maps/<mapa>.webp` (sem diamantes, tubarões, power-ups nem HUD).
 
 **Pronto quando:** board criado, papéis definidos, repositório limpo, todos com o ambiente funcionando e com pelo menos um commit.
 
@@ -92,51 +89,72 @@ As **Etapas 1, 2 e 3 podem ser feitas ao mesmo tempo**, porque não dependem uma
 
 **Objetivo:** todas as regras do jogo em TypeScript puro, **sem Socket.IO, sem React e sem timers**. É o meu so_long reescrito, testável com testes automáticos e jogável no terminal.
 
-**Por que sem timers?** A `GameRoom` não chama `setInterval` sozinha. Quem chama "move os monstros agora" ou "passou um segundo" é o código de fora (os testes agora, o `gameManager` na Etapa 4). E **o horário (`now`) e o sorteio (`random`) entram como parâmetro**. Assim os testes controlam o tempo e o sorteio e conseguem testar tudo sem esperar segundos de verdade.
+**Por que sem timers?** A `GameRoom` não chama `setInterval` sozinha. Quem chama "move os tubarões agora" ou "passou um segundo" é o código de fora (os testes agora, o `gameManager` na Etapa 4). E **o horário (`now`) e o sorteio (`random`) entram como parâmetro**. Assim os testes controlam o tempo e o sorteio e conseguem testar tudo sem esperar segundos de verdade.
 
-### 1.1 Preparar os testes
-- [ ] No `backend/`: `npm install -D vitest`.
-- [ ] Em `backend/package.json`, trocar o script `test` por `"test": "vitest"`.
-- [ ] Criar `backend/src/game/__tests__/sanity.test.ts` com um teste bobo (`expect(1 + 1).toBe(2)`) e rodar `npm test` para confirmar.
+### 1.1 Preparar os testes ✅
+- [x] No `backend/`: `npm install -D vitest`.
+- [x] Em `backend/package.json`, trocar o script `test` por `"test": "vitest"`.
+- [x] Criar `backend/src/game/__tests__/sanity.test.ts` com um teste bobo (`expect(1 + 1).toBe(2)`) e rodar `npm test` para confirmar.
 
 ### 1.2 Tipos e constantes
-- [ ] `backend/src/game/types.ts`: os tipos `Position`, `Direction`, `Player`, `GameState` (seção 5 do documento do jogo).
-- [ ] `backend/src/game/config.ts`:
+Atualizado para as regras do Open Sea ✅
+- [x] `types.ts`: os tipos da seção 5 do documento do jogo (`Character`, `PowerUpType`, `Player` com `diamonds`, `character`, `powerUp`, `speedUntil`, `enchantedUntil`; `GameState` com `goal`, `diamonds`, `powerUps`, `monstersFrozenUntil`, `nextPowerUpAt`). Sai o tipo `Coin`.
+- [x] `MapData` passa a ter só a parte fixa:
   ```ts
-  export const MOVE_COOLDOWN_MS = 150;          // 🔶
-  export const MONSTER_INTERVAL_MS = 500;       // 🔶
-  export const RESPAWN_DELAY_MS = 3000;         // 🔶
-  export const INVULNERABLE_MS = 1000;          // 🔶
-  export const FREEZE_DURATION_MS = 2000;       // 🔶
-  export const FREEZE_SPAWN_INTERVAL_MS = 15000;// 🔶
-  export const TIME_LIMIT_MS = 3 * 60 * 1000;
-  export const RECONNECT_TIMEOUT_MS = 30000;
-  ```
-
-### 1.3 Leitura dos mapas: `mapLoader.ts`
-- [ ] `parseMap(text: string): MapData`: percorre o texto caractere a caractere e monta:
-  ```ts
+  type MapSize = "small" | "medium" | "large";
   type MapData = {
       width: number; height: number;
       walls: boolean[][];              // [y][x]
       exit: Position;
       spawns: Position[];              // índice = slot (A=0, B=1, ...)
-      coins: { owner: number; pos: Position }[];
-      monsters: Position[];
-      freezeSpots: Position[];
   };
   ```
-  Tudo que não é `1` vira chão (`walls[y][x] = false`). Caracteres desconhecidos → `throw`.
-- [ ] `loadMap(name: string): MapData`: lê `backend/maps/<name>.ber` com `fs.readFileSync` e chama `parseMap`.
-- [ ] `pickMap(playerCount: 2 | 3 | 4, choice: string | "random", random: () => number): string`: devolve o nome do mapa. Com `"random"`, sorteia entre os dois do tamanho certo.
-- [ ] **Teste `maps.test.ts`** (a "validação" mínima). Para cada um dos 6 mapas:
-  - todas as linhas têm o mesmo tamanho;
+- [x] `config.ts`:
+  ```ts
+  export const MOVE_COOLDOWN_MS = 150;            // 🔶
+  export const MONSTER_INTERVAL_MS = 500;         // 🔶
+  export const RESPAWN_DELAY_MS = 3000;           // 🔶
+  export const INVULNERABLE_MS = 1000;            // 🔶
+  export const SPEED_DURATION_MS = 5000;          // 🔶
+  export const FREEZE_DURATION_MS = 2000;         // 🔶
+  export const ENCHANT_DURATION_MS = 5000;        // 🔶
+  export const POWERUP_INTERVAL_MS = 5000;        // 🔶
+  export const MAX_POWERUPS_ON_MAP = 3;           // 🔶
+  export const MONSTER_MIN_SPAWN_DISTANCE = 4;    // 🔶 passos
+  export const RECONNECT_TIMEOUT_MS = 30000;
+
+  export const SIZE_RULES: Record<MapSize, {
+      players: number[]; goal: number; monsters: number; timeLimitMs: number;
+  }> = {
+      small:  { players: [2],       goal: 5,  monsters: 4, timeLimitMs: 3 * 60_000 },  // 🔶 tempo
+      medium: { players: [2, 3],    goal: 10, monsters: 6, timeLimitMs: 4 * 60_000 },  // 🔶 tempo
+      large:  { players: [2, 3, 4], goal: 10, monsters: 8, timeLimitMs: 5 * 60_000 },  // 🔶 tempo
+  };
+  // diamantes no mapa = goal * jogadores + 1
+  ```
+
+### 1.3 Leitura dos mapas: `mapLoader.ts`
+Atualizado ✅ (além disso: `mapSize(name)` devolve o tamanho de um mapa, e `diamondCount(size, players)` em `config.ts` faz a conta `goal × jogadores + 1`)
+- [x] `parseMap(text)`: aceita só `1`, `0`, `E` e `A`–`D`. Os outros caracteres (`a`–`d`, `X`, `*`) passam a dar erro.
+- [x] `MAPS` passa a ser uma lista com o tamanho de cada mapa: `{ name: "medium-1", size: "medium" }`...
+- [x] `mapsFor(playerCount)`: os mapas que aceitam esse número de jogadores (o que a tela de escolha de mapa mostra). Ex.: 2 → os 6; 3 → médios e grandes; 4 → grandes.
+- [x] `pickMap(playerCount, choice, random)`: com `"random"`, sorteia entre `mapsFor(playerCount)`; com um nome, recusa se o mapa não aceita esse número de jogadores.
+- [x] `loadMap(name)`: sem mudanças.
+- [x] **Teste `maps.test.ts`**. Para cada um dos 6 mapas:
   - borda toda de parede;
-  - exatamente 1 porta;
-  - número de spawns = número de jogadores do tamanho (small = 2, medium = 3, large = 4);
-  - cada jogador tem ≥ 1 moeda;
-  - não há moedas de jogadores que não existem nesse tamanho;
-  - pelo menos 1 ponto `*` de gelo.
+  - exatamente 1 tartaruga (`E`);
+  - número de pontos iniciais = máximo de jogadores do tamanho (small = 2, medium = 3, large = 4);
+  - todo o chão alcançável a partir da tartaruga (flood fill, uma função de poucas linhas);
+  - todos os pontos iniciais **à mesma distância** da tartaruga (busca em largura);
+  - casas livres suficientes para o pior caso: `goal × máximo de jogadores + 1` diamantes + os tubarões + os power-ups.
+
+### 1.3b Sorteios: `placement.ts` ✅
+Funções puras, que recebem o `random` como parâmetro (para os testes controlarem o sorteio):
+- [x] `freeCells(map, occupied)`: casas de chão que não são parede, tartaruga, ponto inicial nem estão em `occupied`.
+- [x] `placeMonsters(map, count, random)`: sorteia `count` casas livres a pelo menos `MONSTER_MIN_SPAWN_DISTANCE` passos de qualquer ponto inicial.
+- [x] `placeDiamonds(map, count, occupied, random)`: sorteia `count` casas livres, sem repetir.
+- [x] `placePowerUp(map, state, random)`: sorteia uma casa livre (sem diamante, power-up, jogador nem tubarão) e um tipo entre os 3.
+- [x] Testes: o número certo de itens, nenhum em parede, tartaruga ou ponto inicial, nenhum repetido, tubarões longe dos pontos iniciais, e o mesmo `random` → o mesmo resultado.
 
 ### 1.4 A classe `GameRoom` (`GameRoom.ts`)
 
@@ -144,15 +162,15 @@ As **Etapas 1, 2 e 3 podem ser feitas ao mesmo tempo**, porque não dependem uma
 class GameRoom {
     state: GameState;
     dirty: boolean;                    // true = algo mudou e precisa ser enviado
-    events: GameEvent[];               // fila de eventos para o cliente (morte, moeda...)
+    events: GameEvent[];               // fila de eventos para o cliente (morte, diamante...)
 
-    constructor(id: string, map: MapData,
-                players: { userId: number | null; username: string }[],
+    constructor(id: string, mapName: string, map: MapData, size: MapSize,
+                players: { userId: number | null; username: string; character: Character }[],
                 options: { local: boolean; now: number; random?: () => number });
 
-    start(now: number): void;                       // status = "running", endsAt = now + TIME_LIMIT_MS
+    start(now: number): void;                       // status = "running", endsAt = now + timeLimitMs
     move(slot: number, dir: Direction, now: number): void;
-    useFreeze(slot: number, now: number): void;
+    usePowerUp(slot: number, now: number): void;
     tickMonsters(now: number): void;                // chamado a cada MONSTER_INTERVAL_MS
     tickSecond(now: number): void;                  // chamado a cada 1 s
     leave(slot: number): void;                      // desistência
@@ -163,50 +181,59 @@ class GameRoom {
 
 Regras de cada método, **nesta ordem de verificação**:
 
-- [ ] **`constructor`**: copia as paredes, a porta, as moedas e os monstros do `MapData`. Cria um `Player` por jogador, com `slot` = índice, `pos` = `spawn` = `map.spawns[slot]` e `coinsLeft` = número de moedas com `owner === slot`. `status = "countdown"`.
+- [ ] **`constructor`**: copia as paredes e a tartaruga do `MapData`. `goal` vem de `SIZE_RULES[size]`. Cria um `Player` por jogador, com `slot` = índice, `pos` = `spawn` = `map.spawns[slot]`, `diamonds = 0`, `powerUp = null`. Sorteia os tubarões (`placeMonsters`) e depois os diamantes (`placeDiamonds`, `goal × jogadores + 1`). `status = "countdown"`.
 - [ ] **`move(slot, dir, now)`**:
   1. partida não está `"running"` → ignora;
   2. jogador não está `"playing"` (morto, desconectado, saiu) → ignora;
   3. `now < frozenUntil` → ignora;
-  4. `now - lastMoveAt < MOVE_COOLDOWN_MS` → ignora;
+  4. cooldown: `MOVE_COOLDOWN_MS`, ou a metade se `now < speedUntil`. Se `now - lastMoveAt` for menor → ignora;
   5. calcula o destino; é parede → ignora (mas atualiza `facing` se for esquerda/direita, como no original);
   6. há outro jogador **vivo** no destino → ignora;
   7. move: `pos = destino`, `lastMoveAt = now`, `moves++`, `facing`;
-  8. há moeda **minha** no destino → remove a moeda, `coinsLeft--`, evento `coin`;
-  9. há gelo no destino e eu **não** tenho → `hasFreeze = true`, `freezeItem = null`, evento `freezePickup`;
-  10. há monstro no destino → `kill(player, now)`;
-  11. destino é a porta e `coinsLeft === 0` → `finish(slot, "exit")`;
+  8. há diamante no destino **e** `diamonds < goal` → remove o diamante, `diamonds++`, evento `diamond`;
+  9. há power-up no destino **e** `powerUp === null` → guarda o tipo, remove do mapa, evento `powerUpPickup`;
+  10. há tubarão no destino → `kill(player, now)`;
+  11. destino é a tartaruga e `diamonds === goal` → `finish(slot, "exit")`;
   12. `dirty = true`.
-- [ ] **`useFreeze(slot, now)`**: precisa estar `"running"`, o jogador `"playing"`, não congelado e com `hasFreeze`. Então `hasFreeze = false` e, para cada **outro** jogador vivo, `frozenUntil = now + FREEZE_DURATION_MS`. Evento `freezeUsed`. `dirty = true`.
-- [ ] **`tickMonsters(now)`**: para cada monstro, sorteia uma direção com `random()` (como o `rand() % 4` do so_long). Move se o destino **não** for parede, porta, moeda, gelo nem outro monstro. Depois, para cada jogador vivo na mesma casa de um monstro → `kill`.
-- [ ] **`kill(player, now)`** (privado): ignora se `now < invulnerableUntil`. Senão: `status = "dead"`, `deaths++`, `respawnAt = now + RESPAWN_DELAY_MS`, `hasFreeze` mantém 🔶, evento `death`.
+- [ ] **`usePowerUp(slot, now)`**: precisa estar `"running"`, o jogador `"playing"`, não congelado e com `powerUp`. Aplica o efeito e faz `powerUp = null`:
+  - `speed`: `speedUntil = now + SPEED_DURATION_MS`;
+  - `freeze`: para cada **outro** jogador vivo, `frozenUntil = now + FREEZE_DURATION_MS`, e `monstersFrozenUntil = now + FREEZE_DURATION_MS`;
+  - `enchant`: `enchantedUntil = now + ENCHANT_DURATION_MS`.
+
+  Evento `powerUpUsed`. `dirty = true`.
+- [ ] **`tickMonsters(now)`**: se `now < monstersFrozenUntil`, os tubarões não andam (mas continuam matando quem encostar). Senão, para cada tubarão, sorteia uma direção com `random()` (como o `rand() % 4` do so_long) e move se o destino **não** for parede, tartaruga nem outro tubarão. Diamantes e power-ups **não** bloqueiam (o tubarão passa por cima). Depois, para cada jogador vivo na mesma casa de um tubarão → `kill`.
+- [ ] **`kill(player, now)`** (privado): ignora se `now < invulnerableUntil` ou `now < enchantedUntil`. Senão: `status = "dead"`, `deaths++`, `respawnAt = now + RESPAWN_DELAY_MS`. Mantém os diamantes e o `powerUp` 🔶. Evento `death`.
 - [ ] **`tickSecond(now)`**:
-  1. `now >= endsAt` → `finish(null, "timeout")` (vencedor = mais moedas; empate no topo = sem vencedor);
-  2. jogadores `"dead"` com `now >= respawnAt` **e** spawn livre (sem jogador vivo e sem monstro em cima) → `status = "playing"`, `pos = spawn`, `invulnerableUntil = now + INVULNERABLE_MS`;
+  1. `now >= endsAt` → `finish(null, "timeout")` (vencedor = mais diamantes; empate no topo = sem vencedor);
+  2. jogadores `"dead"` com `now >= respawnAt` **e** spawn livre (sem jogador vivo e sem tubarão em cima) → `status = "playing"`, `pos = spawn`, `invulnerableUntil = now + INVULNERABLE_MS`;
   3. jogadores `"disconnected"` há mais de `RECONNECT_TIMEOUT_MS` → `leave(slot)`;
-  4. não há gelo no mapa e já passou `FREEZE_SPAWN_INTERVAL_MS` desde o último → sorteia um `freezeSpot` livre e coloca o gelo.
+  4. `now >= nextPowerUpAt` e menos de `MAX_POWERUPS_ON_MAP` no mapa → `placePowerUp`; `nextPowerUpAt = now + POWERUP_INTERVAL_MS`.
 - [ ] **`leave(slot)`**: `status = "left"`. Se sobrar só 1 jogador ativo (playing, dead ou disconnected) → `finish(esse, "forfeit")`.
 - [ ] **`finish(winnerSlot, reason)`**: `status = "finished"`, guarda `winnerSlot` e `endReason`. Depois disso, todos os métodos ignoram chamadas.
 - [ ] **`snapshot()`**: devolve só o que o cliente precisa (sem `walls`, que vão uma vez só no início).
 
 ### 1.5 Testes do motor (`gameRoom.test.ts`)
-Usem um **mapa pequeno escrito dentro do teste** (string), um `now` controlado e um `random` fixo. Casos mínimos:
+Usem um **mapa pequeno escrito dentro do teste** (string), um `now` controlado e um `random` fixo. Para testar regras específicas, o teste pode colocar diamantes, tubarões e power-ups à mão no `state` depois do construtor. Casos mínimos:
+- [ ] o construtor sorteia `goal × jogadores + 1` diamantes e o número certo de tubarões;
 - [ ] não anda antes do `start`;
 - [ ] parede bloqueia;
 - [ ] cooldown: dois `move` com 100 ms de diferença → só o primeiro vale; com 150 ms → os dois valem;
 - [ ] jogador bloqueia jogador;
-- [ ] pega a própria moeda (`coinsLeft` diminui) e **não** pega a dos outros;
-- [ ] porta com moedas faltando → não termina;
-- [ ] porta com todas as moedas → termina e esse jogador vence;
-- [ ] andar para cima de um monstro → morre;
-- [ ] monstro anda para cima do jogador → morre;
-- [ ] monstro não anda sobre moeda, porta nem outro monstro;
+- [ ] pega diamante; com a meta atingida, passa por cima **sem** pegar;
+- [ ] tartaruga sem a meta → não termina;
+- [ ] tartaruga com a meta → termina e esse jogador vence;
+- [ ] andar para cima de um tubarão → morre;
+- [ ] tubarão anda para cima do jogador → morre;
+- [ ] tubarão passa por cima de diamante e power-up sem removê-los, e não entra na tartaruga nem em outro tubarão;
 - [ ] morto renasce depois de 3 s, no spawn, e fica invulnerável 1 s;
 - [ ] renascimento espera se o spawn estiver ocupado;
 - [ ] morto não bloqueia ninguém e não pode se mover;
-- [ ] pega o gelo, usa, e os adversários ficam congelados 2 s (não andam), mas quem usou anda;
-- [ ] não pega um segundo gelo se já tem um;
-- [ ] tempo acaba → vence quem tem mais moedas; empate → `winnerSlot = null`;
+- [ ] power-up aparece a cada 5 s, no máximo 3 no mapa;
+- [ ] não pega um segundo power-up se já tem um;
+- [ ] velocidade: com 75 ms de diferença, os dois movimentos valem, e depois de 5 s volta ao normal;
+- [ ] congelar: adversários e tubarões param 2 s, quem usou anda; encostar num tubarão congelado ainda mata;
+- [ ] encantar: encostar num tubarão não mata por 5 s, e depois volta a matar;
+- [ ] tempo acaba → vence quem tem mais diamantes; empate → `winnerSlot = null`;
 - [ ] `leave` com 2 jogadores → o outro vence;
 - [ ] desconectado há mais de 30 s → perde;
 - [ ] depois de `finished`, nada mais muda.
@@ -214,8 +241,8 @@ Usem um **mapa pequeno escrito dentro do teste** (string), um `now` controlado e
 ### 1.6 Jogar no terminal (`debug.ts`)
 Um script para testar "na mão", o "so_long no terminal":
 - [ ] carrega um mapa pequeno com 2 jogadores (modo local);
-- [ ] imprime o mapa em ASCII a cada mudança (`#` parede, `A`/`B` jogadores, `a`/`b` moedas, `M` monstro, `E` porta, `*` gelo, mais tempo e moedas restantes);
-- [ ] lê o teclado com `readline` (`process.stdin.setRawMode(true)`): WASD/E para o jogador 1 e IJKL/O para o jogador 2 (as setas no terminal são chatas de ler);
+- [ ] imprime o mapa em ASCII a cada mudança (`#` parede, `A`/`B` jogadores, `$` diamante, `M` tubarão, `E` tartaruga, `s`/`f`/`e` power-ups, mais tempo, diamantes e power-up guardado);
+- [ ] lê o teclado com `readline` (`process.stdin.setRawMode(true)`): WASD/R para o jogador 1 e IJKL/O para o jogador 2 (as setas no terminal são chatas de ler);
 - [ ] `setInterval` chamando `tickMonsters` e `tickSecond`;
 - [ ] rodar com `npx tsx src/game/debug.ts`.
 
@@ -229,26 +256,26 @@ Um script para testar "na mão", o "so_long no terminal":
 
 ### 2.1 Tipos compartilhados
 - [ ] `frontend/src/game/protocol.ts`: os tipos `Position`, `Direction`, `DynamicState`, `MapInfo` (`width`, `height`, `walls`, `exit`) e os nomes dos eventos. **Cópia idêntica** do `backend/src/game/protocol.ts`. Se mudar num, muda no outro.
-- [ ] `frontend/src/game/fixtureState.ts`: um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns monstros e moedas, um gelo no chão, um jogador com gelo guardado, outro congelado).
+- [ ] `frontend/src/game/fixtureState.ts`: um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns tubarões e diamantes, power-ups no chão, um jogador com power-up guardado, outro congelado).
 
 ### 2.2 Carregar as sprites (`sprites.ts`)
-- [ ] `loadSprites(): Promise<Sprites>`: cria um `Image` para cada PNG e espera todos carregarem (`img.onload`). Sprites: `wall`, `grass`, `cdoor`, `odoor`, `coin`, `enemy`..., `l1`–`l6`, `r1`–`r6`, `ice`.
+- [ ] `loadSprites(): Promise<Sprites>`: cria um `Image` para cada PNG e espera todos carregarem (`img.onload`). Sprites: os 4 peixes (`-left`/`-right`), `portrait-*`, `shark-*` (normal, `frozen`, `enchanted`), `item-*`, `icon-*`, `exit-turtle`, `diamonds-5/*`, `diamonds-10/*`.
 - [ ] O jogo só começa a desenhar depois de carregar tudo (mostrar "Carregando..." enquanto isso).
 
 ### 2.3 Desenho (`renderer.ts`)
 Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
-- [ ] `drawBoard`: chão + paredes. Dica: desenhar uma vez num canvas auxiliar e só copiar a cada frame.
-- [ ] `drawExit`: porta aberta se **eu** (`you`) tenho `coinsLeft === 0`, senão fechada.
-- [ ] `drawCoins`: moeda + um anel da cor do dono. As minhas com `ctx.globalAlpha = 1`, as dos outros com `0.35`.
-- [ ] `drawFreezeItem`: o gelo no chão (se houver).
-- [ ] `drawMonsters`: com animação.
+- [ ] **Fundo**: a imagem do mapa (`/maps/<mapa>.webp`) num `<img>` atrás de um `<canvas>` transparente do mesmo tamanho. Se a imagem ainda não existir, `drawBoard` desenha o mapa em blocos.
+- [ ] Modo de depuração (tecla F2): pinta as paredes do `.ber` de vermelho semitransparente por cima, para conferir se a arte bate com a grade.
+- [ ] `drawExit`: só se a tartaruga não estiver na imagem do mapa.
+- [ ] `drawDiamonds`: `item-diamond` em cada posição.
+- [ ] `drawPowerUps`: `item-speed`, `item-freeze` ou `item-enchant`.
+- [ ] `drawMonsters`: `shark-left`/`-right`; `shark-frozen-*` enquanto congelados; `shark-enchanted-*` na tela de quem está encantado 🔶.
 - [ ] `drawPlayers`:
-  - sprite `l1..l6` / `r1..r6` conforme `facing`, quadro = `Math.floor(performance.now() / 120) % 6`;
-  - anel ou contorno da cor do slot (ex.: 0 = azul, 1 = vermelho, 2 = verde, 3 = amarelo);
+  - sprite do peixe conforme `character` e `facing`;
   - nome em cima;
-  - cubinho de gelo pequeno no canto da casa se `hasFreeze`;
-  - pisca se invulnerável; tom azulado se congelado; não desenha se `dead`.
-- [ ] `drawHud` (pode ser HTML por cima do canvas, que é mais fácil): tempo restante, e para cada jogador nome, cor, moedas restantes, mortes e o ícone de gelo.
+  - ícone do power-up guardado (`icon-*`) no canto da casa;
+  - pisca se invulnerável; tom azulado se congelado; brilho/rastro se rápido; corações se encantado; não desenha se `dead`.
+- [ ] `drawHud` (pode ser HTML por cima do canvas, que é mais fácil): tempo restante e, para cada jogador, retrato (`portrait-*`), barra de diamantes (`diamonds-5/<n>` ou `diamonds-10/<n>`), mortes e power-up guardado.
 - [ ] `drawFrame(...)`: chama tudo na ordem acima.
 
 ### 2.4 Componente `GameScreen.tsx`
@@ -259,11 +286,11 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 
 ### 2.5 Controles (`input.ts`)
 - [ ] `createInput(mode: "online" | "local", send: (cmd) => void)`: registra `keydown` e devolve uma função que remove o listener.
-  - online: WASD/setas → `{ type: "move", dir }`; Espaço/E → `{ type: "freeze" }`;
-  - local: WASD/E → slot 0; setas/Enter → slot 1.
+  - online: WASD → `{ type: "move", dir }`; R → `{ type: "powerUp" }`;
+  - local: WASD/R → slot 0; setas/L → slot 1.
 - [ ] Usar `event.code` (`"KeyW"`, `"ArrowUp"`...) em vez de `event.key`, para funcionar com qualquer layout de teclado.
-- [ ] `event.preventDefault()` nas setas e no Espaço (para a página não rolar).
-- [ ] Botões de toque na tela (4 setas + gelo), que só aparecem em telas pequenas ou touch.
+- [ ] `event.preventDefault()` nas setas (para a página não rolar).
+- [ ] Botões de toque na tela (4 setas + power-up), que só aparecem em telas pequenas ou touch.
 - [ ] Por enquanto, `send` só faz `console.log`.
 
 **Pronto quando:** o estado falso aparece bem desenhado, se adapta ao tamanho da janela, as animações rodam e as teclas aparecem no console. O console precisa estar **sem warnings** (requisito do subject).
@@ -298,20 +325,21 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
   - `createGame(lobby, options)`: escolhe o mapa (`pickMap`), cria a `GameRoom`, coloca os sockets na room `game:<id>`, envia `game:start` para cada um (com o seu `you`) e faz a contagem 3-2-1 (`game:countdown`) antes do `start(now)`;
   - **timers por partida**: `setInterval(tickMonsters, MONSTER_INTERVAL_MS)`, `setInterval(tickSecond, 1000)` e `setInterval(broadcast, 50)`, que **só envia se `dirty`**, junto com a fila de `events`;
   - quando a `GameRoom` fica `finished`: para todos os timers, envia `game:end`, chama a gravação no banco (a função fica vazia até a Etapa 7), remove dos `Map`s e devolve o lobby ao estado "ready".
-- [ ] `gameSocket.ts`: registra `game:move`, `game:useFreeze` e `game:leave`:
+- [ ] `gameSocket.ts`: registra `game:move`, `game:usePowerUp` e `game:leave`:
   - descobre a partida e o slot pelo `socket.data.userId` (nunca pelo que vem do cliente);
   - **valida** os dados: `dir` tem de ser uma das 4 strings; senão ignora.
 - [ ] `lobby.ts`:
   - `MAX_PLAYERS` passa de 8 para **4**;
   - `startMatch` chama `gameManager.createGame`;
-  - novo evento `lobby:settings` (só o host): escolha do mapa (`"random"` ou um dos dois do tamanho atual);
+  - novo evento `lobby:settings` (só o host): número de jogadores (2, 3 ou 4) e mapa (`"random"` ou um de `mapsFor(n)`). O lobby passa a ter N vagas, e o Start só libera com as N preenchidas e todos *ready*;
+  - novo evento `lobby:character`: cada jogador escolhe o peixe; o servidor recusa um peixe que já foi escolhido no lobby;
   - remover a lógica de cliques (`match:*`).
 
 ### 4.2 Cliente
-- [ ] `Lobby.tsx`: seletor de mapa para o host (lista conforme o número de jogadores + "Aleatório").
-- [ ] `GameScreen.tsx`: troca o `fixtureState` pelos eventos reais (`game:start`, `game:countdown`, `game:state`, `game:event`, `game:end`) e o `send` do `input.ts` passa a emitir `game:move` / `game:useFreeze`.
+- [ ] Telas do lobby (com as artes de `interface/`): número de jogadores → mapa (`mapsFor(n)` + "Aleatório") → escolha de personagem (peixes já escolhidos aparecem bloqueados).
+- [ ] `GameScreen.tsx`: troca o `fixtureState` pelos eventos reais (`game:start`, `game:countdown`, `game:state`, `game:event`, `game:end`) e o `send` do `input.ts` passa a emitir `game:move` / `game:usePowerUp`.
 - [ ] Contagem 3-2-1 na tela.
-- [ ] Tela de fim: vencedor, moedas e mortes de cada um, botões "Voltar ao lobby" e "Sair".
+- [ ] Tela de fim: a tela `winner-<peixe>` com o nome do vencedor escrito pelo código, diamantes e mortes de cada um, botões "Voltar ao lobby" e "Sair".
 - [ ] Remover o Clicky: `MultiplayerGame.tsx`, o `Game.tsx` antigo e a rota `/game-result`.
 
 **Pronto quando:** partidas com 2, 3 e 4 jogadores em **computadores diferentes** (ou navegadores diferentes) do início ao fim, e **duas partidas ao mesmo tempo** sem se misturarem.
@@ -320,9 +348,9 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 
 ## Etapa 5: Modo local 1v1 (Luiz, 2 dias)
 
-- [ ] Botão **"Jogar local (1v1)"** no dashboard → tela simples para escolher o mapa pequeno (ou aleatório).
+- [ ] Botão **"Play local"** no menu → escolha do mapa (qualquer um que aceite 2 jogadores, ou aleatório) → escolha dos dois peixes.
 - [ ] Evento `local:start { map }` → o `gameManager` cria uma `GameRoom` com `local: true`: slot 0 = o usuário logado, slot 1 = `{ userId: null, username: "Convidado" }`.
-- [ ] No modo local, `game:move` e `game:useFreeze` recebem `{ slot, dir }`. O servidor só aceita `slot` 0 ou 1 e **só se** o socket for o dono da partida local.
+- [ ] No modo local, `game:move` e `game:usePowerUp` recebem `{ slot, dir }`. O servidor só aceita `slot` 0 ou 1 e **só se** o socket for o dono da partida local.
 - [ ] `input.ts` em modo `"local"`.
 - [ ] Partidas locais **não gravam** estatísticas 🔶.
 
@@ -356,10 +384,10 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [ ] **Se formos usar o Prisma**: instalar e criar o `schema.prisma` com `User`, `Match` e `MatchPlayer`, migrando também o que hoje está no `database.ts`.
 - [ ] Tabelas/modelos:
   - `Match`: `id`, `mapName`, `startedAt`, `endedAt`, `endReason` (`exit` | `timeout` | `forfeit`), `winnerId?`;
-  - `MatchPlayer`: `matchId`, `userId`, `slot`, `result` (`win` | `loss` | `draw` | `forfeit`), `coins`, `moves`, `deaths`, `finishMs?`.
+  - `MatchPlayer`: `matchId`, `userId`, `slot`, `character`, `result` (`win` | `loss` | `draw` | `forfeit`), `diamonds`, `moves`, `deaths`, `powerUpsUsed`, `finishMs?`.
 - [ ] `persistence.ts`: `saveMatch(room)` grava tudo **numa transação** (ou grava tudo, ou nada).
 - [ ] Rotas: `GET /api/users/:id/matches` (histórico paginado), `GET /api/users/:id/stats` (totais), `GET /api/leaderboard`.
-- [ ] Telas: **Histórico** (data, mapa, adversários, resultado, moedas, mortes), **Perfil** com os totais e % de vitórias, **Leaderboard**.
+- [ ] Telas: **Histórico** (data, mapa, personagem, adversários, resultado, diamantes, mortes), **Perfil** com os totais e % de vitórias, **Leaderboard**.
 - [ ] Remover as colunas antigas `wins`/`losses`/`multiplayer_*` da tabela `users`. Os totais passam a ser calculados a partir de `MatchPlayer`.
 
 **Pronto quando:** depois de algumas partidas, o histórico, o perfil e o leaderboard mostram os números certos.
@@ -372,8 +400,8 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 
 | Extra | Pts | Quem | Resumo |
 |---|---|---|---|
-| **Customização** | 1 | Luiz | O host escolhe o tempo (1/3/5 min), a velocidade dos monstros (lenta/normal/rápida) e liga/desliga o gelo. Como já temos mapas e o freeze, é pouco trabalho |
-| **Bot (IA)** | 2 | Luiz | Jogador controlado pelo servidor: busca em largura até a moeda mais próxima evitando monstros, reação de 250–450 ms, 10% de movimentos aleatórios, usa o gelo quando um humano está perto da porta |
+| **Customização** | 1 | Luiz | O host escolhe o tempo, a velocidade dos tubarões (lenta/normal/rápida) e quais power-ups ligar. Como já temos mapas, personagens e power-ups, é pouco trabalho |
+| **Bot (IA)** | 2 | Luiz | O "1 Player": você contra um jogador controlado pelo servidor. Busca em largura até o diamante mais próximo evitando tubarões, reação de 250–450 ms, 10% de movimentos aleatórios, usa os power-ups quando um humano está perto da tartaruga |
 | **Espectador** | 1 | Pedro | Botão "Assistir" nos lobbies em partida; recebe `game:state` sem controlar nada |
 | **Gamificação** | 1 | Duarte | Conquistas ("ganhou sem morrer", "menos de 60 movimentos", "10 vitórias") + XP/nível + o leaderboard |
 | **Torneio** | 1 | ? | Chaveamento de partidas 1v1 usando as `GameRoom` |
@@ -398,15 +426,15 @@ Isso **reprova o projeto** se faltar, então precisa andar em paralelo desde o i
 
 ## Etapa 9: Polimento e entrega (todos, última semana + contínuo)
 
-- [ ] Ajustar o cooldown, a velocidade dos monstros e o tempo de renascimento **jogando de verdade**.
+- [ ] Ajustar **jogando de verdade**: o cooldown, a quantidade e a velocidade dos tubarões, o tempo de renascimento, a duração e a frequência dos power-ups e o tempo de cada tamanho de mapa.
 - [ ] Testar em Chrome, Firefox e Edge.
 - [ ] Testar no celular (botões de toque).
 - [ ] Console limpo, sem warnings, em todas as telas.
 - [ ] README em inglês com todas as seções que o subject pede (incluindo as regras do jogo, as decisões técnicas, quem fez o quê e como usamos IA).
 - [ ] Ensaiar a demonstração:
-  - partida 1v1 em dois computadores até alguém sair pela porta;
+  - partida 1v1 em dois computadores até alguém chegar à tartaruga;
   - partida com 4 jogadores;
-  - morrer, renascer, usar o gelo;
+  - morrer, renascer, usar os 3 power-ups;
   - partida que acaba por tempo;
   - fechar a aba e reconectar; ficar fora mais de 30 s;
   - modo local 1v1;
