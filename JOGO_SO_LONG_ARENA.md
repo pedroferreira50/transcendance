@@ -61,7 +61,7 @@ Por que acho que é uma boa escolha:
 
 **Morte**
 - Quem morre **some do mapa por 3 segundos** 🔶 e renasce no seu ponto inicial.
-- **Não perde os diamantes** já coletados nem o power-up que estava guardando 🔶. A punição é perder tempo.
+- **Não perde os diamantes** já coletados, mas **perde o power-up** que estava guardando 🔶. A punição é perder tempo (e o power-up).
 - Ao renascer, fica 1 segundo invulnerável. Se o ponto inicial estiver ocupado, espera liberar.
 
 **Power-ups**
@@ -389,7 +389,7 @@ frontend/
 | Personagens | 4 peixes, escolhidos no lobby, sem repetir |
 | Jogadores bloqueiam uns aos outros? | Sim |
 | Diamantes | Sem dono, posições sorteadas. Meta 5 (pequeno) ou 10 (médio e grande). No mapa: meta × jogadores + 1. Ao atingir a meta, não pega mais |
-| Ao morrer perde diamantes? | Não. Some por 3 s e renasce |
+| Ao morrer perde diamantes? | Não. Perde só o power-up guardado. Some por 3 s e renasce |
 | Tubarões andam sobre diamantes? | Sim (e sobre power-ups), sem pegar nada |
 | Tubarões por mapa | 4 / 6 / 8, posições sorteadas (vamos ajustar) |
 | Pontos iniciais | Nas extremidades do mapa |

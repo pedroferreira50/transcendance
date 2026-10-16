@@ -163,10 +163,11 @@ class GameRoom {
     state: GameState;
     dirty: boolean;                    // true = algo mudou e precisa ser enviado
     events: GameEvent[];               // fila de eventos para o cliente (morte, diamante...)
+                                       // o servidor pega e esvazia com takeEvents()
 
     constructor(id: string, mapName: string, map: MapData, size: MapSize,
-                players: { userId: number | null; username: string; character: Character }[],
-                options: { local: boolean; now: number; random?: () => number });
+                players: PlayerInfo[],             // { userId, username, character }
+                options: RoomOptions);             // { local, random? }
 
     start(now: number): void;                       // status = "running", endsAt = now + timeLimitMs
     move(slot: number, dir: Direction, now: number): void;
@@ -175,14 +176,16 @@ class GameRoom {
     tickSecond(now: number): void;                  // chamado a cada 1 s
     leave(slot: number): void;                      // desistência
     setConnected(slot: number, connected: boolean, now: number): void;
-    snapshot(): DynamicState;                       // o que vai no game:state
+    takeEvents(): GameEvent[];                      // devolve os eventos e esvazia a fila
+    snapshot(now: number): DynamicState;            // o que vai no game:state (tempos = ms restantes)
 }
 ```
 
 Regras de cada método, **nesta ordem de verificação**:
 
-- [ ] **`constructor`**: copia as paredes e a tartaruga do `MapData`. `goal` vem de `SIZE_RULES[size]`. Cria um `Player` por jogador, com `slot` = índice, `pos` = `spawn` = `map.spawns[slot]`, `diamonds = 0`, `powerUp = null`. Sorteia os tubarões (`placeMonsters`) e depois os diamantes (`placeDiamonds`, `goal × jogadores + 1`). `status = "countdown"`.
-- [ ] **`move(slot, dir, now)`**:
+- [x] **`constructor`**: copia as paredes e a tartaruga do `MapData`. `goal` vem de `SIZE_RULES[size]`. Cria um `Player` por jogador, com `slot` = índice, `pos` = `spawn` = `map.spawns[slot]`, `diamonds = 0`, `powerUp = null`. Sorteia os tubarões (`placeMonsters`) e depois os diamantes (`placeDiamonds`, `goal × jogadores + 1`). `status = "countdown"`. Recusa (erro) um número de jogadores que o tamanho não aceita.
+- [x] **`start(now)`**: só a partir de `"countdown"`. `status = "running"`, `endsAt = now + timeLimitMs`, `nextPowerUpAt = now + POWERUP_INTERVAL_MS`.
+- [x] **`move(slot, dir, now)`**: (os eventos entram na parte 6)
   1. partida não está `"running"` → ignora;
   2. jogador não está `"playing"` (morto, desconectado, saiu) → ignora;
   3. `now < frozenUntil` → ignora;
@@ -195,48 +198,50 @@ Regras de cada método, **nesta ordem de verificação**:
   10. há tubarão no destino → `kill(player, now)`;
   11. destino é a tartaruga e `diamonds === goal` → `finish(slot, "exit")`;
   12. `dirty = true`.
-- [ ] **`usePowerUp(slot, now)`**: precisa estar `"running"`, o jogador `"playing"`, não congelado e com `powerUp`. Aplica o efeito e faz `powerUp = null`:
+- [x] **`usePowerUp(slot, now)`**: precisa estar `"running"`, o jogador `"playing"`, não congelado e com `powerUp`. Aplica o efeito e faz `powerUp = null`:
   - `speed`: `speedUntil = now + SPEED_DURATION_MS`;
   - `freeze`: para cada **outro** jogador vivo, `frozenUntil = now + FREEZE_DURATION_MS`, e `monstersFrozenUntil = now + FREEZE_DURATION_MS`;
   - `enchant`: `enchantedUntil = now + ENCHANT_DURATION_MS`.
 
   Evento `powerUpUsed`. `dirty = true`.
-- [ ] **`tickMonsters(now)`**: se `now < monstersFrozenUntil`, os tubarões não andam (mas continuam matando quem encostar). Senão, para cada tubarão, sorteia uma direção com `random()` (como o `rand() % 4` do so_long) e move se o destino **não** for parede, tartaruga nem outro tubarão. Diamantes e power-ups **não** bloqueiam (o tubarão passa por cima). Depois, para cada jogador vivo na mesma casa de um tubarão → `kill`.
-- [ ] **`kill(player, now)`** (privado): ignora se `now < invulnerableUntil` ou `now < enchantedUntil`. Senão: `status = "dead"`, `deaths++`, `respawnAt = now + RESPAWN_DELAY_MS`. Mantém os diamantes e o `powerUp` 🔶. Evento `death`.
-- [ ] **`tickSecond(now)`**:
+- [x] **`tickMonsters(now)`**: se `now < monstersFrozenUntil`, os tubarões não andam (mas continuam matando quem encostar). Senão, para cada tubarão, sorteia uma direção com `random()` (como o `rand() % 4` do so_long) e move se o destino **não** for parede, tartaruga nem outro tubarão. Diamantes e power-ups **não** bloqueiam (o tubarão passa por cima). Depois, para cada jogador `"playing"` na mesma casa de um tubarão → `kill` (feito mesmo com os tubarões congelados; desconectados não morrem).
+- [x] **`kill(player, now)`** (privado): ignora se `now < invulnerableUntil` ou `now < enchantedUntil`. Senão: `status = "dead"`, `deaths++`, `respawnAt = now + RESPAWN_DELAY_MS`. Mantém os diamantes e perde o `powerUp` (`powerUp = null`) 🔶. Evento `death`.
+- [x] **`tickSecond(now)`**:
   1. `now >= endsAt` → `finish(null, "timeout")` (vencedor = mais diamantes; empate no topo = sem vencedor);
   2. jogadores `"dead"` com `now >= respawnAt` **e** spawn livre (sem jogador vivo e sem tubarão em cima) → `status = "playing"`, `pos = spawn`, `invulnerableUntil = now + INVULNERABLE_MS`;
   3. jogadores `"disconnected"` há mais de `RECONNECT_TIMEOUT_MS` → `leave(slot)`;
   4. `now >= nextPowerUpAt` e menos de `MAX_POWERUPS_ON_MAP` no mapa → `placePowerUp`; `nextPowerUpAt = now + POWERUP_INTERVAL_MS`.
-- [ ] **`leave(slot)`**: `status = "left"`. Se sobrar só 1 jogador ativo (playing, dead ou disconnected) → `finish(esse, "forfeit")`.
-- [ ] **`finish(winnerSlot, reason)`**: `status = "finished"`, guarda `winnerSlot` e `endReason`. Depois disso, todos os métodos ignoram chamadas.
-- [ ] **`snapshot()`**: devolve só o que o cliente precisa (sem `walls`, que vão uma vez só no início).
+- [x] **`leave(slot)`**: `status = "left"`. Se sobrar só 1 jogador ativo (playing, dead ou disconnected) → `finish(esse, "forfeit")`. Vale também na contagem.
+- [x] **`setConnected(slot, connected, now)`**: ao cair, guarda `disconnectedAt`; quem estava `"playing"` vira `"disconnected"` (fica parado, bloqueia, tubarão não mata). Quem estava morto continua `"dead"` e só renasce depois de voltar. Ao voltar, `disconnectedAt = null` e `"disconnected"` → `"playing"`.
+- [x] **Eventos** (`GameEvent` em `types.ts`): `diamond`, `powerUpPickup`, `powerUpUsed`, `death`.
+- [x] **`finish(winnerSlot, reason)`**: `status = "finished"`, guarda `winnerSlot` e `endReason`. Depois disso, todos os métodos ignoram chamadas.
+- [x] **`snapshot(now)`**: devolve só o que o cliente precisa (`DynamicState` em `types.ts`; sem `walls` nem `userId`). Os tempos vão como **ms restantes** (`timeLeftMs`, `frozenMs`...), assim o relógio do navegador não precisa estar certo.
 
-### 1.5 Testes do motor (`gameRoom.test.ts`)
-Usem um **mapa pequeno escrito dentro do teste** (string), um `now` controlado e um `random` fixo. Para testar regras específicas, o teste pode colocar diamantes, tubarões e power-ups à mão no `state` depois do construtor. Casos mínimos:
-- [ ] o construtor sorteia `goal × jogadores + 1` diamantes e o número certo de tubarões;
-- [ ] não anda antes do `start`;
-- [ ] parede bloqueia;
-- [ ] cooldown: dois `move` com 100 ms de diferença → só o primeiro vale; com 150 ms → os dois valem;
-- [ ] jogador bloqueia jogador;
-- [ ] pega diamante; com a meta atingida, passa por cima **sem** pegar;
-- [ ] tartaruga sem a meta → não termina;
-- [ ] tartaruga com a meta → termina e esse jogador vence;
-- [ ] andar para cima de um tubarão → morre;
-- [ ] tubarão anda para cima do jogador → morre;
-- [ ] tubarão passa por cima de diamante e power-up sem removê-los, e não entra na tartaruga nem em outro tubarão;
-- [ ] morto renasce depois de 3 s, no spawn, e fica invulnerável 1 s;
-- [ ] renascimento espera se o spawn estiver ocupado;
-- [ ] morto não bloqueia ninguém e não pode se mover;
-- [ ] power-up aparece a cada 5 s, no máximo 3 no mapa;
-- [ ] não pega um segundo power-up se já tem um;
-- [ ] velocidade: com 75 ms de diferença, os dois movimentos valem, e depois de 5 s volta ao normal;
-- [ ] congelar: adversários e tubarões param 2 s, quem usou anda; encostar num tubarão congelado ainda mata;
-- [ ] encantar: encostar num tubarão não mata por 5 s, e depois volta a matar;
-- [ ] tempo acaba → vence quem tem mais diamantes; empate → `winnerSlot = null`;
-- [ ] `leave` com 2 jogadores → o outro vence;
-- [ ] desconectado há mais de 30 s → perde;
-- [ ] depois de `finished`, nada mais muda.
+### 1.5 Testes do motor (`gameRoom.test.ts`) ✅
+Usam os mapas reais `small-1` (e `medium-1` para 3 jogadores), um `now` controlado e um `random` fixo (`seeded`, ou `always(dir)` para mandar os tubarões para um lado). Para testar regras específicas, o teste pode colocar diamantes, tubarões e power-ups à mão no `state` depois do construtor. Casos mínimos:
+- [x] o construtor sorteia `goal × jogadores + 1` diamantes e o número certo de tubarões;
+- [x] não anda antes do `start`;
+- [x] parede bloqueia;
+- [x] cooldown: dois `move` com 100 ms de diferença → só o primeiro vale; com 150 ms → os dois valem;
+- [x] jogador bloqueia jogador;
+- [x] pega diamante; com a meta atingida, passa por cima **sem** pegar;
+- [x] tartaruga sem a meta → não termina;
+- [x] tartaruga com a meta → termina e esse jogador vence;
+- [x] andar para cima de um tubarão → morre;
+- [x] tubarão anda para cima do jogador → morre;
+- [x] tubarão passa por cima de diamante e power-up sem removê-los, e não entra na tartaruga nem em outro tubarão;
+- [x] morto renasce depois de 3 s, no spawn, e fica invulnerável 1 s;
+- [x] renascimento espera se o spawn estiver ocupado;
+- [x] morto não bloqueia ninguém e não pode se mover;
+- [x] power-up aparece a cada 5 s, no máximo 3 no mapa;
+- [x] não pega um segundo power-up se já tem um;
+- [x] velocidade: com 75 ms de diferença, os dois movimentos valem, e depois de 5 s volta ao normal;
+- [x] congelar: adversários e tubarões param 2 s, quem usou anda; encostar num tubarão congelado ainda mata;
+- [x] encantar: encostar num tubarão não mata por 5 s, e depois volta a matar;
+- [x] tempo acaba → vence quem tem mais diamantes; empate → `winnerSlot = null`;
+- [x] `leave` com 2 jogadores → o outro vence;
+- [x] desconectado há mais de 30 s → perde;
+- [x] depois de `finished`, nada mais muda.
 
 ### 1.6 Jogar no terminal (`debug.ts`)
 Um script para testar "na mão", o "so_long no terminal":
