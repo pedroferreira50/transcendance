@@ -48,6 +48,8 @@ export type PowerUp = {
 	pos: Position 
 };
 
+export type EndReason = "exit" | "timeout" | "forfeit";
+
 export type GameState = {
 	id: string;
 	mapName: string;
@@ -65,5 +67,46 @@ export type GameState = {
 	endsAt: number;
 	status: "countdown" | "running" | "finished";
 	winnerSlot: number | null;
+	endReason: EndReason | null;
 	local: boolean; // local 1v1 match
+};
+
+// Something that happened, for the client to show (sound, "+1", animation)
+export type GameEvent =
+	| { type: "diamond"; slot: number; pos: Position }
+	| { type: "powerUpPickup"; slot: number; powerUp: PowerUpType }
+	| { type: "powerUpUsed"; slot: number; powerUp: PowerUpType }
+	| { type: "death"; slot: number; pos: Position };
+
+// What the client sees of a player
+export type PlayerView = {
+	slot: number;
+	username: string;
+	character: Character;
+	pos: Position;
+	diamonds: number;
+	moves: number;
+	deaths: number;
+	facing: "left" | "right";
+	status: PlayerStatus;
+	powerUp: PowerUpType | null;
+	respawnMs: number;
+	invulnerableMs: number;
+	frozenMs: number;
+	speedMs: number;
+	enchantedMs: number;
+};
+
+// What goes in each game:state (the walls and the turtle go only once, at the start)
+export type DynamicState = {
+	status: GameState["status"];
+	timeLeftMs: number;
+	goal: number;
+	players: PlayerView[];
+	monsters: Position[];
+	monstersFrozenMs: number;
+	diamonds: Position[];
+	powerUps: PowerUp[];
+	winnerSlot: number | null;
+	endReason: EndReason | null;
 };

@@ -3,16 +3,7 @@ import { MONSTER_MIN_SPAWN_DISTANCE, SIZE_RULES, diamondCount, MAX_POWERUPS_ON_M
 import { loadMap, MAPS, parseMap } from "../mapLoader";
 import { distancesFrom, freeCells, placeDiamonds, placeMonsters, placePowerUp, posKey, POWERUP_TYPES } from "../placement";
 import type { GameState, MapData, Player, Position } from "../types";
-
-// Same seed -> same numbers (mulberry32)
-function seeded(seed: number): () => number {
-	return () => {
-		seed = (seed + 0x6d2b79f5) | 0;
-		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
+import { seeded } from "./helpers";
 
 const SMALL = parseMap([
 	"111111111",
@@ -40,7 +31,7 @@ function state(map: MapData, parts: Partial<GameState> = {}): GameState {
 	return {
 		id: "t", mapName: "test", width: map.width, height: map.height, walls: map.walls, exit: map.exit,
 		goal: 5, players: [], monsters: [], monstersFrozenUntil: 0, diamonds: [], powerUps: [],
-		nextPowerUpAt: 0, endsAt: 0, status: "running", winnerSlot: null, local: false, ...parts,
+		nextPowerUpAt: 0, endsAt: 0, status: "running", winnerSlot: null, endReason: null, local: false, ...parts,
 	};
 }
 
