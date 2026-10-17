@@ -21,15 +21,26 @@ const io = new Server(httpServer, {
 
 setupLobby(io);
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 app.post("/register", async (req, res) => {
     const { username, password, email } = req.body;
 
-    if (!username || !password) {
+    if (!username || !password || !email) {
         res.status(400).json({
-            message: "Username and password are required."
+            message: "Username, email and password are required."
         });
         return;
     }
+
+    if (typeof email !== "string" || email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
+        res.status(400).json({
+            message: "Invalid email."
+        });
+        return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     try {
         const passwordHash = await argon2.hash(password);
@@ -39,7 +50,7 @@ app.post("/register", async (req, res) => {
             VALUES (?, ?, ?)
         `);
 
-        statement.run(username, email, passwordHash);
+        statement.run(username, normalizedEmail, passwordHash);
 
         console.log(`User registered: ${username}`);
 
@@ -47,6 +58,16 @@ app.post("/register", async (req, res) => {
             message: "Registration successful!"
         });
     } catch (error) {
+        if (
+            error instanceof Error &&
+            error.message.includes("UNIQUE constraint failed: users.email")
+        ) {
+            res.status(409).json({
+                message: "Email is already in use."
+            });
+            return;
+        }
+
         if (
             error instanceof Error &&
             error.message.includes("UNIQUE constraint failed")

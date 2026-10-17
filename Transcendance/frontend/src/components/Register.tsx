@@ -6,6 +6,8 @@ type RegisterProps = {
     onLogin: () => void;
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function Register({ onLogin }: RegisterProps) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -21,6 +23,11 @@ function Register({ onLogin }: RegisterProps) {
 			return;
 		}
 
+		if (!EMAIL_REGEX.test(email.trim())) {
+			setMessage("Please enter a valid email.");
+			return;
+		}
+
 		if (password === "") {
 			setMessage("Password cannot be empty.");
 			return;
@@ -33,7 +40,7 @@ function Register({ onLogin }: RegisterProps) {
 
 		const user: User = {
 			username: username,
-			email: email,
+			email: email.trim(),
 			password: password
 		};
 
