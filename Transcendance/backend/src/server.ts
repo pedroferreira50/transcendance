@@ -22,7 +22,7 @@ const io = new Server(httpServer, {
 setupLobby(io);
 
 app.post("/register", async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, email } = req.body;
 
     if (!username || !password) {
         res.status(400).json({
@@ -35,11 +35,11 @@ app.post("/register", async (req, res) => {
         const passwordHash = await argon2.hash(password);
 
         const statement = db.prepare(`
-            INSERT INTO users (username, password_hash)
-            VALUES (?, ?)
+            INSERT INTO users (username, email, password_hash)
+            VALUES (?, ?, ?)
         `);
 
-        statement.run(username, passwordHash);
+        statement.run(username, email, passwordHash);
 
         console.log(`User registered: ${username}`);
 

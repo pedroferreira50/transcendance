@@ -8,6 +8,7 @@ type RegisterProps = {
 
 function Register({ onLogin }: RegisterProps) {
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -32,6 +33,7 @@ function Register({ onLogin }: RegisterProps) {
 
 		const user: User = {
 			username: username,
+			email: email,
 			password: password
 		};
 
@@ -71,6 +73,13 @@ function Register({ onLogin }: RegisterProps) {
                     placeholder="Username"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                 />
 
                 <input
