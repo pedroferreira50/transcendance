@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { User } from "../types/User";
+import { api } from "../api";
 import loginBackground from "../assets/login-background.gif";
 
 type RegisterProps = {
@@ -45,7 +46,7 @@ function Register({ onLogin }: RegisterProps) {
 		};
 
 		try {
-			const response = await fetch("http://localhost:3000/register", {
+			const response = await api("/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"

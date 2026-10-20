@@ -7,6 +7,7 @@ import LobbySelect from "./components/LobbySelect";
 import Lobby from "./components/Lobby";
 import type { MatchStart, LobbyState } from "./components/Lobby";
 import MultiplayerGame from "./components/MultiplayerGame";
+import { api } from "./api";
 
 function App() {
     const [page, setPage] = useState<"login" | "register" | "dashboard" | "game" | "lobbySelect" | "lobby" | "multiplayerGame">("login");
@@ -100,7 +101,7 @@ function App() {
         <Game
             onGameEnd={async (won) => {
                 try {
-                    const response = await fetch("http://localhost:3000/game-result", {
+                    const response = await api("/game-result", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
