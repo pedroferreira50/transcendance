@@ -1,4 +1,4 @@
-import "./config";
+import { FRONTEND_ORIGIN } from "./config";
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
@@ -10,14 +10,18 @@ import authRoutes from "./authRoutes";
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: FRONTEND_ORIGIN,
+    credentials: true
+}));
 app.use(express.json());
 app.use(authRoutes);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "*"
+        origin: FRONTEND_ORIGIN,
+        credentials: true
     }
 });
 
