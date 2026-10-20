@@ -245,11 +245,11 @@ Usam os mapas reais `small-1` (e `medium-1` para 3 jogadores), um `now` controla
 
 ### 1.6 Jogar no terminal (`debug.ts`)
 Um script para testar "na mão", o "so_long no terminal":
-- [ ] carrega um mapa pequeno com 2 jogadores (modo local);
-- [ ] imprime o mapa em ASCII a cada mudança (`#` parede, `A`/`B` jogadores, `$` diamante, `M` tubarão, `E` tartaruga, `s`/`f`/`e` power-ups, mais tempo, diamantes e power-up guardado);
-- [ ] lê o teclado com `readline` (`process.stdin.setRawMode(true)`): WASD/R para o jogador 1 e IJKL/O para o jogador 2 (as setas no terminal são chatas de ler);
-- [ ] `setInterval` chamando `tickMonsters` e `tickSecond`;
-- [ ] rodar com `npx tsx src/game/debug.ts`.
+- [x] carrega um mapa com 2 jogadores (modo local); o padrão é `small-1`, e dá para escolher outro: `npm run debug medium-1`;
+- [x] imprime o mapa em ASCII a cada mudança (`#` parede, `A`/`B` jogadores, `$` diamante, `M` tubarão, `E` tartaruga, `s`/`f`/`e` power-ups, mais tempo, diamantes e power-up guardado);
+- [x] lê o teclado com `readline` (`process.stdin.setRawMode(true)`): WASD + R para o jogador 1 e setas + L para o jogador 2 (as mesmas teclas do modo local do jogo); Q ou Ctrl+C sai;
+- [x] `setInterval` chamando `tickMonsters` e `tickSecond`;
+- [x] rodar com `npm run debug` (dentro de `backend/`).
 
 **Pronto quando:** `npm test` passa tudo e dá para jogar uma partida inteira no terminal.
 
@@ -260,34 +260,35 @@ Um script para testar "na mão", o "so_long no terminal":
 **Objetivo:** desenhar o jogo num `<canvas>` a partir de um estado **falso**, sem precisar do backend. Pode ser feita ao mesmo tempo que a Etapa 1.
 
 ### 2.1 Tipos compartilhados
-- [ ] `frontend/src/game/protocol.ts`: os tipos `Position`, `Direction`, `DynamicState`, `MapInfo` (`width`, `height`, `walls`, `exit`) e os nomes dos eventos. **Cópia idêntica** do `backend/src/game/protocol.ts`. Se mudar num, muda no outro.
-- [ ] `frontend/src/game/fixtureState.ts`: um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns tubarões e diamantes, power-ups no chão, um jogador com power-up guardado, outro congelado).
+- [x] `frontend/src/game/protocol.ts`: os tipos que o navegador recebe (`Position`, `DynamicState`, `PlayerView`, `GameEvent`, `MapInfo`...). **Cópia** dos mesmos tipos de `backend/src/game/types.ts`: se mudar num, muda no outro. O teste `backend/src/game/__tests__/protocol.test.ts` falha se estiverem diferentes. (Os nomes das mensagens do socket ficam para a Etapa 3.)
+- [x] `frontend/src/game/fixtureState.ts` (`fixtureMap` + `fixtureState`, no mapa `small-1`): um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns tubarões e diamantes, power-ups no chão, um jogador com power-up guardado, outro congelado).
 
 ### 2.2 Carregar as sprites (`sprites.ts`)
-- [ ] `loadSprites(): Promise<Sprites>`: cria um `Image` para cada PNG e espera todos carregarem (`img.onload`). Sprites: os 4 peixes (`-left`/`-right`), `portrait-*`, `shark-*` (normal, `frozen`, `enchanted`), `item-*`, `icon-*`, `exit-turtle`, `diamonds-5/*`, `diamonds-10/*`.
-- [ ] O jogo só começa a desenhar depois de carregar tudo (mostrar "Carregando..." enquanto isso).
+- [x] `loadSprites(): Promise<Sprites>` (`Sprites` = nome → imagem, ex.: `sprites["goldfish-right"]`; 45 imagens): cria um `Image` para cada `.webp` e espera todos carregarem (`img.onload`). Sprites: os 4 peixes (`-left`/`-right`), `portrait-*`, `shark-*` (normal, `frozen`, `enchanted`), `item-*`, `icon-*`, `exit-turtle`, `bubble`, `diamonds-5/*`, `diamonds-10/*`.
+- [x] O jogo só começa a desenhar depois de carregar tudo (mostrar "Carregando..." enquanto isso).
 
 ### 2.3 Desenho (`renderer.ts`)
 Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
-- [ ] **Fundo**: a imagem do mapa (`/maps/<mapa>.webp`) num `<img>` atrás de um `<canvas>` transparente do mesmo tamanho. Se a imagem ainda não existir, `drawBoard` desenha o mapa em blocos.
-- [ ] Modo de depuração (tecla F2): pinta as paredes do `.ber` de vermelho semitransparente por cima, para conferir se a arte bate com a grade.
-- [ ] `drawExit`: só se a tartaruga não estiver na imagem do mapa.
-- [ ] `drawDiamonds`: `item-diamond` em cada posição.
-- [ ] `drawPowerUps`: `item-speed`, `item-freeze` ou `item-enchant`.
-- [ ] `drawMonsters`: `shark-left`/`-right`; `shark-frozen-*` enquanto congelados; `shark-enchanted-*` na tela de quem está encantado 🔶.
-- [ ] `drawPlayers`:
+- [x] `drawBoard`: o mapa em blocos (parede escura, chão em xadrez de dois azuis).
+- [x] **Fundo**: a imagem do mapa (`/maps/<mapa>.webp`, 64 px por casa) desenhada no lugar dos blocos. Só é pedida para os mapas da lista `MAPS_WITH_IMAGE` em `sprites.ts` (um 404 aparece como erro no console). Feito: `small-1`.
+- [x] Modo de depuração (tecla F2): pinta as paredes do `.ber` de vermelho semitransparente por cima, para conferir se a arte bate com a grade.
+- [x] Tartaruga: só nos mapas sem imagem (dentro do `drawBoard`); nas imagens, ela já está desenhada.
+- [x] `drawDiamonds`: `item-diamond` em cada posição.
+- [x] `drawPowerUps`: `item-speed`, `item-freeze` ou `item-enchant`.
+- [x] `drawMonsters` (o lado para onde olha vem de como o tubarão se moveu, `trackSharks`): `shark-left`/`-right`; `shark-frozen-*` enquanto congelados; `shark-enchanted-*` na tela de quem está encantado 🔶.
+- [x] `drawPlayers` (velocidade = rastro; congelado = bloco de gelo; encantado = corações girando):
   - sprite do peixe conforme `character` e `facing`;
   - nome em cima;
   - ícone do power-up guardado (`icon-*`) no canto da casa;
   - pisca se invulnerável; tom azulado se congelado; brilho/rastro se rápido; corações se encantado; não desenha se `dead`.
-- [ ] `drawHud` (pode ser HTML por cima do canvas, que é mais fácil): tempo restante e, para cada jogador, retrato (`portrait-*`), barra de diamantes (`diamonds-5/<n>` ou `diamonds-10/<n>`), mortes e power-up guardado.
-- [ ] `drawFrame(...)`: chama tudo na ordem acima.
+- [x] `drawHud` (no próprio canvas, sobre a borda do mapa, como no `interface/game-mockup.webp`): relógio no meio em cima (vermelho nos últimos 10 s) e, para cada jogador, retrato (`portrait-*`, apagado se morto/desconectado, com os segundos para renascer), barra de diamantes (`diamonds-5/<n>` ou `diamonds-10/<n>`), bolha com o power-up guardado (`bubble` + `icon-*`) e mortes. Jogadores 0 e 1 em cima, 2 e 3 embaixo (pares a partir da esquerda, ímpares da direita). Sem palavras, só números e ícones (não precisa de i18n).
+- [x] `drawFrame(frame)`: chama tudo na ordem acima (recebe um objeto `Frame` com tudo o que precisa).
 
 ### 2.4 Componente `GameScreen.tsx`
-- [ ] Um `<canvas>` com `useRef`.
-- [ ] Calcula o tamanho da casa: `tile = Math.floor(Math.min(largura / map.width, altura / map.height))`, e recalcula no `resize` da janela.
-- [ ] Laço com `requestAnimationFrame(drawFrame)`, cancelado no unmount (`cancelAnimationFrame` no retorno do `useEffect`).
-- [ ] Por enquanto usa o `fixtureState`.
+- [x] Um `<canvas>` com `useRef`. Temporário: abrir em `http://localhost:5173/?game` (desvio em `main.tsx`).
+- [x] Calcula o tamanho da casa: `tile = Math.floor(Math.min(largura / map.width, altura / map.height))`, **no máximo 64** (o tamanho em que as sprites e os mapas foram feitos: nunca esticar), a cada quadro. Usa o `devicePixelRatio` para ficar nítido em telas com zoom.
+- [x] Laço com `requestAnimationFrame(drawFrame)`, cancelado no unmount (`cancelAnimationFrame` no retorno do `useEffect`).
+- [x] Por enquanto usa o `fixtureState`.
 
 ### 2.5 Controles (`input.ts`)
 - [ ] `createInput(mode: "online" | "local", send: (cmd) => void)`: registra `keydown` e devolve uma função que remove o listener.
