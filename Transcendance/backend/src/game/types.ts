@@ -99,7 +99,7 @@ export type PlayerView = {
 
 // What goes in each game:state (the walls and the turtle go only once, at the start)
 export type DynamicState = {
-	status: GameState["status"];
+	status: "countdown" | "running" | "finished";
 	timeLeftMs: number;
 	goal: number;
 	players: PlayerView[];
@@ -109,4 +109,13 @@ export type DynamicState = {
 	powerUps: PowerUp[];
 	winnerSlot: number | null;
 	endReason: EndReason | null;
+};
+
+// What goes in game:start, only once (the fixed part of the map)
+export type MapInfo = {
+	name: string; // to find /maps/<name>.webp
+	width: number;
+	height: number;
+	walls: boolean[][]; // [y][x], true = wall
+	exit: Position;
 };
