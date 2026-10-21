@@ -1,6 +1,7 @@
 import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
+import { setAuthCookie } from "./auth";
 
 const router = Router();
 
@@ -115,6 +116,8 @@ router.post("/login", async (req, res) => {
             });
             return;
         }
+
+        setAuthCookie(res, user.id);
 
         res.json({
             message: "Login successful!",
