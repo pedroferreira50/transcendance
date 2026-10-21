@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { fixtureMap, fixtureState } from "../game/fixtureState";
+import { createInput, type Command, type InputMode } from "../game/input";
 import { drawFrame, trackSharks, type SharkMemory } from "../game/renderer";
 import { loadMapImage, loadSprites, type Sprites } from "../game/sprites";
+import TouchControls from "./TouchControls";
 
 // The size the sprites and the map images were made at: never stretch them beyond it
 const MAX_TILE = 64;
@@ -11,13 +13,20 @@ type Assets = {
 	mapImage: HTMLImageElement | null;
 };
 
+// TEMPORARY: without the server yet, the commands only go to the console (F12)
+function logCommand(command: Command): void {
+	console.log(command);
+}
+
 // The match screen. For now it draws the fake state (fixtureState), without the server
-export default function GameScreen() {
+export default function GameScreen({ mode }: { mode: InputMode }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const showWalls = useRef(false);
 	const sharks = useRef<SharkMemory>({ last: [], facing: [] });
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
+	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
 	// Once, when the screen opens: load the sprites and the image of the map
 	useEffect(() => {
@@ -35,6 +44,11 @@ export default function GameScreen() {
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
 	}, []);
+
+	// The keys of the game (createInput already returns the function that removes them)
+	useEffect(() => 
+		createInput(mode, logCommand)
+	, [mode]);
 
 	// When everything is loaded: draw at every frame of the screen, until the component closes
 	useEffect(() => {
@@ -69,7 +83,7 @@ export default function GameScreen() {
 				state: fixtureState,
 				tile,
 				now,
-				mySlot: null,
+				mySlot: mode === "online" ? 0 : null, // online, in the fake state "I" am player 0
 				showWalls: showWalls.current,
 				sharks: sharks.current,
 			});
@@ -77,7 +91,7 @@ export default function GameScreen() {
 		};
 		frame = requestAnimationFrame(draw);
 		return () => cancelAnimationFrame(frame);
-	}, [assets]);
+	}, [assets, mode]);
 
 	if (error)
 		return <p>{error}</p>;
@@ -86,6 +100,7 @@ export default function GameScreen() {
 	return (
 		<div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#000" }}>
 			<canvas ref={canvasRef} />
+			{touch && mode === "online" && <TouchControls send={logCommand} />}
 		</div>
 	);
 }

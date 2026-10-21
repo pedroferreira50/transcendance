@@ -291,13 +291,14 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [x] Por enquanto usa o `fixtureState`.
 
 ### 2.5 Controles (`input.ts`)
-- [ ] `createInput(mode: "online" | "local", send: (cmd) => void)`: registra `keydown` e devolve uma função que remove o listener.
-  - online: WASD → `{ type: "move", dir }`; R → `{ type: "powerUp" }`;
-  - local: WASD/R → slot 0; setas/L → slot 1.
-- [ ] Usar `event.code` (`"KeyW"`, `"ArrowUp"`...) em vez de `event.key`, para funcionar com qualquer layout de teclado.
-- [ ] `event.preventDefault()` nas setas (para a página não rolar).
-- [ ] Botões de toque na tela (4 setas + power-up), que só aparecem em telas pequenas ou touch.
-- [ ] Por enquanto, `send` só faz `console.log`.
+- [x] `createInput(mode: "online" | "local", send: (command) => void)`: registra `keydown` e devolve a função que remove o listener (usada direto como limpeza do `useEffect`).
+  - online: WASD ou setas → `{ type: "move", dir }`; R ou L → `{ type: "powerUp" }` (as duas mãos movem o seu peixe);
+  - local: WASD/R → `slot: 0`; setas/L → `slot: 1`.
+  - Ignora teclas com Ctrl/Alt/Cmd (atalhos do navegador) e teclas digitadas em campos de texto (o chat, depois).
+- [x] Usar `event.code` (`"KeyW"`, `"ArrowUp"`...) em vez de `event.key`, para funcionar com qualquer layout de teclado.
+- [x] `event.preventDefault()` nas teclas do jogo (as setas rolariam a página).
+- [x] Botões de toque (`TouchControls.tsx`: 4 setas embaixo à esquerda + bolha de power-up embaixo à direita), só em celulares e tablets (`matchMedia("(pointer: coarse)")`) e só no modo online. Segurar uma seta repete o movimento a cada 50 ms (mais rápido que qualquer cooldown, inclusive os 75 ms com velocidade; o servidor ignora os extras, como quando se segura uma tecla).
+- [x] Por enquanto, `send` só faz `console.log` (F12). Temporário: `/?game` = online, `/?game=local` = modo local.
 
 **Pronto quando:** o estado falso aparece bem desenhado, se adapta ao tamanho da janela, as animações rodam e as teclas aparecem no console. O console precisa estar **sem warnings** (requisito do subject).
 

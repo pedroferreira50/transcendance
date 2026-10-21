@@ -2,7 +2,7 @@
 import type { DynamicState, MapInfo, PlayerView, Position } from "./protocol";
 import type { Sprites } from "./sprites";
 
-type Facing = "left" | "right";
+type Facing = PlayerView["facing"];
 
 // The server only sends where each shark is: the side it faces comes from how it moved
 export type SharkMemory = {

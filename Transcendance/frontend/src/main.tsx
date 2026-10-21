@@ -5,10 +5,11 @@ import App from './App.tsx'
 import GameScreen from './components/GameScreen.tsx'
 
 // TEMPORARY (Etapa 2): http://localhost:5173/?game opens the match screen with the fake state
-const preview = new URLSearchParams(window.location.search).has('game')
+// (?game=local: the keys of the two players of the local mode)
+const game = new URLSearchParams(window.location.search).get('game')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {preview ? <GameScreen /> : <App />}
+    {game !== null ? <GameScreen mode={game === 'local' ? 'local' : 'online'} /> : <App />}
   </StrictMode>,
 )
