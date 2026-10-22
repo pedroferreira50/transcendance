@@ -274,7 +274,7 @@ O servidor **sempre valida** o que recebe e ignora qualquer valor estranho.
 
 | MiniLibX | Canvas |
 |---|---|
-| `mlx_xpm_file_to_image` | `img.src = "/sprites/shark-left.png"` |
+| `mlx_xpm_file_to_image` | `img.src = "/sprites/shark-left.webp"` |
 | `mlx_put_image_to_window` | `ctx.drawImage(img, x, y, size, size)` |
 | `mlx_loop_hook` | `requestAnimationFrame` |
 | `mlx_key_hook` | `addEventListener("keydown")` |
