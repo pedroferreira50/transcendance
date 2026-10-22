@@ -1,7 +1,7 @@
 import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
-import { setAuthCookie } from "./auth";
+import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
 
 const router = Router();
 
@@ -133,6 +133,56 @@ router.post("/login", async (req, res) => {
             message: "Could not log in."
         });
     }
+});
+
+router.get("/me", requireAuth, (req, res) => {
+    try {
+        const statement = db.prepare(`
+            SELECT username, wins, losses, multiplayer_wins, multiplayer_losses
+            FROM users
+            WHERE id = ?
+        `);
+
+        const user = statement.get(req.userId) as
+            | {
+                  username: string;
+                  wins: number;
+                  losses: number;
+                  multiplayer_wins: number;
+                  multiplayer_losses: number;
+              }
+            | undefined;
+
+        if (!user) {
+            clearAuthCookie(res);
+            res.status(404).json({
+                message: "User not found."
+            });
+            return;
+        }
+
+        res.json({
+            username: user.username,
+            wins: user.wins,
+            losses: user.losses,
+            multiplayerWins: user.multiplayer_wins,
+            multiplayerLosses: user.multiplayer_losses
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Could not load user."
+        });
+    }
+});
+
+router.post("/logout", (req, res) => {
+    clearAuthCookie(res);
+
+    res.json({
+        message: "Logged out."
+    });
 });
 
 export default router;
