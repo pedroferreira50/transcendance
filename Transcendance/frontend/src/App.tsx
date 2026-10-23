@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
@@ -8,6 +8,7 @@ import Lobby from "./components/Lobby";
 import type { MatchStart, LobbyState } from "./components/Lobby";
 import MultiplayerGame from "./components/MultiplayerGame";
 import { api } from "./api";
+import { socket } from "./socket";
 
 function App() {
     const [page, setPage] = useState<"login" | "register" | "dashboard" | "game" | "lobbySelect" | "lobby" | "multiplayerGame">("login");
@@ -18,6 +19,52 @@ function App() {
     const [multiplayerLosses, setMultiplayerLosses] = useState(0);
     const [match, setMatch] = useState<MatchStart | null>(null);
     const [lobby, setLobby] = useState<LobbyState | null>(null);
+    const [checkingSession, setCheckingSession] = useState(true);
+
+    useEffect(() => {
+        async function checkSession() {
+            try {
+                const response = await api("/me");
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    setUsername(data.username);
+                    setSoloWins(data.wins);
+                    setSoloLosses(data.losses);
+                    setMultiplayerWins(data.multiplayerWins);
+                    setMultiplayerLosses(data.multiplayerLosses);
+                    setPage("dashboard");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+
+            setCheckingSession(false);
+        }
+
+        checkSession();
+    }, []);
+
+    async function handleLogout() {
+        try {
+            await api("/logout", {
+                method: "POST"
+            });
+        } catch (error) {
+            console.error(error);
+        }
+
+        socket.disconnect();
+        setUsername("");
+        setLobby(null);
+        setMatch(null);
+        setPage("login");
+    }
+
+    if (checkingSession) {
+        return <p>Loading...</p>;
+    }
 
     if (page === "login") {
         return (
@@ -51,7 +98,7 @@ function App() {
                 soloLosses={soloLosses}
                 multiplayerWins={multiplayerWins}
                 multiplayerLosses={multiplayerLosses}
-                onLogout={() => setPage("login")}
+                onLogout={handleLogout}
                 onPlaySolo={() => setPage("game")}
                 onPlayMultiplayer={() => setPage("lobbySelect")}
             />
