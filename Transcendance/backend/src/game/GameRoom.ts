@@ -279,7 +279,7 @@ export class GameRoom {
 	}
 }
 
-const DIRECTIONS: Direction[] = ["up", "down", "left", "right"];
+export const DIRECTIONS: Direction[] = ["up", "down", "left", "right"];
 
 const STEPS: Record<Direction, Position> = {
 	up: { x: 0, y: -1 },

@@ -11,6 +11,8 @@ export const POWERUP_INTERVAL_MS = 5000;
 export const MAX_POWERUPS_ON_MAP = 3;
 export const MONSTER_MIN_SPAWN_DISTANCE = 4;
 export const RECONNECT_TIMEOUT_MS = 30000;
+export const COUNTDOWN_SECONDS = 3;
+export const BROADCAST_INTERVAL_MS = 50; // how often the state is sent (only if something changed)
 
 export type SizeRules = {
 	players: number[]; // how many players this size accepts

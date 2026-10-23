@@ -66,3 +66,11 @@ export type MapInfo = {
 	walls: boolean[][]; // [y][x], true = wall
 	exit: Position;
 };
+
+// game:start, sent once to each player
+export type GameStart = {
+	gameId: string;
+	map: MapInfo;
+	you: number | null; // your slot (null = local match: you play both)
+	state: DynamicState;
+};

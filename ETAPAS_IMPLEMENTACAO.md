@@ -327,14 +327,16 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 **Depende de:** Etapas 1, 2 e 3.
 
 ### 4.1 Servidor
-- [ ] `gameManager.ts`:
-  - `games: Map<string, GameRoom>` e `userGame: Map<number, string>` (em que partida cada usuário está);
-  - `createGame(lobby, options)`: escolhe o mapa (`pickMap`), cria a `GameRoom`, coloca os sockets na room `game:<id>`, envia `game:start` para cada um (com o seu `you`) e faz a contagem 3-2-1 (`game:countdown`) antes do `start(now)`;
-  - **timers por partida**: `setInterval(tickMonsters, MONSTER_INTERVAL_MS)`, `setInterval(tickSecond, 1000)` e `setInterval(broadcast, 50)`, que **só envia se `dirty`**, junto com a fila de `events`;
-  - quando a `GameRoom` fica `finished`: para todos os timers, envia `game:end`, chama a gravação no banco (a função fica vazia até a Etapa 7), remove dos `Map`s e devolve o lobby ao estado "ready".
-- [ ] `gameSocket.ts`: registra `game:move`, `game:usePowerUp` e `game:leave`:
-  - descobre a partida e o slot pelo `socket.data.userId` (nunca pelo que vem do cliente);
-  - **valida** os dados: `dir` tem de ser uma das 4 strings; senão ignora.
+- [x] `backend/src/game/GameManager.ts` (uma classe, como a `GameRoom`; recebe um `Transport` com as 4 funções do Socket.IO que usa, para dar para testar sem sockets: `ioTransport(io)` no servidor):
+  - `games: Map<string, Game>` e `userGame: Map<number, string>` (em que partida cada usuário está; recusa quem já está numa);
+  - `createGame({ players, map, onEnd })`: escolhe o mapa (`pickMap`), cria a `GameRoom`, coloca os sockets na room `game:<id>`, envia `game:start` para cada um (`GameStart`: mapa, estado e o seu `you`) e faz a contagem 3-2-1 (`game:countdown`) antes do `start(now)`;
+  - `find(userId)`: a partida e o slot de um usuário (para o `gameSocket.ts`);
+  - **timers por partida**: `tickMonsters` a cada `MONSTER_INTERVAL_MS`, `tickSecond` a cada 1 s e o envio a cada `BROADCAST_INTERVAL_MS` (50 ms), que **só envia `game:state` se `dirty`**, mais a fila de `events` em `game:event`;
+  - quando a `GameRoom` fica `finished`: para todos os timers, envia `game:end` (o estado final), chama `saveResult` (vazia até a Etapa 7), remove dos `Map`s e chama o `onEnd` (o lobby volta a "ready", na parte do `lobby.ts`).
+- [x] `backend/src/game/gameSocket.ts`: `setupGameSocket(io, games)` registra `game:move`, `game:usePowerUp`, `game:leave` e `disconnect` em cada socket:
+  - descobre a partida e o slot pelo `socket.data.userId` com `games.find` (nunca pelo que vem do cliente); sem login ou fora de partida → ignora;
+  - **valida** os dados (`readDirection`): só `{ dir }` com uma das 4 strings vira `Direction`; senão ignora;
+  - `disconnect` → `setConnected(slot, false)`: o peixe espera `RECONNECT_TIMEOUT_MS` e sai (no `tickSecond`). Só conta o socket que está na partida (fechar outra aba do mesmo usuário não mexe nela). A volta (reconexão) fica para a Etapa 6.
 - [ ] `lobby.ts`:
   - `MAX_PLAYERS` passa de 8 para **4**;
   - `startMatch` chama `gameManager.createGame`;
