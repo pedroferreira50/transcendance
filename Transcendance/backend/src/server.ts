@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import db from "./database";
 import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
+import { setupSocketAuth } from "./socketAuth";
 
 const app = express();
 const PORT = 3000;
@@ -25,6 +26,7 @@ const io = new Server(httpServer, {
     }
 });
 
+setupSocketAuth(io);
 setupLobby(io);
 
 app.post("/game-result", (req, res) => {
