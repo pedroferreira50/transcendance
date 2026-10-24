@@ -278,13 +278,13 @@ export function setupLobby(io: Server) {
         });
 
         // Creates a brand-new lobby with this socket as its sole player and host.
-        socket.on("lobby:create", (username: string) => {
+        socket.on("lobby:create", () => {
             const code = generateLobbyCode();
 
             const lobby: Lobby = {
                 code,
                 hostId: socket.id,
-                players: [{ id: socket.id, username, ready: false }],
+                players: [{ id: socket.id, username: socket.data.username, ready: false }],
                 match: null
             };
 
@@ -300,7 +300,7 @@ export function setupLobby(io: Server) {
 
         // Adds this socket to an existing lobby by code, after checking it
         // actually exists, isn't mid-match, and isn't already full.
-        socket.on("lobby:join", ({ code, username }: { code: string; username: string }) => {
+        socket.on("lobby:join", ({ code }: { code: string }) => {
             const lobby = lobbies.get(code);
 
             if (!lobby) {
@@ -318,7 +318,7 @@ export function setupLobby(io: Server) {
                 return;
             }
 
-            lobby.players.push({ id: socket.id, username, ready: false });
+            lobby.players.push({ id: socket.id, username: socket.data.username, ready: false });
             socketLobby.set(socket.id, code);
 
             socket.leave(LOBBY_LIST_ROOM);

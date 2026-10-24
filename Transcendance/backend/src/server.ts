@@ -7,6 +7,7 @@ import db from "./database";
 import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
 import { setupSocketAuth } from "./socketAuth";
+import { requireAuth } from "./auth";
 
 const app = express();
 const PORT = 3000;
@@ -29,12 +30,12 @@ const io = new Server(httpServer, {
 setupSocketAuth(io);
 setupLobby(io);
 
-app.post("/game-result", (req, res) => {
-    const { username, won } = req.body;
+app.post("/game-result", requireAuth, (req, res) => {
+    const { won } = req.body;
 
-    if (!username || typeof won !== "boolean") {
+    if (typeof won !== "boolean") {
         res.status(400).json({
-            message: "Username and won are required."
+            message: "Won is required."
         });
         return;
     }
@@ -43,10 +44,10 @@ app.post("/game-result", (req, res) => {
         const column = won ? "wins" : "losses";
 
         const statement = db.prepare(`
-            UPDATE users SET ${column} = ${column} + 1 WHERE username = ?
+            UPDATE users SET ${column} = ${column} + 1 WHERE id = ?
         `);
 
-        const result = statement.run(username);
+        const result = statement.run(req.userId);
 
         if (result.changes === 0) {
             res.status(404).json({
@@ -56,8 +57,8 @@ app.post("/game-result", (req, res) => {
         }
 
         const updated = db
-            .prepare(`SELECT wins, losses FROM users WHERE username = ?`)
-            .get(username) as { wins: number; losses: number };
+            .prepare(`SELECT wins, losses FROM users WHERE id = ?`)
+            .get(req.userId) as { wins: number; losses: number };
 
         res.json({
             message: "Game result recorded.",

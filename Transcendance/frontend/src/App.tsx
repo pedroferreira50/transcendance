@@ -108,7 +108,6 @@ function App() {
     if (page === "lobbySelect") {
         return (
             <LobbySelect
-                username={username}
                 onBack={() => setPage("dashboard")}
                 onLobbyJoined={(lobby) => {
                     setLobby(lobby);
@@ -153,7 +152,7 @@ function App() {
                         headers: {
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({ username, won })
+                        body: JSON.stringify({ won })
                     });
 
                     const data = await response.json();
