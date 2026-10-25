@@ -56,6 +56,16 @@ function generateLobbyCode(): string {
     return code;
 }
 
+function isUserInLobby(username: string): boolean {
+    for (const lobby of lobbies.values()) {
+        if (lobby.players.some((player) => player.username === username)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // Shrinks a Lobby down to the small preview shown in the browsable lobby list
 // (no per-player detail needed there, just a headline count and status).
 function lobbySummary(lobby: Lobby) {
@@ -279,6 +289,11 @@ export function setupLobby(io: Server) {
 
         // Creates a brand-new lobby with this socket as its sole player and host.
         socket.on("lobby:create", () => {
+            if (isUserInLobby(socket.data.username)) {
+                socket.emit("lobby:error", "You are already in a lobby.");
+                return;
+            }
+
             const code = generateLobbyCode();
 
             const lobby: Lobby = {
@@ -301,6 +316,11 @@ export function setupLobby(io: Server) {
         // Adds this socket to an existing lobby by code, after checking it
         // actually exists, isn't mid-match, and isn't already full.
         socket.on("lobby:join", ({ code }: { code: string }) => {
+            if (isUserInLobby(socket.data.username)) {
+                socket.emit("lobby:error", "You are already in a lobby.");
+                return;
+            }
+
             const lobby = lobbies.get(code);
 
             if (!lobby) {
