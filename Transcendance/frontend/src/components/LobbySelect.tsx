@@ -10,12 +10,11 @@ type LobbySummary = {
 };
 
 type LobbySelectProps = {
-  username: string;
   onBack: () => void;
   onLobbyJoined: (lobby: LobbyState) => void;
 };
 
-const LobbySelect: React.FC<LobbySelectProps> = ({ username, onBack, onLobbyJoined }) => {
+const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onLobbyJoined }) => {
   const [lobbies, setLobbies] = useState<LobbySummary[]>([]);
   const [error, setError] = useState('');
 
@@ -55,7 +54,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ username, onBack, onLobbyJoin
     }}>
       <h1>Multiplayer</h1>
 
-      <button onClick={() => socket.emit('lobby:create', username)} style={{ fontSize: '1rem' }}>
+      <button onClick={() => socket.emit('lobby:create')} style={{ fontSize: '1rem' }}>
         Create Lobby
       </button>
 
@@ -65,7 +64,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ username, onBack, onLobbyJoin
         {lobbies.map((lobby) => (
           <button
             key={lobby.code}
-            onClick={() => socket.emit('lobby:join', { code: lobby.code, username })}
+            onClick={() => socket.emit('lobby:join', { code: lobby.code })}
             disabled={lobby.inProgress || lobby.playerCount >= 8}
             style={{ fontSize: '1rem' }}
           >

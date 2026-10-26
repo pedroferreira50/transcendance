@@ -1,13 +1,17 @@
 import { useState } from "react";
 import type { User } from "../types/User";
+import { api } from "../api";
 import loginBackground from "../assets/login-background.gif";
 
 type RegisterProps = {
     onLogin: () => void;
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function Register({ onLogin }: RegisterProps) {
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -17,6 +21,11 @@ function Register({ onLogin }: RegisterProps) {
 
 		if (username === "") {
 			setMessage("Username cannot be empty.");
+			return;
+		}
+
+		if (!EMAIL_REGEX.test(email.trim())) {
+			setMessage("Please enter a valid email.");
 			return;
 		}
 
@@ -32,11 +41,12 @@ function Register({ onLogin }: RegisterProps) {
 
 		const user: User = {
 			username: username,
+			email: email.trim(),
 			password: password
 		};
 
 		try {
-			const response = await fetch("http://localhost:3000/register", {
+			const response = await api("/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
@@ -71,6 +81,13 @@ function Register({ onLogin }: RegisterProps) {
                     placeholder="Username"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
+                />
+
+                <input
+                    type="text"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                 />
 
                 <input
