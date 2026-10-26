@@ -32,7 +32,7 @@ Frontend: http://localhost:5173 — Backend: http://localhost:3000
 |---|---|
 | `docker-compose.yml` | Defines the `frontend` and `backend` services, their ports, and bind mounts. |
 
-> Note: `package.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, and `index.html` also exist directly at the repo root. These are leftovers from before the project was split into `frontend/`/`backend/` folders and aren't used by anything — the real, active copies of these files live inside `frontend/`.
+> Note: all frontend config files (`package.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `index.html`) live inside `frontend/`. The old unused copies that used to sit at the repo root were removed.
 
 ### `backend/`
 
@@ -41,7 +41,7 @@ Frontend: http://localhost:5173 — Backend: http://localhost:3000
 | `Dockerfile` | Builds the backend image (`node:22`), installs build tools needed by native modules (`argon2`, `better-sqlite3`), runs `npm run dev`. |
 | `package.json` | Backend dependencies and scripts (`dev`, `build`, `start`). |
 | `tsconfig.json` | TypeScript compiler config. |
-| `users.db` | The actual SQLite database file — created/migrated automatically by `database.ts` on startup. |
+| `users.db` | The local SQLite database file — created/migrated automatically by `database.ts` on startup. Ignored by Git (each developer has their own). |
 | `src/server.ts` | Express app entry point. Defines the REST endpoints (`POST /register`, `POST /login`, `POST /game-result`), wraps Express in a plain `http.Server`, and attaches the Socket.IO server to it before calling `setupLobby`. |
 | `src/database.ts` | Opens the SQLite connection and creates the `users` table (`username`, `password_hash`, `wins`, `losses`, `multiplayer_wins`, `multiplayer_losses`), migrating in any missing columns on an existing database. |
 | `src/lobby.ts` | All Socket.IO real-time logic: the browsable lobby list, creating/joining/readying/starting/kicking within a lobby, and the multiplayer match itself (per-second countdown, click tracking, winner detection, persisting the result to the database). See the comments above each function in that file for details. |
