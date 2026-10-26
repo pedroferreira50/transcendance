@@ -7,12 +7,12 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "debug": "tsx src/game/debug.ts"
   },
   "keywords": [],
   "type": "commonjs",
   "dependencies": {
-    "approve": "^0.0.12",
     "argon2": "^0.45.1",
     "better-sqlite3": "^13.0.3",
     "cookie": "^2.0.1",
@@ -28,7 +28,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.2.0",
     "tsx": "^4.19.2",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4"
   },
   "allowScripts": {
     "argon2@0.45.1": true,
