@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { api } from "../api";
 import loginBackground from "../assets/login-background.gif";
 
 type LoginProps = {
@@ -21,7 +22,7 @@ function Login({ onRegister, onLoginSuccess }: LoginProps) {
 		event.preventDefault();
 
 		try {
-			const response = await fetch("http://localhost:3000/login", {
+			const response = await api("/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
