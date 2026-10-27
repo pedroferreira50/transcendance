@@ -8,6 +8,8 @@ import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
 import { setupSocketAuth } from "./socketAuth";
 import { requireAuth } from "./auth";
+import { GameManager, ioTransport } from "./game/GameManager";
+import { setupGameSocket } from "./game/gameSocket";
 
 const app = express();
 const PORT = 3000;
@@ -27,8 +29,12 @@ const io = new Server(httpServer, {
     }
 });
 
+// The only GameManager: every online match of the server
+const games = new GameManager(ioTransport(io));
+
 setupSocketAuth(io);
-setupLobby(io);
+setupLobby(io, games);
+setupGameSocket(io, games);
 
 app.post("/game-result", requireAuth, (req, res) => {
     const { won } = req.body;

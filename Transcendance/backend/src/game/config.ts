@@ -1,4 +1,4 @@
-import type { MapSize } from "./types";
+import type { Character, MapSize } from "./types";
 
 export const MOVE_COOLDOWN_MS = 150;
 export const MONSTER_INTERVAL_MS = 500;
@@ -13,6 +13,7 @@ export const MONSTER_MIN_SPAWN_DISTANCE = 4;
 export const RECONNECT_TIMEOUT_MS = 30000;
 export const COUNTDOWN_SECONDS = 3;
 export const BROADCAST_INTERVAL_MS = 50; // how often the state is sent (only if something changed)
+export const CHARACTERS: Character[] = ["goldfish", "betta", "angler", "puffer"]; // the fish a player can choose in the lobby
 
 export type SizeRules = {
 	players: number[]; // how many players this size accepts

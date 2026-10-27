@@ -337,12 +337,13 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
   - descobre a partida e o slot pelo `socket.data.userId` com `games.find` (nunca pelo que vem do cliente); sem login ou fora de partida → ignora;
   - **valida** os dados (`readDirection`): só `{ dir }` com uma das 4 strings vira `Direction`; senão ignora;
   - `disconnect` → `setConnected(slot, false)`: o peixe espera `RECONNECT_TIMEOUT_MS` e sai (no `tickSecond`). Só conta o socket que está na partida (fechar outra aba do mesmo usuário não mexe nela). A volta (reconexão) fica para a Etapa 6.
-- [ ] `lobby.ts`:
-  - `MAX_PLAYERS` passa de 8 para **4**;
-  - `startMatch` chama `gameManager.createGame`;
-  - novo evento `lobby:settings` (só o host): número de jogadores (2, 3 ou 4) e mapa (`"random"` ou um de `mapsFor(n)`). O lobby passa a ter N vagas, e o Start só libera com as N preenchidas e todos *ready*;
-  - novo evento `lobby:character`: cada jogador escolhe o peixe; o servidor recusa um peixe que já foi escolhido no lobby;
-  - remover a lógica de cliques (`match:*`).
+- [x] `lobby.ts` (`setupLobby(io, games)`; o `server.ts` cria o único `GameManager` e chama `setupGameSocket`):
+  - o `MAX_PLAYERS` (8) saiu: cada lobby tem `seats` vagas (2, 3 ou 4; começa com 2 e mapa `"random"`), e o lobby fica cheio com as `seats` preenchidas;
+  - `startMatch` chama `games.createGame` (slot = ordem no lobby); se o `GameManager` recusar, `lobby:error` para todos do lobby. O `onEnd` grava vitória/derrota (`recordMultiplayerResult`, até a Etapa 7), tira o *ready* de todos e reabre o lobby;
+  - novo evento `lobby:settings { seats, map }` (só o host, validado por `readSettings`): nunca menos vagas que jogadores dentro; todos têm de dar *ready* de novo. O Start só libera com as `seats` preenchidas e todos *ready*;
+  - novo evento `lobby:character` (o nome do peixe, validado por `readCharacter`): o servidor recusa um peixe que já foi escolhido no lobby; só dá *ready* quem já escolheu;
+  - durante a partida, ninguém entra e não se muda configuração nem peixe;
+  - lógica de cliques (`match:*`) removida. Sair do lobby não mexe na partida: o `gameSocket` cuida do `game:leave` e do `disconnect`.
 
 ### 4.2 Cliente
 - [ ] Telas do lobby (com as artes de `interface/`): número de jogadores → mapa (`mapsFor(n)` + "Aleatório") → escolha de personagem (peixes já escolhidos aparecem bloqueados).
