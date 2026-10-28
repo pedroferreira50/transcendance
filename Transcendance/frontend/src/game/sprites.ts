@@ -47,7 +47,7 @@ export async function loadSprites(): Promise<Sprites> {
 }
 
 // Maps that already have their image in public/maps/ (asking for one that does not exist = 404 error in the console)
-const MAPS_WITH_IMAGE = ["small-1"];
+const MAPS_WITH_IMAGE = ["small-1", "small-2", "medium-1", "medium-2", "large-1", "large-2"];
 
 // The background of the map, or null if it has no image yet (then the map is drawn in blocks)
 export async function loadMapImage(name: string): Promise<HTMLImageElement | null> {
