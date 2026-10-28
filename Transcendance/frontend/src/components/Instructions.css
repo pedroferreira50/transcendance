@@ -1,0 +1,188 @@
+.instructions {
+	--icon: clamp(40px, 8vmin, 88px);
+	--key: clamp(28px, min(5vmin, 2.6vw), 56px);
+
+	flex: 1;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	gap: clamp(1.5rem, 4vh, 3rem);
+}
+
+/* the rules: two columns, one under the other on narrow screens */
+
+.rules {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(1rem, 4vw, 5rem);
+}
+
+/* the width also follows the screen (40vw), so the two columns fit side by side on a laptop */
+.rule-list {
+	width: min(100%, 40rem, 40vw);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: clamp(0.5rem, 2vh, 1.2rem);
+
+	/* on phones the columns are one under the other: each one takes the whole width */
+	@media (max-width: 700px) {
+		width: 100%;
+	}
+}
+
+/* icon | box | icon after it (or nothing): the same 3 columns in every line, so all the boxes have the same width */
+.rule {
+	display: grid;
+	grid-template-columns: var(--icon) 1fr var(--icon);
+	align-items: center;
+	gap: clamp(0.5rem, 1.5vw, 1.2rem);
+
+	& .text-box {
+		margin: 0;
+		font-size: clamp(0.9rem, min(1.4vw, 2.6vh), 1.3rem);
+	}
+
+	/* the note in parentheses goes in its own line, under the text */
+	& .rule-note {
+		display: block;
+	}
+}
+
+.rule-icon {
+	width: var(--icon);
+	height: var(--icon);
+	object-fit: contain;
+}
+
+/* ---------- the keys of each mode ---------- */
+
+.modes {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	gap: clamp(1rem, 3vw, 4rem);
+}
+
+.mode {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: clamp(0.5rem, 2vh, 1.2rem);
+}
+
+.mode-players {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(1rem, 3vw, 4rem);
+}
+
+.player-keys {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	font-size: clamp(0.8rem, min(1.3vw, 2.6vh), 1.4rem);
+
+	& p {
+		margin: 0;
+	}
+}
+
+/* the two sets of keys of the online, with the "or" between them: side by side, one under the other on phones */
+.key-options {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 0.6rem 1.2rem;
+
+	@media (max-width: 700px) {
+		flex-direction: column;
+	}
+}
+
+.key-or {
+	font-size: 1.1em;
+}
+
+.key-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+/* the key over the "(Movement)" or "(Power)" */
+.key-group {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+/* W on top, A S D under it */
+.key-cluster {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+
+	& div {
+		display: flex;
+		gap: 0.25rem;
+	}
+}
+
+.key-plus {
+	font-family: var(--font-button);
+	font-size: calc(var(--key) * 0.9);
+	color: var(--sea-light);
+}
+
+/* a key of the keyboard: dark, with the bottom edge darker so it looks "raised" */
+.keycap {
+	width: var(--key);
+	height: var(--key);
+	box-sizing: border-box;
+	padding-bottom: 0.15em;
+	display: inline-grid;
+	place-items: center;
+	border-radius: 0.18em;
+	background: linear-gradient(#3b3b3b, #1f1f1f);
+	box-shadow: inset 0 -0.18em 0 #0b0b0b, 0 0.08em 0.25em rgba(0, 0, 0, 0.5);
+	color: #ffffff;
+	font-family: var(--font-text);
+	font-size: calc(var(--key) * 0.55);
+}
+
+/* ---------- the buttons of phones and tablets (the same look as TouchControls) ---------- */
+
+.touch-pad {
+	display: grid;
+	grid-template-columns: repeat(3, var(--key));
+	gap: 0.2rem;
+}
+
+.touch-button {
+	width: var(--key);
+	height: var(--key);
+	box-sizing: border-box;
+	display: inline-grid;
+	place-items: center;
+	border: 2px solid rgba(255, 255, 255, 0.5);
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.35);
+	color: #ffffff;
+	font-size: calc(var(--key) * 0.4);
+}
+
+.touch-power {
+	width: calc(var(--key) * 1.4);
+	height: calc(var(--key) * 1.4);
+	background: url("/sprites/bubble.webp") center / cover, rgba(0, 0, 0, 0.35);
+}

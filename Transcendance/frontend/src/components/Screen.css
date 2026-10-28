@@ -1,0 +1,202 @@
+/* The fonts live in public/fonts (all SIL Open Font License, see the LICENSE-*.txt there) */
+@font-face {
+	font-family: "Audiowide";
+	src: url("/fonts/audiowide.woff2") format("woff2");
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Jersey 15";
+	src: url("/fonts/jersey-15.woff2") format("woff2");
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Anonymous Pro";
+	src: url("/fonts/anonymous-pro.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Anonymous Pro";
+	src: url("/fonts/anonymous-pro-bold.woff2") format("woff2");
+	font-weight: 700;
+	font-display: swap;
+}
+
+/* The colors and fonts of the design: change here and every screen follows */
+:root {
+	--sea-center: #399bd1;
+	--sea-sides: #040c50;
+	--sea-light: #f2fcfc;
+	--sea-text: #ffffff;
+	--sea-box: #284e65;
+	--sea-box-hover: #346a87;
+	--sea-gold: linear-gradient(90deg, #ba943e, #f3f4e3 55%, #dbd299);
+
+	--font-title: "Audiowide", sans-serif;
+	--font-button: "Jersey 15", monospace;
+	--font-text: "Anonymous Pro", monospace;
+
+	/* how thick the rocks are: grows with the screen, between a phone and a 1080p monitor */
+	--frame: clamp(24px, 10vmin, 130px);
+	--line: clamp(2px, 0.3vmin, 4px);
+	--back-size: clamp(44px, 9vmin, 96px);
+}
+
+/* ---------- the screen ---------- */
+
+.screen {
+	position: relative;
+	flex: 1;
+	min-height: 100svh;
+	box-sizing: border-box;
+	padding: calc(var(--frame) + 1rem);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: clamp(1rem, 3vh, 2.5rem);
+	overflow: hidden;
+	background: radial-gradient(circle farthest-side, var(--sea-center), var(--sea-sides));
+	color: var(--sea-text);
+	font-family: var(--font-text);
+	letter-spacing: 0.08em;
+}
+
+.screen-frame {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	border-style: solid;
+	border-width: var(--frame);
+	border-image: url("/art/frame.webp") 120 stretch;
+}
+
+.screen-content {
+	position: relative;
+	flex: 1;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.screen-title {
+	position: relative;
+	margin: 0;
+	font-family: var(--font-title);
+	font-weight: 400;
+	font-size: clamp(1.4rem, min(7vw, 12vh), 7.5rem);
+	line-height: 1;
+	letter-spacing: 0.02em;
+	text-align: center;
+	color: var(--sea-light);
+	/* the room of the « on both sides, so the title stays centered and never goes under it */
+	padding: 0 calc(var(--back-size) + 0.5rem);
+
+	/* on phones there is no room on the sides: the title goes under the « and takes the whole width */
+	@media (max-width: 700px) {
+		padding: calc(var(--back-size) - 0.5rem) 0 0;
+	}
+}
+
+/* ---------- the « (back) ---------- */
+
+.back-button {
+	position: absolute;
+	z-index: 1;
+	top: calc(var(--frame) + 0.5rem);
+	right: calc(var(--frame) + 0.5rem);
+	width: var(--back-size);
+	height: var(--back-size);
+	padding: 0;
+	display: grid;
+	place-items: center;
+	border: var(--line) solid var(--sea-light);
+	border-radius: 50%;
+	background: var(--sea-box);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--sea-box-hover);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+}
+
+.back-icon {
+	width: 45%;
+	fill: var(--sea-light);
+	shape-rendering: crispEdges;
+}
+
+/* ---------- the buttons ---------- */
+
+.sea-button {
+	padding: 0.1em 1em;
+	border: var(--line) solid var(--sea-light);
+	border-radius: 999px;
+	background: var(--sea-box);
+	color: var(--sea-light);
+	font-family: var(--font-button);
+	font-size: clamp(1.6rem, min(3.4vw, 6vh), 4rem);
+	line-height: 1.2;
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+	cursor: pointer;
+
+	&:hover:not(:disabled) {
+		background: var(--sea-box-hover);
+	}
+	&:active:not(:disabled) {
+		transform: translateY(2px);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+	&:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+}
+
+/* buttons side by side; on narrow screens (phones) one under the other */
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.75rem, 2vw, 1.5rem);
+
+	@media (max-width: 700px) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+
+/* ---------- boxes and badges ---------- */
+
+.text-box {
+	padding: 0.5em 0.8em;
+	border: var(--line) solid var(--sea-light);
+	background: var(--sea-box);
+	color: var(--sea-text);
+	font-size: clamp(1rem, min(1.7vw, 3vh), 1.6rem);
+}
+
+/* the gold "LOCAL" / "ONLINE" of the instructions (also HOST and READY in the lobby) */
+.gold-badge {
+	display: inline-block;
+	padding: 0 1.2em;
+	border: var(--line) solid #ba943e;
+	border-radius: 999px;
+	background: var(--sea-gold);
+	color: var(--sea-sides);
+	font-family: var(--font-button);
+	font-size: clamp(1.3rem, min(3vw, 5vh), 3.2rem);
+	line-height: 1.2;
+	letter-spacing: 0.06em;
+}

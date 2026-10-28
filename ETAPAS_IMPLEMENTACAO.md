@@ -346,6 +346,11 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
   - lógica de cliques (`match:*`) removida. Sair do lobby não mexe na partida: o `gameSocket` cuida do `game:leave` e do `disconnect`.
 
 ### 4.2 Cliente
+- [x] Base das telas (`Screen.tsx` + `Screen.css`): o degradê em CSS, a moldura de pedras (`border-image` com `art/frame.webp`), o título, o `«` e as peças comuns (botão, caixa de texto, selo dourado). Fontes livres (SIL OFL) em `public/fonts/`: Audiowide (títulos), Jersey 15 (botões) e Anonymous Pro (textos).
+- [x] `OpenSea.tsx`: guarda qual tela está aberta e para onde cada botão leva. Por enquanto abre com `?sea` (temporário, no `main.tsx`).
+- [x] Telas Intro (a história), Menu (PLAY LOCAL, PLAY ONLINE, INSTRUCTIONS; o `«` volta para a Intro) e Instructions (no celular e no tablet mostra os botões de toque e esconde o modo local).
+- [x] Artes: sprites em 128px (o dobro, no mesmo enquadramento dos de 64px), os 6 mapas em `public/maps/` e a arte das telas em `public/art/` (moldura, peixes, vencedores, retratos, bolhas, ícones). Os PNGs originais ficam fora do repositório.
+- [ ] Ligar ao `App.tsx`: o App cuida da sessão (`/me`, login, logout) e o OpenSea das telas. O login só aparece no PLAY ONLINE, e depois dele a pessoa vai para onde estava indo (LOBBIES). O Dashboard vira a tela PROFILE (estatísticas e logout), aberta por um botão no Menu.
 - [ ] Telas do lobby (com as artes de `interface/`): número de jogadores → mapa (`mapsFor(n)` + "Aleatório") → escolha de personagem (peixes já escolhidos aparecem bloqueados).
 - [ ] `GameScreen.tsx`: troca o `fixtureState` pelos eventos reais (`game:start`, `game:countdown`, `game:state`, `game:event`, `game:end`) e o `send` do `input.ts` passa a emitir `game:move` / `game:usePowerUp`.
 - [ ] Contagem 3-2-1 na tela.
@@ -359,7 +364,8 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 ## Etapa 5: Modo local 1v1 (Luiz, 2 dias)
 
 - [ ] Botão **"Play local"** no menu → escolha do mapa (qualquer um que aceite 2 jogadores, ou aleatório) → escolha dos dois peixes.
-- [ ] Evento `local:start { map }` → o `gameManager` cria uma `GameRoom` com `local: true`: slot 0 = o usuário logado, slot 1 = `{ userId: null, username: "Convidado" }`.
+- [ ] **Sem login** (decidido): o subject exige que dê para cadastrar e entrar, não que todo modo de jogo peça login. ⚠️ Falta decidir onde a partida local roda, já que hoje o socket só conecta com login: no servidor (aceitando um socket sem login só para a partida local) ou no próprio navegador (a `GameRoom` não depende de rede nem de timers).
+- [ ] Evento `local:start { map }` → o `gameManager` cria uma `GameRoom` com `local: true`: slot 0 = "Player 1", slot 1 = "Player 2".
 - [ ] No modo local, `game:move` e `game:usePowerUp` recebem `{ slot, dir }`. O servidor só aceita `slot` 0 ou 1 e **só se** o socket for o dono da partida local.
 - [ ] `input.ts` em modo `"local"`.
 - [ ] Partidas locais **não gravam** estatísticas 🔶.
