@@ -261,7 +261,7 @@ Um script para testar "na mão", o "so_long no terminal":
 
 ### 2.1 Tipos compartilhados
 - [x] `frontend/src/game/protocol.ts`: os tipos que o navegador recebe (`Position`, `DynamicState`, `PlayerView`, `GameEvent`, `MapInfo`...). **Cópia** dos mesmos tipos de `backend/src/game/types.ts`: se mudar num, muda no outro. O teste `backend/src/game/__tests__/protocol.test.ts` falha se estiverem diferentes. (Os nomes das mensagens do socket ficam para a Etapa 3.)
-- [x] `frontend/src/game/fixtureState.ts` (`fixtureMap` + `fixtureState`, no mapa `small-1`): um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns tubarões e diamantes, power-ups no chão, um jogador com power-up guardado, outro congelado).
+- [x] `frontend/src/game/fixtureState.ts` (`fixtureMap` + `fixtureState`, no mapa `small-1`): um estado de exemplo escrito à mão (um mapa pequeno, 2 jogadores, alguns tubarões e diamantes, power-ups no chão, um jogador com power-up guardado, outro congelado). Removido na Etapa 4.2, quando o `GameScreen` passou a receber o estado do servidor.
 
 ### 2.2 Carregar as sprites (`sprites.ts`)
 - [x] `loadSprites(): Promise<Sprites>` (`Sprites` = nome → imagem, ex.: `sprites["goldfish-right"]`; 45 imagens): cria um `Image` para cada `.webp` e espera todos carregarem (`img.onload`). Sprites: os 4 peixes (`-left`/`-right`), `portrait-*`, `shark-*` (normal, `frozen`, `enchanted`), `item-*`, `icon-*`, `exit-turtle`, `bubble`, `diamonds-5/*`, `diamonds-10/*`.
@@ -285,10 +285,10 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [x] `drawFrame(frame)`: chama tudo na ordem acima (recebe um objeto `Frame` com tudo o que precisa).
 
 ### 2.4 Componente `GameScreen.tsx`
-- [x] Um `<canvas>` com `useRef`. Temporário: abrir em `http://localhost:5173/?game` (desvio em `main.tsx`).
+- [x] Um `<canvas>` com `useRef`. Na Etapa 2 abria em `http://localhost:5173/?game` (desvio em `main.tsx`, removido na 4.2: a partida agora abre pela sala).
 - [x] Calcula o tamanho da casa: `tile = Math.floor(Math.min(largura / map.width, altura / map.height))`, **no máximo 64** (o tamanho em que as sprites e os mapas foram feitos: nunca esticar), a cada quadro. Usa o `devicePixelRatio` para ficar nítido em telas com zoom.
 - [x] Laço com `requestAnimationFrame(drawFrame)`, cancelado no unmount (`cancelAnimationFrame` no retorno do `useEffect`).
-- [x] Por enquanto usa o `fixtureState`.
+- [x] Desenhou o `fixtureState` até a Etapa 4.2; agora desenha o último `game:state` do servidor.
 
 ### 2.5 Controles (`input.ts`)
 - [x] `createInput(mode: "online" | "local", send: (command) => void)`: registra `keydown` e devolve a função que remove o listener (usada direto como limpeza do `useEffect`).
@@ -350,10 +350,12 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [x] `OpenSea.tsx`: guarda qual tela está aberta e para onde cada botão leva. Por enquanto abre com `?sea` (temporário, no `main.tsx`).
 - [x] Telas Intro (a história), Menu (PLAY LOCAL, PLAY ONLINE, INSTRUCTIONS; o `«` volta para a Intro) e Instructions (no celular e no tablet mostra os botões de toque e esconde o modo local).
 - [x] Artes: sprites em 128px (o dobro, no mesmo enquadramento dos de 64px), os 6 mapas em `public/maps/` e a arte das telas em `public/art/` (moldura, peixes, vencedores, retratos, bolhas, ícones). Os PNGs originais ficam fora do repositório.
-- [ ] Ligar ao `App.tsx`: o App cuida da sessão (`/me`, login, logout) e o OpenSea das telas. O login só aparece no PLAY ONLINE, e depois dele a pessoa vai para onde estava indo (LOBBIES). O Dashboard vira a tela PROFILE (estatísticas e logout), aberta por um botão no Menu.
-- [ ] Telas do lobby (com as artes de `interface/`): número de jogadores → mapa (`mapsFor(n)` + "Aleatório") → escolha de personagem (peixes já escolhidos aparecem bloqueados).
-- [ ] `GameScreen.tsx`: troca o `fixtureState` pelos eventos reais (`game:start`, `game:countdown`, `game:state`, `game:event`, `game:end`) e o `send` do `input.ts` passa a emitir `game:move` / `game:usePowerUp`.
-- [ ] Contagem 3-2-1 na tela.
+- [x] Ligar ao `App.tsx`: o App cuida da sessão (`/me`, login, logout) e o OpenSea das telas. O login só aparece no PLAY ONLINE, e depois dele a pessoa vai para onde estava indo (LOBBIES). O Dashboard vira a tela PROFILE (estatísticas e logout), aberta por um botão no Menu.
+- [x] Telas do lobby: LOBBIES (host, mapa, vagas, JOIN) → CREATE LOBBY: PLAYERS → MAP (`mapsFor(n)` + RANDOM; o `lobby:create` já leva `{ seats, map }`) → a sala LOBBY (as vagas com o retrato de cada peixe, a escolha do peixe com os dos outros bloqueados, READY, START e o ✕ do host, e o SETTINGS do host com as mesmas telas PLAYERS e MAP).
+- [x] Uma conexão de jogo por usuário: a mesma conta aberta em outro navegador derruba a conexão antiga (`session:replaced`), que volta ao Menu com o aviso.
+- [x] `GameScreen.tsx`: desenha o último `game:state` e manda `game:move` / `game:usePowerUp` / `game:leave` (o «). A partida abre dentro do `Lobby`, que continua recebendo os `lobby:update`.
+- [ ] Confirmar antes de desistir: hoje o « da partida manda `game:leave` no primeiro clique, e um clique sem querer vira derrota (ou vitória do outro, no 1v1). Mostrar por cima do mapa um quadro "LEAVE THE MATCH?" com YES / NO; só o YES manda `game:leave`. As teclas do jogo ficam desligadas enquanto o quadro está aberto.
+- [x] Contagem 3-2-1 na tela (o `game:start` leva `countdown`, porque o primeiro `game:countdown` chega junto com ele).
 - [ ] Tela de fim: a tela `winner-<peixe>` com o nome do vencedor escrito pelo código, diamantes e mortes de cada um, botões "Voltar ao lobby" e "Sair".
 - [ ] Remover o Clicky: `MultiplayerGame.tsx`, o `Game.tsx` antigo e a rota `/game-result`.
 
@@ -377,12 +379,15 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 ## Etapa 6: Reconexão e robustez (Pedro + Luiz, 3 dias)
 
 - [ ] No `disconnect`: se o usuário está numa partida → `room.setConnected(slot, false, now)` e aviso `game:playerStatus` para os outros.
-- [ ] Na conexão de um socket: se o `userId` está numa partida ativa → coloca o socket na room, `setConnected(slot, true)` e envia `game:resume` (mapa + estado + `you`).
-- [ ] No cliente: ao reconectar (evento `connect` do socket) com uma partida em andamento → `game:rejoin`; mostrar "Reconectando..." enquanto `socket.connected === false`; ao abrir o app (F5), se o servidor mandar `game:resume`, abrir direto o `GameScreen`.
+- [ ] Na conexão de um socket: se o `userId` está numa partida ativa → troca o `socketId` desse jogador no `GameManager` pelo do socket novo (o `disconnect` do `gameSocket` compara com ele), coloca o socket no canal da partida, `setConnected(slot, true)` e envia `game:resume` (mapa + estado + `you`, como o `game:start`).
+- [ ] O lobby não pode perder o jogador durante a partida: hoje o `disconnect` chama `handlePlayerLeavingLobby` e tira a pessoa da sala na hora. Com uma partida rodando, ela deve continuar na sala (só sai se a partida acabar sem ela ter voltado), e o `game:resume` também leva o estado da sala, para o cliente saber para onde voltar depois do `game:end`.
+- [ ] **A mesma conta em outra aba (ou outro navegador) durante a partida.** Hoje: o `setupOneConnectionPerUser` fecha a conexão antiga (a aba antiga vai para o Menu), a partida conta isso como queda e espera 30 s, e a aba nova abre em LOBBIES sem a partida; ninguém consegue voltar e o jogador perde por desconexão. Com os dois itens acima, isso vira uma reconexão: a aba nova recebe `game:resume` e assume o peixe, e a antiga vai para o Menu com o aviso.
+- [ ] No cliente: ao reconectar (evento `connect` do socket) com uma partida em andamento → `game:rejoin`; mostrar "Reconectando..." enquanto `socket.connected === false`; ao abrir o app (F5), se o servidor mandar `game:resume`, abrir direto o `GameScreen`. Para isso o socket precisa conectar logo depois do login confirmado (`/me`), e não só ao abrir LOBBIES, como é hoje; o `game:resume` é ouvido no `OpenSea`, em qualquer tela.
 - [ ] O personagem desconectado aparece com um ícone de "sem conexão".
 - [ ] No modo local: se cair, o mesmo vale (o dono tem 30 s para voltar).
 - [ ] **Testar** e anotar os resultados:
   - fechar a aba e reabrir em menos de 30 s → volta para a partida;
+  - abrir a mesma conta em outra aba no meio da partida → a aba nova continua a partida, e a antiga volta ao Menu;
   - ficar fora mais de 30 s → perde;
   - F5 no meio da partida;
   - desligar o Wi-Fi por 10 s;
@@ -442,6 +447,7 @@ Isso **reprova o projeto** se faltar, então precisa andar em paralelo desde o i
 
 ## Etapa 9: Polimento e entrega (todos, última semana + contínuo)
 
+- [ ] Usar o `game:event` no cliente: o servidor já manda, junto com cada `game:state`, **o que aconteceu** desde o último (`diamond`, `powerUpPickup`, `powerUpUsed`, `death`, com o slot e a posição), mas o `GameScreen` ainda não escuta esse evento e só desenha o estado. O estado diz *como as coisas estão*; o evento diz *o que acabou de acontecer*, e é isso que precisa de efeito: um brilho ou "+1" onde o diamante foi pego, uma animação onde o peixe morreu, o ícone do power-up usado piscando no HUD, e os sons de cada um.
 - [ ] Ajustar **jogando de verdade**: o cooldown, a quantidade e a velocidade dos tubarões, o tempo de renascimento, a duração e a frequência dos power-ups e o tempo de cada tamanho de mapa.
 - [ ] Testar em Chrome, Firefox e Edge.
 - [ ] Testar no celular (botões de toque).

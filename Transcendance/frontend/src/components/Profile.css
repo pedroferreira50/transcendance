@@ -1,0 +1,49 @@
+.profile {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: clamp(1rem, 4vh, 3rem);
+}
+
+.profile-name {
+	margin: 0;
+	font-family: var(--font-title);
+	font-size: clamp(1.6rem, min(5vw, 8vh), 4rem);
+	letter-spacing: 0.02em;
+	color: var(--sea-light);
+	overflow-wrap: anywhere; /* a long username breaks instead of going out of the screen */
+	text-align: center;
+}
+
+.stats-block {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: clamp(0.8rem, 2.5vh, 1.5rem);
+}
+
+/* the 3 numbers side by side */
+.stats {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.6rem, 2vw, 1.5rem);
+}
+
+/* the name on top, the number under it */
+.stat {
+	min-width: 6em;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3rem;
+}
+
+.stat-value {
+	font-family: var(--font-button);
+	font-size: 2em;
+	line-height: 1;
+	color: var(--sea-light);
+}

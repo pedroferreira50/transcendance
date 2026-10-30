@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { socket } from '../socket';
+import { mapLabel } from '../game/maps';
 import type { LobbyState } from './Lobby';
+import Screen from './Screen';
+import './LobbySelect.css';
 
 type LobbySummary = {
   code: string;
   hostUsername: string;
   playerCount: number;
+  seats: number;
+  map: string; // the name of the map, or "random"
   inProgress: boolean;
 };
 
 type LobbySelectProps = {
   onBack: () => void;
+  onCreate: () => void;
   onLobbyJoined: (lobby: LobbyState) => void;
 };
 
-const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onLobbyJoined }) => {
+const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoined }) => {
   const [lobbies, setLobbies] = useState<LobbySummary[]>([]);
   const [error, setError] = useState('');
 
@@ -26,14 +32,29 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onLobbyJoined }) => {
       onLobbyJoined(lobby);
     }
 
+    // socket.active: true = a temporary failure (the server is off...), the socket tries again by itself;
+    // false = the server refused the connection, and error.message says why ("Not logged in.")
+    function handleConnectError(error: Error) {
+      setError(socket.active ? 'Could not connect to the server.' : error.message);
+    }
+
+    // connected (again): the old error does not apply anymore
+    function handleConnect() {
+      setError('');
+    }
+
     socket.on('lobbyList:update', setLobbies);
     socket.on('lobby:joined', handleJoined);
     socket.on('lobby:error', setError);
+    socket.on('connect_error', handleConnectError);
+    socket.on('connect', handleConnect);
 
     return () => {
       socket.off('lobbyList:update', setLobbies);
       socket.off('lobby:joined', handleJoined);
       socket.off('lobby:error', setError);
+      socket.off('connect_error', handleConnectError);
+      socket.off('connect', handleConnect);
     };
   }, [onLobbyJoined]);
 
@@ -43,42 +64,46 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onLobbyJoined }) => {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      height: '100vh',
-      fontSize: '2rem',
-      fontFamily: 'Arial, sans-serif',
-      gap: '1rem'
-    }}>
-      <h1>Multiplayer</h1>
+    <Screen title="LOBBIES" onBack={handleBack}>
+      <div className="lobbies">
+        {lobbies.length === 0 && <p className="lobbies-empty">No lobbies yet. Create one!</p>}
 
-      <button onClick={() => socket.emit('lobby:create')} style={{ fontSize: '1rem' }}>
-        Create Lobby
-      </button>
+        {lobbies.length > 0 && (
+          <ul className="lobby-list">
+            {lobbies.map((lobby) => (
+              <li key={lobby.code} className="text-box lobby-row">
+                <span className="lobby-host">{lobby.hostUsername}</span>
+                <span className="lobby-map">{mapLabel(lobby.map)}</span>
+                <span className="lobby-count">{lobby.playerCount}/{lobby.seats}</span>
+                <LobbyAction
+                  lobby={lobby}
+                  onJoin={() => socket.emit('lobby:join', { code: lobby.code })}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-        {lobbies.length === 0 && <p style={{ fontSize: '1rem' }}>No lobbies available</p>}
+        <p className="form-message" role="status">{error}</p>
 
-        {lobbies.map((lobby) => (
-          <button
-            key={lobby.code}
-            onClick={() => socket.emit('lobby:join', { code: lobby.code })}
-            disabled={lobby.inProgress || lobby.playerCount >= 8}
-            style={{ fontSize: '1rem' }}
-          >
-            {lobby.hostUsername}'s lobby ({lobby.playerCount}/8){lobby.inProgress ? ' - in progress' : ''}
-          </button>
-        ))}
+        <button className="sea-button" onClick={onCreate}>
+          CREATE LOBBY
+        </button>
       </div>
+    </Screen>
+  );
+};
 
-      {error && <p style={{ fontSize: '1rem', color: 'red' }}>{error}</p>}
-
-      <button onClick={handleBack} style={{ fontSize: '1rem' }}>
-        Back
-      </button>
-    </div>
+// What the row offers: JOIN, or why it can not be joined
+const LobbyAction: React.FC<{ lobby: LobbySummary; onJoin: () => void }> = ({ lobby, onJoin }) => {
+  if (lobby.inProgress)
+    return <span className="lobby-state">IN GAME</span>;
+  if (lobby.playerCount >= lobby.seats)
+    return <span className="lobby-state">FULL</span>;
+  return (
+    <button className="sea-button lobby-join" onClick={onJoin}>
+      JOIN
+    </button>
   );
 };
 

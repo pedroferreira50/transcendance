@@ -1,8 +1,27 @@
-/* The space between the title and the buttons is where the big goldfish will swim */
+/* The big goldfish between the title and the buttons, and the buttons at the bottom */
 .menu {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-end;
+	align-items: center;
 	padding-bottom: 6vh;
+}
+
+/* it takes the room that is left (flex: 1) and shrinks to fit in it (object-fit), so it never goes over the buttons */
+.menu-fish {
+	flex: 1 1 0;
+	min-height: 0;
+	width: min(34vw, 100%);
+	margin: 2vh 0 4vh;
+	object-fit: contain;
+}
+
+/* a bit smaller than the other buttons, so the row fits between the bubbles and the turtle */
+.menu .sea-button {
+	font-size: clamp(1.6rem, min(2.9vw, 5.5vh), 3.4rem);
+}
+
+/* why the player was sent back to the menu ("Open Sea was opened in another window.") */
+.menu .form-message {
+	margin-top: 2vh;
 }
