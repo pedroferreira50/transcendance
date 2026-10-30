@@ -64,6 +64,7 @@ describe("createGame", () => {
 		expect(first.gameId).toBe(id);
 		expect(first.map.name).toBe("small-1");
 		expect(first.state.status).toBe("countdown");
+		expect(first.countdown).toBe(COUNTDOWN_SECONDS);
 		expect(channels.get("s1")).toBe(`game:${id}`);
 		expect(channels.get("s2")).toBe(`game:${id}`);
 	});

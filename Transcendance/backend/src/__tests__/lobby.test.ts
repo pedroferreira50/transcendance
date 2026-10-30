@@ -128,6 +128,28 @@ describe("lobby", () => {
 		expect(lobby.players).toEqual([{ id: "s1", username: "ana", character: null, ready: false }]);
 	});
 
+	test("a lobby can be created with the players and the map already chosen; invalid ones are ignored", () => {
+		const ana = server.connect("s1", 1, "ana");
+		const bia = server.connect("s2", 2, "bia");
+		ana.send("lobby:create", { seats: 3, map: mapsFor(3)[0] });
+		bia.send("lobby:create", { seats: 5, map: "nowhere" });
+		expect(lastOf(ana, "lobby:joined")).toMatchObject({ seats: 3, map: mapsFor(3)[0] });
+		expect(lastOf(bia, "lobby:joined")).toMatchObject({ seats: 2, map: "random" });
+	});
+
+	test("the list shows the host, the players, the seats and the map of each lobby (and follows the settings)", () => {
+		const ana = server.connect("s1", 1, "ana");
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobbyList:subscribe");
+		ana.send("lobby:create", { seats: 3, map: mapsFor(3)[0] });
+		const code = lastOf(ana, "lobby:joined").code;
+		expect(lastOf(cris, "lobbyList:update")).toEqual([
+			{ code, hostUsername: "ana", playerCount: 1, seats: 3, map: mapsFor(3)[0], inProgress: false },
+		]);
+		ana.send("lobby:settings", { seats: 2, map: "random" });
+		expect(lastOf(cris, "lobbyList:update")[0]).toMatchObject({ seats: 2, map: "random" });
+	});
+
 	test("full when every seat is taken", () => {
 		const { code } = fullLobby();
 		const cris = server.connect("s3", 3, "cris");

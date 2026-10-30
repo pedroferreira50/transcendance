@@ -73,4 +73,5 @@ export type GameStart = {
 	map: MapInfo;
 	you: number | null; // your slot (null = local match: you play both)
 	state: DynamicState;
+	countdown: number; // seconds before the match begins: the first game:countdown can arrive before the screen listens
 };

@@ -103,6 +103,7 @@ function lobbySummary(lobby: Lobby) {
         hostUsername: lobby.players.find((player) => player.id === lobby.hostId)?.username ?? "",
         playerCount: lobby.players.length,
         seats: lobby.seats,
+        map: lobby.map,
         inProgress: lobby.gameId !== null
     };
 }
@@ -248,20 +249,22 @@ export function setupLobby(io: Server, games: GameManager) {
 
         // Creates a brand-new lobby with this socket as its sole player and host
         // (2 players and a random map until the host changes it).
-        socket.on("lobby:create", () => {
+        socket.on("lobby:create", (data: unknown) => {
             if (isUserInLobby(socket.data.username)) {
                 socket.emit("lobby:error", "You are already in a lobby.");
                 return;
             }
 
+            // the players and the map chosen before creating; without them (or invalid): 2 players, random map
+            const settings = readSettings(data);
             const code = generateLobbyCode();
 
             const lobby: Lobby = {
                 code,
                 hostId: socket.id,
                 players: [{ id: socket.id, userId: socket.data.userId, username: socket.data.username, character: null, ready: false }],
-                seats: 2,
-                map: "random",
+                seats: settings ? settings.seats : 2,
+                map: settings ? settings.map : "random",
                 gameId: null
             };
 

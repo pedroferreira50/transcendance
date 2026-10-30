@@ -1,4 +1,4 @@
-import type { Server } from "socket.io";
+import type { Server, Socket } from "socket.io";
 import db from "./database";
 import { tokenFromCookieHeader, verifyToken } from "./auth";
 
@@ -32,5 +32,31 @@ export function setupSocketAuth(io: Server) {
             console.error(error);
             next(new Error("Could not authenticate."));
         }
+    });
+}
+
+// One game connection per user: the same account opened in another browser
+// (or tab) takes the place of the old connection, which is told why and closed.
+// Closing it is the same as closing that browser: it leaves its lobby and match.
+export function setupOneConnectionPerUser(io: Server) {
+    const connections = new Map<number, Socket>(); // userId -> their connection
+
+    io.on("connection", (socket: Socket) => {
+        const userId: number = socket.data.userId;
+        const old = connections.get(userId);
+
+        if (old) {
+            old.emit("session:replaced");
+            old.disconnect();
+        }
+
+        connections.set(userId, socket);
+
+        socket.on("disconnect", () => {
+            // only if it was not replaced already (the new one stays)
+            if (connections.get(userId) === socket) {
+                connections.delete(userId);
+            }
+        });
     });
 }

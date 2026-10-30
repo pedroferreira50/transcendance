@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
+import { mapsFor } from "../mapLoader";
 
 const BACKEND = path.join(__dirname, "..", "types.ts");
 const FRONTEND = path.join(__dirname, "..", "..", "..", "..", "frontend", "src", "game", "protocol.ts");
+const FRONTEND_MAPS = path.join(__dirname, "..", "..", "..", "..", "frontend", "src", "game", "maps.ts");
 
 // name -> text of each "export type", without comments and with the spaces squeezed
 function declarations(file: string): Map<string, string> {
@@ -31,4 +33,11 @@ test("frontend protocol.ts is an exact copy of the types in types.ts", () => {
 	expect(frontend.size).toBeGreaterThan(0);
 	for (const [name, text] of frontend)
 		expect(backend.get(name), `type ${name}`).toBe(text);
+});
+
+// the screen MAP of the frontend shows the maps of its copy: the same ones the server accepts
+test("frontend maps.ts has the same maps for each number of players", async () => {
+	const frontend = await import(FRONTEND_MAPS);
+	for (const players of [2, 3, 4] as const)
+		expect(frontend.mapsFor(players), `${players} players`).toEqual(mapsFor(players));
 });

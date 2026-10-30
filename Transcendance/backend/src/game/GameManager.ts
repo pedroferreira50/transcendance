@@ -79,7 +79,7 @@ export class GameManager {
 		setup.players.forEach((player, slot) => {
 			this.userGame.set(player.userId, id); // Save the match he is in
 			this.transport.join(player.socketId, game.channel); // Add his socket to the game channel
-			const start: GameStart = { gameId: id, map, you: slot, state };
+			const start: GameStart = { gameId: id, map, you: slot, state, countdown: COUNTDOWN_SECONDS };
 			this.transport.toSocket(player.socketId, "game:start", start); // one by one: each player gets their own "you"
 		});
 

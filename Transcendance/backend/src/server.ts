@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import db from "./database";
 import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
-import { setupSocketAuth } from "./socketAuth";
+import { setupOneConnectionPerUser, setupSocketAuth } from "./socketAuth";
 import { requireAuth } from "./auth";
 import { GameManager, ioTransport } from "./game/GameManager";
 import { setupGameSocket } from "./game/gameSocket";
@@ -33,6 +33,7 @@ const io = new Server(httpServer, {
 const games = new GameManager(ioTransport(io));
 
 setupSocketAuth(io);
+setupOneConnectionPerUser(io);
 setupLobby(io, games);
 setupGameSocket(io, games);
 
