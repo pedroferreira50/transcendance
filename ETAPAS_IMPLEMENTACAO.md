@@ -356,8 +356,8 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [x] `GameScreen.tsx`: desenha o último `game:state` e manda `game:move` / `game:usePowerUp` / `game:leave` (o «). A partida abre dentro do `Lobby`, que continua recebendo os `lobby:update`.
 - [ ] Confirmar antes de desistir: hoje o « da partida manda `game:leave` no primeiro clique, e um clique sem querer vira derrota (ou vitória do outro, no 1v1). Mostrar por cima do mapa um quadro "LEAVE THE MATCH?" com YES / NO; só o YES manda `game:leave`. As teclas do jogo ficam desligadas enquanto o quadro está aberto.
 - [x] Contagem 3-2-1 na tela (o `game:start` leva `countdown`, porque o primeiro `game:countdown` chega junto com ele).
-- [ ] Tela de fim: a tela `winner-<peixe>` com o nome do vencedor escrito pelo código, diamantes e mortes de cada um, botões "Voltar ao lobby" e "Sair".
-- [ ] Remover o Clicky: `MultiplayerGame.tsx`, o `Game.tsx` antigo e a rota `/game-result`.
+- [x] Tela WINNER (`Winner.tsx`, aberta dentro do `Lobby` com o `game:end`): o peixe vencedor na tartaruga (`art/winner/<peixe>.webp`), "<nome> IS THE WINNER!" e como venceu (tartaruga, tempo ou desistência dos outros); no empate, DRAW com a tartaruga sozinha. Embaixo, o retrato, os diamantes e as mortes de cada um (o vencedor com borda dourada, quem saiu apagado) e os botões BACK TO LOBBY (revanche) e EXIT (sai do lobby).
+- [x] Remover o Clicky: `MultiplayerGame.tsx`, o `Game.tsx` antigo, o tipo `MatchStart`, a rota `/game-result` (os pontos do modo solo do Clicky) e as imagens antigas de `frontend/src/assets/`.
 
 **Pronto quando:** partidas com 2, 3 e 4 jogadores em **computadores diferentes** (ou navegadores diferentes) do início ao fim, e **duas partidas ao mesmo tempo** sem se misturarem.
 
