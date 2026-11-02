@@ -119,3 +119,12 @@ export type MapInfo = {
 	walls: boolean[][]; // [y][x], true = wall
 	exit: Position;
 };
+
+// game:start, sent once to each player
+export type GameStart = {
+	gameId: string;
+	map: MapInfo;
+	you: number | null; // your slot (null = local match: you play both)
+	state: DynamicState;
+	countdown: number; // seconds before the match begins: the first game:countdown can arrive before the screen listens
+};

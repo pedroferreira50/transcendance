@@ -1,0 +1,42 @@
+.intro {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: clamp(1.5rem, 5vh, 4rem);
+}
+
+/* the speech balloon: the text box with a "tail" in the bottom left corner */
+.story {
+	position: relative;
+	max-width: min(30em, 40vw); /* the room between the bubbles of the left and the turtle of the right */
+	margin: 0;
+	padding: 0.8em 1.2em;
+	border: none;
+	font-size: clamp(0.9rem, min(1.5vw, 2.6vh), 1.6rem); /* follows the width of the screen, so the box does not cover the goldfish */
+	line-height: 1.7;
+	text-align: center;
+
+	& strong {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 700px), (max-height: 500px) {
+		max-width: 30em; /* there the images are not on the sides of the box */
+	}
+
+	/* the tail is a triangle: a box without size where only one border has color */
+	&::after {
+		content: "";
+		position: absolute;
+		top: 100%;
+		left: 8%;
+		border-top: 2.5em solid var(--sea-box);
+		border-right: 4em solid transparent;
+	}
+}
+
+.intro-play {
+	min-width: min(70vw, 8em);
+}

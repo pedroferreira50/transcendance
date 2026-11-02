@@ -12,7 +12,7 @@ const SHARKS = ["shark", "shark-frozen", "shark-enchanted"];
 function spriteNames(): string[] {
 	const names = ["exit-turtle", "item-diamond", "icon-diamond", "bubble"];
 	for (const character of CHARACTERS)
-		names.push(`${character}-left`, `${character}-right`, `portrait-${character}`);
+		names.push(`${character}-left`, `${character}-right`, `${character}-frozen-left`, `${character}-frozen-right`, `portrait-${character}`);
 	for (const shark of SHARKS)
 		names.push(`${shark}-left`, `${shark}-right`);
 	for (const powerUp of POWERUPS)
@@ -47,7 +47,7 @@ export async function loadSprites(): Promise<Sprites> {
 }
 
 // Maps that already have their image in public/maps/ (asking for one that does not exist = 404 error in the console)
-const MAPS_WITH_IMAGE = ["small-1"];
+const MAPS_WITH_IMAGE = ["small-1", "small-2", "medium-1", "medium-2", "large-1", "large-2"];
 
 // The background of the map, or null if it has no image yet (then the map is drawn in blocks)
 export async function loadMapImage(name: string): Promise<HTMLImageElement | null> {

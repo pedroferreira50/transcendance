@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { User } from "../types/User";
 import { api } from "../api";
-import loginBackground from "../assets/login-background.gif";
+import Screen from "./Screen";
 
 type RegisterProps = {
     onLogin: () => void;
@@ -64,61 +64,65 @@ function Register({ onLogin }: RegisterProps) {
 	}
 
     return (
-        <div style={{
-            backgroundImage: `url(${loginBackground})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            height: "100vh"
-        }}>
-            <h1>Register</h1>
+        <Screen title="REGISTER" onBack={onLogin}>
+            <form className="sea-form" onSubmit={handleSubmit}>
+                <label className="sea-field">
+                    Username
+                    <input
+                        className="sea-input"
+                        type="text"
+                        autoComplete="username"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                    />
+                </label>
 
-            <form
-                onSubmit={handleSubmit}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}
-            >
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                />
+                <label className="sea-field">
+                    Email
+                    <input
+                        className="sea-input"
+                        type="text"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                    />
+                </label>
 
-                <input
-                    type="text"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                />
+                <label className="sea-field">
+                    Password
+                    <input
+                        className="sea-input"
+                        type="password"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                    />
+                </label>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                />
+                <label className="sea-field">
+                    Repeat password
+                    <input
+                        className="sea-input"
+                        type="password"
+                        autoComplete="new-password"
+                        value={repeatPassword}
+                        onChange={(event) =>
+                            setRepeatPassword(event.target.value)
+                        }
+                    />
+                </label>
 
-                <input
-                    type="password"
-                    placeholder="Repeat password"
-                    value={repeatPassword}
-                    onChange={(event) =>
-                        setRepeatPassword(event.target.value)
-                    }
-                />
+                <p className="form-message" role="status">{message}</p>
 
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button type="submit">
-                        Register
-                    </button>
+                <button className="sea-button" type="submit">
+                    REGISTER
+                </button>
 
-                    <button type="button" onClick={onLogin}>
-                        Back to Login
-                    </button>
-                </div>
+                <button className="sea-button secondary" type="button" onClick={onLogin}>
+                    BACK TO LOGIN
+                </button>
             </form>
-
-            <p>{message}</p>
-        </div>
+        </Screen>
     );
 }
 

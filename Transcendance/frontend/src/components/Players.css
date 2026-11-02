@@ -1,0 +1,13 @@
+/* the 3 buttons one under the other */
+.players {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: clamp(1rem, 3vh, 2rem);
+
+	& .sea-button {
+		min-width: 8em;
+	}
+}
+

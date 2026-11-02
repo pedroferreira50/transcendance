@@ -1,0 +1,178 @@
+.lobby-room {
+	flex: 1;
+	width: min(100%, 64rem);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(0.6rem, 2.2vh, 1.6rem);
+
+	& .button-row .sea-button {
+		min-width: 6em;
+		font-size: clamp(1.4rem, min(2.8vw, 5vh), 3rem);
+	}
+	& .sea-button.secondary {
+		font-size: clamp(1.1rem, min(2.2vw, 3.8vh), 2.4rem);
+	}
+}
+
+/* "LARGE 2 · 2 PLAYERS" and the SETTINGS of the host beside it */
+.lobby-info {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+}
+
+.lobby-settings {
+	font-family: var(--font-button);
+	font-size: clamp(1.2rem, min(2.2vw, 3.8vh), 2.2rem);
+	letter-spacing: 0.06em;
+	color: var(--sea-light);
+	line-height: 1.2;
+}
+
+/* the seats side by side; on phones 2 in a row */
+.seats {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.8rem, 3vw, 3rem);
+}
+
+.seat {
+	position: relative;
+	width: clamp(5.5rem, min(12vw, 20vh), 11rem);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3rem;
+
+	&.empty .seat-portrait {
+		opacity: 0.6;
+	}
+
+	@media (max-width: 700px) {
+		width: 28vw;
+	}
+}
+
+.seat-portrait {
+	width: 100%;
+	aspect-ratio: 1;
+	object-fit: contain;
+}
+
+.seat-name {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis; /* a long username ends with "..." */
+	white-space: nowrap;
+	font-size: clamp(1rem, min(1.6vw, 2.8vh), 1.4rem);
+}
+
+/* HOST and READY; the space stays even without them, so the seats stay in line */
+.seat-badges {
+	min-height: 1.4em;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.3rem;
+	font-size: clamp(0.9rem, min(1.4vw, 2.4vh), 1.4rem);
+
+	& .gold-badge {
+		padding: 0 0.6em;
+		font-size: 1em;
+	}
+}
+
+/* the round ✕ of the host, on the corner of the portrait */
+.seat-kick {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 28%;
+	aspect-ratio: 1;
+	padding: 0;
+	display: grid;
+	place-items: center;
+	border: var(--line) solid var(--sea-light);
+	border-radius: 50%;
+	background: var(--sea-box);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--sea-box-hover);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+}
+
+.kick-icon {
+	width: 40%;
+	fill: var(--sea-light);
+	shape-rendering: crispEdges;
+}
+
+/* the 4 fish; the one of others can not be chosen */
+.fish-choice {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.5rem, 2vw, 2rem);
+}
+
+.fish-option {
+	width: clamp(4.5rem, min(10vw, 15vh), 9rem);
+	padding: 0.3rem;
+	border: var(--line) solid transparent;
+	border-radius: 1rem;
+	background: transparent;
+	cursor: pointer;
+
+	& img {
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: contain;
+		display: block;
+	}
+
+	&:hover:not(:disabled) {
+		background: var(--sea-box);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+	&.mine {
+		border-color: var(--sea-light);
+		background: var(--sea-box);
+	}
+	/* someone else's fish: only the image fades, the name stays readable */
+	&:disabled {
+		cursor: not-allowed;
+
+		& img {
+			opacity: 0.3;
+		}
+	}
+
+	@media (max-width: 700px) {
+		width: 16vw;
+	}
+}
+
+/* the name under the fish, smaller than the names of the seats */
+.fish-name {
+	display: block;
+	margin-top: 0.2em;
+	font-family: var(--font-text); /* a button does not take the font of the page */
+	font-size: clamp(0.8rem, min(1.1vw, 2vh), 1rem);
+	color: var(--sea-light);
+}

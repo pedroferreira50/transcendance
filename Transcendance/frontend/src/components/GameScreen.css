@@ -1,0 +1,46 @@
+/* the map in the middle of a black screen; what grows beyond it (the 3, 2, 1) is cut, without scroll bars */
+.game-screen {
+	position: relative;
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: #000;
+}
+
+/* 3, 2, 1 over the map: each number grows and fades (key={countdown} starts the animation again) */
+.countdown {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+	font-family: var(--font-title);
+	font-size: clamp(6rem, 30vmin, 18rem);
+	color: var(--sea-light);
+	text-shadow: 0 0 0.15em var(--sea-sides), 0 0 0.4em var(--sea-sides);
+	animation: count 1s ease-out;
+}
+
+@keyframes count {
+	from {
+		transform: scale(1.6);
+		opacity: 0;
+	}
+	30% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	to {
+		opacity: 0.7;
+	}
+}
+
+/* the « of the match: in the corner of the screen (there is no frame of rocks here) */
+.back-button.game-leave {
+	top: 0.75rem;
+	right: 0.75rem;
+	width: clamp(36px, 6vmin, 64px);
+	height: clamp(36px, 6vmin, 64px);
+}

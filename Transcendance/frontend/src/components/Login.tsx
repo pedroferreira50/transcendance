@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { api } from "../api";
-import loginBackground from "../assets/login-background.gif";
+import Screen from "./Screen";
 
 type LoginProps = {
+    onBack: () => void;
     onRegister: () => void;
     onLoginSuccess: (
         username: string,
@@ -13,7 +14,7 @@ type LoginProps = {
     ) => void;
 };
 
-function Login({ onRegister, onLoginSuccess }: LoginProps) {
+function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
@@ -52,45 +53,41 @@ function Login({ onRegister, onLoginSuccess }: LoginProps) {
 	}
 
     return (
-        <div style={{
-            backgroundImage: `url(${loginBackground})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            height: "100vh"
-        }}>
-            <h1>Login</h1>
+        <Screen title="LOGIN" onBack={onBack}>
+            <form className="sea-form" onSubmit={handleSubmit}>
+                <label className="sea-field">
+                    Username
+                    <input
+                        className="sea-input"
+                        type="text"
+                        autoComplete="username"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                    />
+                </label>
 
-            <form
-                onSubmit={handleSubmit}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}
-            >
-                <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                />
+                <label className="sea-field">
+                    Password
+                    <input
+                        className="sea-input"
+                        type="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                    />
+                </label>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                />
+                <p className="form-message" role="status">{message}</p>
 
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button type="submit">
-                        Login
-                    </button>
+                <button className="sea-button" type="submit">
+                    LOGIN
+                </button>
 
-                    <button type="button" onClick={onRegister}>
-                        Sign Up
-                    </button>
-                </div>
+                <button className="sea-button secondary" type="button" onClick={onRegister}>
+                    SIGN UP
+                </button>
             </form>
-
-			{message && <p>{message}</p>}
-        </div>
+        </Screen>
     );
 }
 

@@ -1,12 +1,13 @@
 import React from 'react';
-import profileBackground from '../assets/profile-background.gif';
+import Screen from './Screen';
+import './Profile.css';
 
 type ProfileProps = {
   username: string;
-  soloWins?: number;
-  soloLosses?: number;
-  multiplayerWins?: number;
-  multiplayerLosses?: number;
+  multiplayerWins: number;
+  multiplayerLosses: number;
+  onBack: () => void;
+  onLogout: () => void;
 };
 
 function winPercentage(wins: number, losses: number) {
@@ -20,53 +21,44 @@ type StatsBlockProps = {
   losses: number;
 };
 
+// One mode: the gold badge with its name and, under it, the wins, the losses and the % of wins
 const StatsBlock: React.FC<StatsBlockProps> = ({ title, wins, losses }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-    <h3 style={{ color: 'purple', margin: 0, fontSize: '1rem' }}>{title}</h3>
-
-    <span style={{ color: 'green', fontWeight: 'bold' }}>
-      {wins} WINS
-    </span>
-
-    <span style={{ color: 'red', fontWeight: 'bold' }}>
-      {losses} LOSSES
-    </span>
-
-    <span style={{ color: 'orange', fontWeight: 'bold' }}>
-      Win %: {winPercentage(wins, losses).toFixed(1)}%
-    </span>
-  </div>
+  <section className="stats-block">
+    <span className="gold-badge">{title}</span>
+    <div className="stats">
+      <div className="text-box stat">
+        <span className="stat-name">WINS</span>
+        <span className="stat-value">{wins}</span>
+      </div>
+      <div className="text-box stat">
+        <span className="stat-name">LOSSES</span>
+        <span className="stat-value">{losses}</span>
+      </div>
+      <div className="text-box stat">
+        <span className="stat-name">WIN %</span>
+        <span className="stat-value">{winPercentage(wins, losses).toFixed(1)}%</span>
+      </div>
+    </div>
+  </section>
 );
 
+// The PROFILE screen: who is logged in, their online results and the logout.
 const Profile: React.FC<ProfileProps> = ({
   username,
-  soloWins = 0,
-  soloLosses = 0,
-  multiplayerWins = 0,
-  multiplayerLosses = 0
-}) => {
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '1rem',
-      fontFamily: 'Arial, sans-serif',
-      height: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-      backgroundImage: `url(${profileBackground})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center'
-    }}>
-      <h2 style={{ color: 'black', margin: 0 }}>Profile</h2>
-      <span style={{ color: 'black', fontSize: '1.25rem' }}>{username}</span>
-
-      <StatsBlock title="Solo" wins={soloWins} losses={soloLosses} />
-      <StatsBlock title="Multiplayer" wins={multiplayerWins} losses={multiplayerLosses} />
+  multiplayerWins,
+  multiplayerLosses,
+  onBack,
+  onLogout
+}) => (
+  <Screen title="PROFILE" onBack={onBack}>
+    <div className="profile">
+      <p className="profile-name">{username}</p>
+      <StatsBlock title="ONLINE" wins={multiplayerWins} losses={multiplayerLosses} />
+      <button className="sea-button" onClick={onLogout}>
+        LOGOUT
+      </button>
     </div>
-  );
-};
+  </Screen>
+);
 
 export default Profile;
