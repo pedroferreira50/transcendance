@@ -12,7 +12,7 @@ const SHARKS = ["shark", "shark-frozen", "shark-enchanted"];
 function spriteNames(): string[] {
 	const names = ["exit-turtle", "item-diamond", "icon-diamond", "bubble"];
 	for (const character of CHARACTERS)
-		names.push(`${character}-left`, `${character}-right`, `portrait-${character}`);
+		names.push(`${character}-left`, `${character}-right`, `${character}-frozen-left`, `${character}-frozen-right`, `portrait-${character}`);
 	for (const shark of SHARKS)
 		names.push(`${shark}-left`, `${shark}-right`);
 	for (const powerUp of POWERUPS)

@@ -6,13 +6,8 @@ import GameScreen from './GameScreen';
 import MapSelect from './MapSelect';
 import Players from './Players';
 import Screen from './Screen';
+import Winner from './Winner';
 import './Lobby.css';
-
-// TEMPORARY: only the MultiplayerGame of the Clicky uses it (removed in the cleanup)
-export type MatchStart = {
-  you: number;
-  usernames: string[];
-};
 
 type LobbyPlayer = {
   id: string;
@@ -45,6 +40,8 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
   const [settings, setSettings] = useState<SettingsStep>('closed');
   // the match of this lobby (game:start), or null while in the lobby
   const [match, setMatch] = useState<GameStart | null>(null);
+  // the last state of the match that just ended (the WINNER screen), or null
+  const [result, setResult] = useState<DynamicState | null>(null);
 
   useEffect(() => {
     function handleKicked() {
@@ -79,20 +76,19 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
   const allReady = lobby.players.length === lobby.seats && lobby.players.every((player) => player.ready);
   const me = lobby.players.find((player) => player.id === socket.id);
 
-  // TEMPORARY: who won, written in the lobby until the WINNER screen
+  // the match is over (final = game:end) or I left it (final = null: straight back to the lobby)
   function handleMatchEnd(final: DynamicState | null) {
     setMatch(null);
-    if (final && final.winnerSlot !== null) {
-      setMessage(`${final.players[final.winnerSlot].username} won!`);
-    } else if (final) {
-      setMessage('Nobody won.');
-    }
+    setResult(final);
   }
 
   // the match, like the SETTINGS, opens inside the lobby: this component stays open behind it,
   // so the lobby:update that arrive during the match (and with the game:end) are not lost
   if (match) {
     return <GameScreen mode="online" start={match} onEnd={handleMatchEnd} />;
+  }
+  if (result) {
+    return <Winner final={result} onBack={() => setResult(null)} onExit={handleBack} />;
   }
 
   // the SETTINGS use the same screens as creating a lobby; this component stays open
@@ -160,9 +156,9 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
                 disabled={owner !== undefined && owner !== me}
                 onClick={() => send('lobby:character', fish)}
                 aria-label={fish}
-                title={fish}
               >
                 <img src={`/art/fish/${fish}.webp`} alt="" />
+                <span className='fish-name'>{fish}</span>
               </button>
             );
           })}

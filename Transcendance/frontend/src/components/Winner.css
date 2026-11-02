@@ -1,0 +1,112 @@
+/* the fish on the turtle takes the room that is left, the rest stays at its size */
+.winner-screen {
+	flex: 1;
+	min-height: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: clamp(0.4rem, 1.5vh, 1rem);
+
+	& .button-row .sea-button {
+		font-size: clamp(1.4rem, min(2.6vw, 4.6vh), 2.8rem);
+	}
+	& .sea-button.secondary {
+		font-size: clamp(1.2rem, min(2.2vw, 3.8vh), 2.4rem);
+	}
+}
+
+/* it shrinks to fit (object-fit), so it never goes over the results */
+.winner-art {
+	flex: 1 1 0;
+	min-height: 0;
+	width: min(30vw, 100%);
+	object-fit: contain;
+
+	@media (max-width: 700px) {
+		width: 70vw;
+	}
+}
+
+.winner-line {
+	margin: 0;
+	font-family: var(--font-button);
+	font-size: clamp(1.4rem, min(2.8vw, 5vh), 3rem);
+	letter-spacing: 0.06em;
+	color: var(--sea-light);
+	text-align: center;
+	overflow-wrap: anywhere; /* a long username breaks instead of going out of the screen */
+
+	& u {
+		text-underline-offset: 0.15em;
+	}
+}
+
+.winner-reason {
+	margin: 0;
+	text-align: center;
+	font-size: clamp(0.9rem, min(1.4vw, 2.4vh), 1.2rem);
+}
+
+/* everyone side by side; on phones 2 in a row */
+.results {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.5rem, 1.5vw, 1.2rem);
+}
+
+/* portrait | name over the numbers */
+.result {
+	display: grid;
+	grid-template-columns: auto auto;
+	align-items: center;
+	column-gap: 0.6em;
+	padding: 0.3em 0.9em 0.3em 0.4em;
+	border: var(--line) solid var(--sea-light);
+	border-radius: 999px;
+	background: var(--sea-box);
+	font-size: clamp(0.9rem, min(1.4vw, 2.4vh), 1.3rem);
+
+	&.winner {
+		border-color: #ba943e;
+		box-shadow: 0 0 0 var(--line) #f3f4e3;
+	}
+	&.gone {
+		opacity: 0.5;
+	}
+}
+
+.result-portrait {
+	grid-row: span 2;
+	width: 2.8em;
+	height: 2.8em;
+}
+
+.result-name {
+	max-width: 9em;
+	overflow: hidden;
+	text-overflow: ellipsis; /* a long username ends with "..." */
+	white-space: nowrap;
+}
+
+.result-numbers {
+	display: flex;
+	align-items: center;
+	gap: 0.3em;
+	font-family: var(--font-button);
+	font-size: 1.2em;
+	color: var(--sea-light);
+}
+
+.result-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.result-deaths {
+	margin-left: 0.6em;
+}

@@ -154,12 +154,25 @@
 		border-color: var(--sea-light);
 		background: var(--sea-box);
 	}
+	/* someone else's fish: only the image fades, the name stays readable */
 	&:disabled {
-		opacity: 0.3;
 		cursor: not-allowed;
+
+		& img {
+			opacity: 0.3;
+		}
 	}
 
 	@media (max-width: 700px) {
 		width: 16vw;
 	}
+}
+
+/* the name under the fish, smaller than the names of the seats */
+.fish-name {
+	display: block;
+	margin-top: 0.2em;
+	font-family: var(--font-text); /* a button does not take the font of the page */
+	font-size: clamp(0.8rem, min(1.1vw, 2vh), 1rem);
+	color: var(--sea-light);
 }

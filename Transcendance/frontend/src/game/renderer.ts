@@ -103,7 +103,9 @@ function drawPlayer(f: Frame, p: PlayerView): void {
 	const { ctx, tile, now } = f;
 	const x = p.pos.x * tile;
 	const y = p.pos.y * tile;
-	const fish = f.sprites[`${p.character}-${p.facing}`];
+	// frozen: the same fish, inside a block of ice
+	const look = p.frozenMs > 0 ? `${p.character}-frozen` : p.character;
+	const fish = f.sprites[`${look}-${p.facing}`];
 
 	ctx.save(); // everything changed until restore() (transparency, colours) is undone there
 	if (p.status === "disconnected")
@@ -122,15 +124,6 @@ function drawPlayer(f: Frame, p: PlayerView): void {
 		ctx.globalAlpha = alpha;
 	}
 	ctx.drawImage(fish, x, y, tile, tile);
-
-	// frozen: a block of ice over the fish
-	if (p.frozenMs > 0) {
-		ctx.fillStyle = "rgba(170, 225, 255, 0.45)";
-		ctx.strokeStyle = "rgba(230, 250, 255, 0.9)";
-		ctx.lineWidth = Math.max(1, tile / 24);
-		ctx.fillRect(x + tile * 0.08, y + tile * 0.08, tile * 0.84, tile * 0.84);
-		ctx.strokeRect(x + tile * 0.08, y + tile * 0.08, tile * 0.84, tile * 0.84);
-	}
 
 	// enchanted: three hearts going around the fish
 	if (p.enchantedMs > 0) {
