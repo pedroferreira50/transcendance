@@ -33,6 +33,7 @@ export type MatchPlayer = PlayerInfo & {
 export type MatchSetup = {
 	players: MatchPlayer[]; // index = slot
 	map: string; // "random" or the name of a map for this number of players
+	local?: boolean; // 1v1 on one keyboard: both slots are the same user and the same socket
 	onEnd?: (final: DynamicState) => void; // called when the match is over (the lobby goes back to "ready")
 };
 
@@ -42,6 +43,7 @@ type Game = {
 	channel: string; // Socket.IO room of the match: "game:<id>"
 	room: GameRoom;
 	players: MatchPlayer[];
+	local: boolean;
 	timers: ReturnType<typeof setInterval>[]; // all the intervals of the match, to stop them at the end
 	onEnd?: (final: DynamicState) => void;
 };
@@ -68,8 +70,11 @@ export class GameManager {
 				throw new Error(`${player.username} is already in a match`); // Lobby handles and displays the error
 		const mapName = pickMap(setup.players.length as PlayerCount, setup.map, this.random); // "random" -> one of the maps for this number of players
 		const id = randomUUID(); // example: "3f2a9c1e-7b4d-4e8a-9c3f-1a2b3c4d5e6f"
-		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), setup.players, { local: false, random: this.random });
-		const game: Game = { id, channel: `game:${id}`, room, players: setup.players, timers: [], onEnd: setup.onEnd };
+		const local = setup.local ?? false;
+		// local: the two fish are guests (userId null), so the match never counts in anyone's results
+		const infos = local ? setup.players.map((p) => ({ ...p, userId: null })) : setup.players;
+		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, random: this.random });
+		const game: Game = { id, channel: `game:${id}`, room, players: setup.players, local, timers: [], onEnd: setup.onEnd };
 		this.games.set(id, game);
 
 		// the fixed part of the map (walls, turtle) goes only once, here, and never again in game:state
@@ -79,7 +84,10 @@ export class GameManager {
 		setup.players.forEach((player, slot) => {
 			this.userGame.set(player.userId, id); // Save the match he is in
 			this.transport.join(player.socketId, game.channel); // Add his socket to the game channel
-			const start: GameStart = { gameId: id, map, you: slot, state, countdown: COUNTDOWN_SECONDS };
+			// local: only one game:start (the two slots are the same socket), and "you" = null: both fish are theirs
+			if (local && slot > 0)
+				return;
+			const start: GameStart = { gameId: id, map, you: local ? null : slot, state, countdown: COUNTDOWN_SECONDS };
 			this.transport.toSocket(player.socketId, "game:start", start); // one by one: each player gets their own "you"
 		});
 
@@ -92,13 +100,14 @@ export class GameManager {
 	}
 
 	// The match and the slot of a user (null = not in a match) | gameSocket.ts will call
-	find(userId: number): { room: GameRoom; slot: number; socketId: string } | null {
+	// local: slot is 0, but the fish to move comes in each command (gameSocket)
+	find(userId: number): { room: GameRoom; slot: number; socketId: string; local: boolean } | null {
 		const id = this.userGame.get(userId);
 		const game = id === undefined ? undefined : this.games.get(id);
 		if (!game)
 			return null;
 		const slot = game.players.findIndex((p) => p.userId === userId);
-		return { room: game.room, slot, socketId: game.players[slot].socketId };
+		return { room: game.room, slot, socketId: game.players[slot].socketId, local: game.local };
 	}
 
 	// How many matches are running (for the tests and, later, the logs)
@@ -141,7 +150,8 @@ export class GameManager {
 			clearInterval(timer);
 		const final = game.room.snapshot(Date.now());
 		this.transport.toChannel(game.channel, "game:end", final);
-		saveResult(final);
+		if (!game.local) // local matches do not count in the results
+			saveResult(final);
 		// free to join another match
 		for (const player of game.players) {
 			this.transport.leave(player.socketId, game.channel);
