@@ -22,12 +22,13 @@ type GameScreenProps = {
 	onEnd: (final: DynamicState | null) => void; // the last state (game:end), or null when I left
 };
 
-// What a key (or a touch button) asks for goes to the server; it knows whose fish it is by the socket
+// What a key (or a touch button) asks for goes to the server; online it knows whose fish it is by the socket,
+// local the command carries the slot (undefined online: it does not even go in the message)
 function sendCommand(command: Command): void {
 	if (command.type === "move")
-		socket.emit("game:move", { dir: command.dir });
+		socket.emit("game:move", { dir: command.dir, slot: command.slot });
 	else
-		socket.emit("game:usePowerUp");
+		socket.emit("game:usePowerUp", { slot: command.slot });
 }
 
 // The match screen: draws the last state the server sent, and sends the keys to it

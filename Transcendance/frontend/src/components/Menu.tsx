@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
 import "./Menu.css";
@@ -36,6 +37,8 @@ function AccountIcon() {
 
 // The first screen of Open Sea: the name of the game and the 3 ways to go on
 export default function Menu({ username, notice, onChoose, onAccount, onBack }: MenuProps) {
+	// phones and tablets: the same test as GameScreen. There is no keyboard for the local mode
+	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 	// logged in: the profile of the user; if not: the login
 	const accountLabel = username === null ? "Login" : `Profile of ${username}`;
 	const account = (
@@ -49,7 +52,7 @@ export default function Menu({ username, notice, onChoose, onAccount, onBack }: 
 			<div className="menu">
 				<img className="menu-fish" src="/art/fish/goldfish.webp" alt="" />
 				<div className="button-row">
-					<button className="sea-button" onClick={() => onChoose("local")}>PLAY LOCAL</button>
+					{!touch && <button className="sea-button" onClick={() => onChoose("local")}>PLAY LOCAL</button>}
 					<button className="sea-button" onClick={() => onChoose("online")}>PLAY ONLINE</button>
 					<button className="sea-button" onClick={() => onChoose("instructions")}>INSTRUCTIONS</button>
 				</div>

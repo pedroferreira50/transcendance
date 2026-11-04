@@ -7,6 +7,7 @@ type WinnerProps = {
 	final: DynamicState; // the last state of the match (game:end)
 	onBack: () => void; // back to the lobby (a rematch)
 	onExit: () => void; // leaves the lobby
+	backLabel?: string; // the text of the onBack button (the local mode has no lobby)
 };
 
 // The power-ups on the left and the diamonds on the right (% of the screen)
@@ -50,7 +51,7 @@ function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
 
 // The end of the match: who won (the fish on the turtle) and how everyone did.
 // A draw (the time ran out with a tie at the top) has no winner: only the turtle
-export default function Winner({ final, onBack, onExit }: WinnerProps) {
+export default function Winner({ final, onBack, onExit, backLabel = "BACK TO LOBBY" }: WinnerProps) {
 	const winner = final.winnerSlot === null ? null : final.players[final.winnerSlot];
 
 	return (
@@ -74,7 +75,7 @@ export default function Winner({ final, onBack, onExit }: WinnerProps) {
 				</ul>
 
 				<div className="button-row">
-					<button className="sea-button" onClick={onBack}>BACK TO LOBBY</button>
+					<button className="sea-button" onClick={onBack}>{backLabel}</button>
 					<button className="sea-button secondary" onClick={onExit}>EXIT</button>
 				</div>
 			</div>

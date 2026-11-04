@@ -1,0 +1,34 @@
+/* the fish of Player 1 over the fish of Player 2, and START */
+.local-setup {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: clamp(0.75rem, 3vh, 2rem);
+}
+
+.local-player {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4em;
+}
+
+.local-player-name {
+	margin: 0;
+	font-family: var(--font-button);
+	font-size: clamp(1.3rem, min(2.4vw, 4.2vh), 2.4rem);
+	letter-spacing: 0.06em;
+	color: var(--sea-light);
+	text-align: center;
+}
+
+/* the keys, smaller beside the name */
+.local-keys {
+	margin-left: 0.6em;
+	font-family: var(--font-text);
+	font-size: 0.6em;
+	letter-spacing: 0;
+	opacity: 0.85;
+}

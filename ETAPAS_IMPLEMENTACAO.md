@@ -355,6 +355,7 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 - [x] Uma conexão de jogo por usuário: a mesma conta aberta em outro navegador derruba a conexão antiga (`session:replaced`), que volta ao Menu com o aviso.
 - [x] `GameScreen.tsx`: desenha o último `game:state` e manda `game:move` / `game:usePowerUp` / `game:leave` (o «). A partida abre dentro do `Lobby`, que continua recebendo os `lobby:update`.
 - [ ] Confirmar antes de desistir: hoje o « da partida manda `game:leave` no primeiro clique, e um clique sem querer vira derrota (ou vitória do outro, no 1v1). Mostrar por cima do mapa um quadro "LEAVE THE MATCH?" com YES / NO; só o YES manda `game:leave`. As teclas do jogo ficam desligadas enquanto o quadro está aberto.
+- [ ] WINNER também para quem desiste: hoje o « (`handleLeave` no `GameScreen`) manda `game:leave` e chama `onEnd(null)` na hora, então quem saiu volta direto ao lobby sem ver a tela WINNER (só quem ficou recebe o `game:end` e vê). Quando a partida acaba por diamantes ou tempo, os dois veem. Corrigir: depois do `game:leave`, esperar o `game:end` que o servidor manda (ele já termina a partida por forfeit no 1v1) e mostrar o WINNER com o resultado; numa partida de 3 ou 4, quem sai vê o WINNER com o placar do momento em que saiu.
 - [x] Contagem 3-2-1 na tela (o `game:start` leva `countdown`, porque o primeiro `game:countdown` chega junto com ele).
 - [x] Tela WINNER (`Winner.tsx`, aberta dentro do `Lobby` com o `game:end`): o peixe vencedor na tartaruga (`art/winner/<peixe>.webp`), "<nome> IS THE WINNER!" e como venceu (tartaruga, tempo ou desistência dos outros); no empate, DRAW com a tartaruga sozinha. Embaixo, o retrato, os diamantes e as mortes de cada um (o vencedor com borda dourada, quem saiu apagado) e os botões BACK TO LOBBY (revanche) e EXIT (sai do lobby).
 - [x] Remover o Clicky: `MultiplayerGame.tsx`, o `Game.tsx` antigo, o tipo `MatchStart`, a rota `/game-result` (os pontos do modo solo do Clicky) e as imagens antigas de `frontend/src/assets/`.
@@ -365,12 +366,14 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 
 ## Etapa 5: Modo local 1v1 (Luiz, 2 dias)
 
-- [ ] Botão **"Play local"** no menu → escolha do mapa (qualquer um que aceite 2 jogadores, ou aleatório) → escolha dos dois peixes.
-- [ ] **Sem login** (decidido): o subject exige que dê para cadastrar e entrar, não que todo modo de jogo peça login. ⚠️ Falta decidir onde a partida local roda, já que hoje o socket só conecta com login: no servidor (aceitando um socket sem login só para a partida local) ou no próprio navegador (a `GameRoom` não depende de rede nem de timers).
-- [ ] Evento `local:start { map }` → o `gameManager` cria uma `GameRoom` com `local: true`: slot 0 = "Player 1", slot 1 = "Player 2".
-- [ ] No modo local, `game:move` e `game:usePowerUp` recebem `{ slot, dir }`. O servidor só aceita `slot` 0 ou 1 e **só se** o socket for o dono da partida local.
-- [ ] `input.ts` em modo `"local"`.
-- [ ] Partidas locais **não gravam** estatísticas 🔶.
+- [x] Botão **PLAY LOCAL** no menu → escolha do mapa (os de 2 jogadores, ou RANDOM) → tela FISH com o peixe de cada jogador (o do outro fica apagado) e as teclas de cada um → START. Tudo em `LocalGame.tsx`, que conecta o socket (`socket.connect()`, como a tela LOBBIES) e abre a partida e a WINNER dentro dele (PLAY AGAIN volta para a tela FISH com os mesmos peixes). No celular e no tablet o botão não aparece (não há teclado).
+- [x] **Com login** (decidido na Etapa 5, no lugar do "sem login"): a partida roda no servidor, como a online, e o socket continua só conectando com login. Assim nenhuma porta é aberta para sockets anônimos. O subject não pede que algum modo funcione sem conta.
+- [x] Evento `local:start { map, characters: [peixe1, peixe2] }` (`gameSocket.ts`, validado por `readLocalSetup`) → `games.createGame({ ..., local: true })`: slot 0 = "Player 1", slot 1 = "Player 2", os dois com o `userId` e o socket do dono. Um único `game:start`, com `you: null`. Erros voltam em `local:error`.
+- [x] No modo local, `game:move { dir, slot }` e `game:usePowerUp { slot }`: o servidor só aceita `slot` 0 ou 1 (`readSlot`), e só numa partida local do próprio usuário (o `find` acha a partida pelo `userId` do socket). Online, o `slot` mandado pelo navegador é ignorado.
+- [x] `game:leave` (o «) e o `disconnect` encerram a partida local na hora: não há outro jogador para esperar.
+- [x] `input.ts` em modo `"local"`: W A S D + R para o Player 1, setas + L para o Player 2 (já existia; a `GameScreen` agora manda o `slot`).
+- [x] Partidas locais **não gravam** estatísticas: os dois peixes entram na `GameRoom` com `userId: null` e o `saveResult` não é chamado.
+- [ ] Teclas seguradas (`input.ts`): hoje o peixe só anda com a repetição automática do teclado, e o sistema só repete **a última tecla apertada**. No modo local, se o Player 1 segura D e o Player 2 aperta uma seta, o peixe do Player 1 para mesmo com o D ainda apertado (e há também a pausa de ~0,5 s antes de a repetição começar, nos dois modos). Corrigir: guardar as teclas seguradas (`keydown` adiciona, `keyup` remove, ignorar `event.repeat`) e um temporizador próprio (~50 ms) que manda o movimento da tecla segurada de cada jogador; o servidor continua a aplicar o `MOVE_COOLDOWN_MS`. Limpar as teclas no `blur` da janela (senão um peixe continua a andar sozinho se a tecla for solta fora da página).
 
 **Pronto quando:** dá para jogar 1v1 no mesmo teclado do início ao fim.
 
