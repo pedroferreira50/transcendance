@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { MAX_POWERUPS_ON_MAP, POWERUP_INTERVAL_MS, RECONNECT_TIMEOUT_MS, SIZE_RULES, diamondCount } from "../config";
+import { MAX_POWERUPS_ON_MAP, MOVE_COOLDOWN_MS, POWERUP_INTERVAL_MS, RECONNECT_TIMEOUT_MS, SIZE_RULES, diamondCount } from "../config";
 import { GameRoom, type PlayerInfo } from "../GameRoom";
 import { loadMap } from "../mapLoader";
 import { posKey } from "../placement";
@@ -110,12 +110,12 @@ describe("move", () => {
 		expect(r.state.players[0].facing).toBe("left");
 	});
 
-	test("cooldown: 100 ms apart -> only the first, 150 ms -> both", () => {
+	test("cooldown: 1 ms before MOVE_COOLDOWN_MS -> only the first, MOVE_COOLDOWN_MS apart -> both", () => {
 		const r = running();
 		r.move(0, "right", 1000);
-		r.move(0, "right", 1100);
+		r.move(0, "right", 1000 + MOVE_COOLDOWN_MS - 1);
 		expect(r.state.players[0].pos).toEqual({ x: 2, y: 1 });
-		r.move(0, "right", 1150);
+		r.move(0, "right", 1000 + MOVE_COOLDOWN_MS);
 		expect(r.state.players[0].pos).toEqual({ x: 3, y: 1 });
 	});
 

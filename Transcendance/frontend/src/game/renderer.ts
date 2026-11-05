@@ -103,7 +103,7 @@ function drawPlayer(f: Frame, p: PlayerView): void {
 	const { ctx, tile, now } = f;
 	const x = p.pos.x * tile;
 	const y = p.pos.y * tile;
-	// frozen: the same fish, inside a block of ice
+	// frozen: the frozen sprite of the same fish
 	const look = p.frozenMs > 0 ? `${p.character}-frozen` : p.character;
 	const fish = f.sprites[`${look}-${p.facing}`];
 

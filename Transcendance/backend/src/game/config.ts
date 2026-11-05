@@ -1,6 +1,6 @@
 import type { Character, MapSize } from "./types";
 
-export const MOVE_COOLDOWN_MS = 150;
+export const MOVE_COOLDOWN_MS = 100;
 export const MONSTER_INTERVAL_MS = 500;
 export const RESPAWN_DELAY_MS = 3000;
 export const INVULNERABLE_MS = 1000;
@@ -23,9 +23,9 @@ export type SizeRules = {
 };
 
 export const SIZE_RULES: Record<MapSize, SizeRules> = {
-	small:  { players: [2],       goal: 5,  monsters: 4, timeLimitMs: 3 * 60_000 },
-	medium: { players: [2, 3],    goal: 10, monsters: 6, timeLimitMs: 4 * 60_000 },
-	large:  { players: [2, 3, 4], goal: 10, monsters: 8, timeLimitMs: 5 * 60_000 },
+	small:  { players: [2],       goal: 5,  monsters: 4, timeLimitMs: 2 * 60_000 },
+	medium: { players: [2, 3],    goal: 10, monsters: 6, timeLimitMs: 3 * 60_000 },
+	large:  { players: [2, 3, 4], goal: 10, monsters: 8, timeLimitMs: 4 * 60_000 },
 };
 
 export function diamondCount(size: MapSize, playerCount: number): number {

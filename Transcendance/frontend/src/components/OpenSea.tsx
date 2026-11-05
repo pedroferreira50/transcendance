@@ -5,13 +5,14 @@ import CreateLobby from "./CreateLobby";
 import Instructions from "./Instructions";
 import Intro from "./Intro";
 import Lobby, { type LobbyState } from "./Lobby";
+import LocalGame from "./LocalGame";
 import LobbySelect from "./LobbySelect";
 import Login from "./Login";
 import Menu from "./Menu";
 import Profile from "./Profile";
 import Register from "./Register";
 
-export type OpenSeaPage = "intro" | "menu" | "instructions" | "login" | "register" | "profile" | "lobbies" | "create" | "lobby";
+export type OpenSeaPage = "intro" | "menu" | "instructions" | "login" | "register" | "profile" | "lobbies" | "create" | "lobby" | "local";
 
 type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
@@ -105,6 +106,9 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 				}}
 			/>
 		);
+	// PLAY LOCAL: the map, the two fish and the match on this keyboard
+	if (page === "local" && session)
+		return <LocalGame onExit={() => setPage("menu")} />;
 	// the lobby room (and the match, that opens inside it)
 	if (page === "lobby" && session && lobby)
 		return <Lobby initialLobby={lobby} onBack={() => setPage("lobbies")} />;
@@ -119,7 +123,7 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 				else if (choice === "online")
 					openWithLogin("lobbies");
 				else
-					console.log(choice); // TEMPORARY: the local mode comes in the Etapa 5
+					openWithLogin("local");
 			}}
 			onAccount={() => {
 				setNotice("");
