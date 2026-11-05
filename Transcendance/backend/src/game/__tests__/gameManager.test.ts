@@ -112,6 +112,63 @@ describe("find", () => {
 	});
 });
 
+describe("spectate", () => {
+	test("game:start without a fish, and the spectator joins the channel", () => {
+		const { manager, events, channels, id } = setup();
+		vi.advanceTimersByTime(STARTED_MS);
+		manager.spectate(id, "w1", 9);
+		const start = last(events("game:start"));
+		expect(start.to).toBe("w1");
+		const data = start.data as GameStart;
+		expect(data.gameId).toBe(id);
+		expect(data.you).toBeNull();
+		expect(data.map.name).toBe("small-1");
+		expect(data.state.status).toBe("running");
+		expect(channels.get("w1")).toBe(`game:${id}`);
+	});
+
+	test("the spectator has no slot", () => {
+		const { manager, id } = setup();
+		manager.spectate(id, "w1", 9);
+		expect(manager.find(9)).toBeNull();
+	});
+
+	test("refuses a player, a match that does not exist and a local match", () => {
+		const { manager, id } = setup();
+		expect(() => manager.spectate(id, "s1", 1)).toThrow("already in a match");
+		expect(() => manager.spectate("nope", "w1", 9)).toThrow();
+		const local = manager.createGame({ players: [OTHERS[0], { ...OTHERS[0] }], map: "small-1", local: true });
+		expect(() => manager.spectate(local, "w1", 9)).toThrow();
+	});
+
+	test("a spectator who leaves is out of the channel, and the match goes on", () => {
+		const { manager, channels, id } = setup();
+		manager.spectate(id, "w1", 9);
+		manager.unspectate("w1");
+		expect(channels.has("w1")).toBe(false);
+		expect(manager.count).toBe(1);
+		expect(() => manager.unspectate("w1")).not.toThrow(); // twice: nothing happens
+	});
+
+	test("watching another match leaves the first one", () => {
+		const { manager, channels, id } = setup();
+		const other = manager.createGame({ players: OTHERS, map: "small-2" });
+		manager.spectate(id, "w1", 9);
+		manager.spectate(other, "w1", 9);
+		expect(channels.get("w1")).toBe(`game:${other}`);
+	});
+
+	test("at the end the spectators leave the channel, and the finished match can not be watched", () => {
+		const { manager, channels, id } = setup();
+		manager.spectate(id, "w1", 9);
+		vi.advanceTimersByTime(STARTED_MS);
+		manager.find(1)!.room.leave(0);
+		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+		expect(channels.size).toBe(0);
+		expect(() => manager.spectate(id, "w2", 10)).toThrow();
+	});
+});
+
 describe("broadcast", () => {
 	test("nothing changed: no game:state", () => {
 		const { events } = setup();
