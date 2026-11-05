@@ -123,6 +123,51 @@ describe("disconnect", () => {
 	});
 });
 
+describe("spectator", () => {
+	// a match of ana and bia, watched by cris (socket w1): the transport writes down who is in each channel
+	function setupWatched() {
+		const channels = new Map<string, string>(); // socketId -> channel
+		const games = new GameManager({
+			...transport,
+			join: (socketId, channel) => channels.set(socketId, channel),
+			leave: (socketId) => channels.delete(socketId),
+		}, seeded(1));
+		const id = games.createGame({ players: PLAYERS, map: "small-1" });
+		vi.advanceTimersByTime(STARTED_MS);
+		const cris = fakeSocket("w1", 3);
+		registerGameEvents(cris.socket, games);
+		games.spectate(id, "w1", 3);
+		return { games, cris, channels, room: games.find(1)!.room };
+	}
+
+	test("can not move or use a power-up: no fish is theirs", () => {
+		const { cris, room } = setupWatched();
+		room.state.players[0].powerUp = "speed";
+		const before = room.state.players.map((p) => ({ ...p.pos }));
+		cris.send("game:move", { dir: "right" });
+		cris.send("game:usePowerUp");
+		cris.send("game:leave");
+		expect(room.state.players.map((p) => p.pos)).toEqual(before);
+		expect(room.state.players[0].powerUp).toBe("speed");
+		expect(room.state.status).toBe("running");
+	});
+
+	test("game:unspectate leaves the channel, and the match goes on", () => {
+		const { cris, channels, room } = setupWatched();
+		expect(channels.has("w1")).toBe(true);
+		cris.send("game:unspectate");
+		expect(channels.has("w1")).toBe(false);
+		expect(room.state.status).toBe("running");
+	});
+
+	test("a spectator who disconnects leaves the channel, and no fish is touched", () => {
+		const { cris, channels, room } = setupWatched();
+		cris.send("disconnect");
+		expect(channels.has("w1")).toBe(false);
+		expect(room.state.players.map((p) => p.status)).toEqual(["playing", "playing"]);
+	});
+});
+
 describe("readSlot and readLocalSetup", () => {
 	test("a slot is only 0 or 1", () => {
 		expect(readSlot({ slot: 0 })).toBe(0);

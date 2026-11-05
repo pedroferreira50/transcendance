@@ -78,6 +78,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
                 <LobbyAction
                   lobby={lobby}
                   onJoin={() => socket.emit('lobby:join', { code: lobby.code })}
+                  onWatch={() => socket.emit('lobby:spectate', { code: lobby.code })}
                 />
               </li>
             ))}
@@ -94,10 +95,14 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
   );
 };
 
-// What the row offers: JOIN, or why it can not be joined
-const LobbyAction: React.FC<{ lobby: LobbySummary; onJoin: () => void }> = ({ lobby, onJoin }) => {
+// What the row offers: JOIN, WATCH (a match is running), or why it can not be joined
+const LobbyAction: React.FC<{ lobby: LobbySummary; onJoin: () => void; onWatch: () => void }> = ({ lobby, onJoin, onWatch }) => {
   if (lobby.inProgress)
-    return <span className="lobby-state">IN GAME</span>;
+    return (
+      <button className="sea-button lobby-join" onClick={onWatch}>
+        WATCH
+      </button>
+    );
   if (lobby.playerCount >= lobby.seats)
     return <span className="lobby-state">FULL</span>;
   return (

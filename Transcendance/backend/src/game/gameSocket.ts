@@ -121,9 +121,15 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 			game.room.leave(game.slot);
 	});
 
+	// the « of a spectator: stops watching, the match goes on
+	socket.on("game:unspectate", () => {
+		games.unspectate(socket.id);
+	});
+
 	// closed the tab, lost the internet...: the fish waits RECONNECT_TIMEOUT_MS before it leaves (tickSecond)
 	// Local: nobody is left to play, so the match ends now
 	socket.on("disconnect", () => {
+		games.unspectate(socket.id); // a spectator has no match of its own: it only stops watching
 		const game = current();
 		// another tab of the same user closing does not touch the match
 		if (!game || game.socketId !== socket.id)
