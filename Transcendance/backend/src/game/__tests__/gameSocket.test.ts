@@ -124,9 +124,9 @@ describe("disconnect", () => {
 });
 
 describe("spectator", () => {
-	// a match of ana and bia, watched by cris (socket w1): the transport writes down who is in each channel
+	// Starts a match of ana and bia that cris watches.
 	function setupWatched() {
-		const channels = new Map<string, string>(); // socketId -> channel
+		const channels = new Map<string, string>();
 		const games = new GameManager({
 			...transport,
 			join: (socketId, channel) => channels.set(socketId, channel),

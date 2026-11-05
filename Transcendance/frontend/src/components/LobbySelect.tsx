@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { socket } from '../socket';
 import { mapLabel } from '../game/maps';
+import type { GameStart } from '../game/protocol';
 import type { LobbyState } from './Lobby';
 import Screen from './Screen';
 import './LobbySelect.css';
@@ -18,9 +19,10 @@ type LobbySelectProps = {
   onBack: () => void;
   onCreate: () => void;
   onLobbyJoined: (lobby: LobbyState) => void;
+  onWatch: (start: GameStart) => void;
 };
 
-const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoined }) => {
+const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoined, onWatch }) => {
   const [lobbies, setLobbies] = useState<LobbySummary[]>([]);
   const [error, setError] = useState('');
 
@@ -45,6 +47,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
 
     socket.on('lobbyList:update', setLobbies);
     socket.on('lobby:joined', handleJoined);
+    socket.on('game:start', onWatch);
     socket.on('lobby:error', setError);
     socket.on('connect_error', handleConnectError);
     socket.on('connect', handleConnect);
@@ -52,11 +55,12 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
     return () => {
       socket.off('lobbyList:update', setLobbies);
       socket.off('lobby:joined', handleJoined);
+      socket.off('game:start', onWatch);
       socket.off('lobby:error', setError);
       socket.off('connect_error', handleConnectError);
       socket.off('connect', handleConnect);
     };
-  }, [onLobbyJoined]);
+  }, [onLobbyJoined, onWatch]);
 
   function handleBack() {
     socket.disconnect();

@@ -11,8 +11,10 @@ import Login from "./Login";
 import Menu from "./Menu";
 import Profile from "./Profile";
 import Register from "./Register";
+import WatchGame from "./WatchGame";
+import type { GameStart } from "../game/protocol";
 
-export type OpenSeaPage = "intro" | "menu" | "instructions" | "login" | "register" | "profile" | "lobbies" | "create" | "lobby" | "local";
+export type OpenSeaPage = "intro" | "menu" | "instructions" | "login" | "register" | "profile" | "lobbies" | "create" | "lobby" | "local" | "watch";
 
 type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
@@ -27,6 +29,7 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 	// the screen that asked for the login: after it, the player goes there
 	const [afterLogin, setAfterLogin] = useState<OpenSeaPage>("menu");
 	const [lobby, setLobby] = useState<LobbyState | null>(null);
+	const [watching, setWatching] = useState<GameStart | null>(null);
 	// what the menu tells when the player was sent back to it ("" = nothing)
 	const [notice, setNotice] = useState("");
 
@@ -93,6 +96,24 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 				onLobbyJoined={(joined) => {
 					setLobby(joined);
 					setPage("lobby");
+				}}
+				onWatch={(start) => {
+					setWatching(start);
+					setPage("watch");
+				}}
+			/>
+		);
+	if (page === "watch" && session && watching)
+		return (
+			<WatchGame
+				start={watching}
+				onBack={() => {
+					setWatching(null);
+					setPage("lobbies");
+				}}
+				onExit={() => {
+					setWatching(null);
+					setPage("menu");
 				}}
 			/>
 		);

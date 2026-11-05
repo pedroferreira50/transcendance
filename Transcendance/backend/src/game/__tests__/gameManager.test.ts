@@ -147,7 +147,7 @@ describe("spectate", () => {
 		manager.unspectate("w1");
 		expect(channels.has("w1")).toBe(false);
 		expect(manager.count).toBe(1);
-		expect(() => manager.unspectate("w1")).not.toThrow(); // twice: nothing happens
+		expect(() => manager.unspectate("w1")).not.toThrow();
 	});
 
 	test("watching another match leaves the first one", () => {

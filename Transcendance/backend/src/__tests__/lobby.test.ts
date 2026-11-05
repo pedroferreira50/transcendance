@@ -259,7 +259,7 @@ describe("spectate", () => {
 	});
 
 	test("no match to watch: lobby:error", () => {
-		const { code } = fullLobby(); // not started
+		const { code } = fullLobby();
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:spectate", { code });
 		cris.send("lobby:spectate", { code: "NOPE1" });

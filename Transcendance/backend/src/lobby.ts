@@ -323,9 +323,7 @@ export function setupLobby(io: Server, games: GameManager) {
             broadcastLobbyList(io);
         });
 
-        // The WATCH button: watches the match of a lobby without playing. The
-        // GameManager puts the socket in the match's channel and sends it
-        // game:start; from there it gets the same game:* events as the players.
+        // Lets a socket watch a lobby's running match.
         socket.on("lobby:spectate", (data: unknown) => {
             const code = readCode(data);
             const lobby = code === null ? undefined : lobbies.get(code);
@@ -347,7 +345,6 @@ export function setupLobby(io: Server, games: GameManager) {
                 return;
             }
 
-            // no list updates while watching (LOBBIES subscribes again when it opens)
             socket.leave(LOBBY_LIST_ROOM);
         });
 

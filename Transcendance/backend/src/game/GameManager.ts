@@ -42,10 +42,10 @@ type Game = {
 	id: string;
 	channel: string; // Socket.IO room of the match: "game:<id>"
 	room: GameRoom;
-	map: MapInfo; // the fixed part of the map, for the game:start of each player and spectator
+	map: MapInfo;
 	players: MatchPlayer[];
 	local: boolean;
-	spectators: Set<string>; // socketIds watching the match: in the channel, but without a fish
+	spectators: Set<string>;
 	timers: ReturnType<typeof setInterval>[]; // all the intervals of the match, to stop them at the end
 	onEnd?: (final: DynamicState) => void;
 };
@@ -55,7 +55,7 @@ type Game = {
 export class GameManager {
 	private games = new Map<string, Game>();
 	private userGame = new Map<number, string>(); // userId -> id of the match they are in
-	private spectatorGame = new Map<string, string>(); // socketId -> id of the match it watches
+	private spectatorGame = new Map<string, string>();
 	private transport: Transport;
 	private random: () => number; // a function with no parameters that returns a number (Math.random, or seeded() in the tests)
 
@@ -77,7 +77,7 @@ export class GameManager {
 		// local: the two fish are guests (userId null), so the match never counts in anyone's results
 		const infos = local ? setup.players.map((p) => ({ ...p, userId: null })) : setup.players;
 		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, random: this.random });
-		// the fixed part of the map (walls, turtle) goes only in game:start, and never again in game:state
+		// the fixed part of the map (walls, turtle) goes only once, here, and never again in game:state
 		const map: MapInfo = { name: mapName, width: room.state.width, height: room.state.height, walls: room.state.walls, exit: room.state.exit };
 		const game: Game = { id, channel: `game:${id}`, room, map, players: setup.players, local, spectators: new Set(), timers: [], onEnd: setup.onEnd };
 		this.games.set(id, game);
@@ -113,25 +113,22 @@ export class GameManager {
 		return { room: game.room, slot, socketId: game.players[slot].socketId, local: game.local };
 	}
 
-	// Watches a running match: the socket joins the channel and gets the same game:state, game:event and game:end
-	// as the players, but has no slot, so find() is null for it and its moves are ignored (gameSocket)
-	// lobby.ts will call (lobby:spectate)
+	// Lets a socket watch a running match without controlling a fish.
 	spectate(gameId: string, socketId: string, userId: number): void {
 		const game = this.games.get(gameId);
 		if (!game || game.local || game.room.state.status === "finished")
 			throw new Error("This match can not be watched.");
 		if (this.userGame.has(userId))
 			throw new Error("You are already in a match.");
-		this.unspectate(socketId); // watches one match at a time
+		this.unspectate(socketId);
 		this.spectatorGame.set(socketId, gameId);
 		game.spectators.add(socketId);
 		this.transport.join(socketId, game.channel);
-		// "you" = null: no fish is theirs. countdown 0: the next game:countdown (if any) shows the number
 		const start: GameStart = { gameId, map: game.map, you: null, state: game.room.snapshot(Date.now()), countdown: 0 };
 		this.transport.toSocket(socketId, "game:start", start);
 	}
 
-	// Stops watching (the « button, or the socket closed). Nothing happens if it was not watching
+	// Stops a socket from watching its match.
 	unspectate(socketId: string): void {
 		const id = this.spectatorGame.get(socketId);
 		if (id === undefined)
@@ -191,7 +188,6 @@ export class GameManager {
 			this.transport.leave(player.socketId, game.channel);
 			this.userGame.delete(player.userId);
 		}
-		// the spectators got game:end too: they leave the channel with the players
 		for (const socketId of game.spectators) {
 			this.transport.leave(socketId, game.channel);
 			this.spectatorGame.delete(socketId);
