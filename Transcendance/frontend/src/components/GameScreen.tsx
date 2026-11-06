@@ -17,7 +17,7 @@ type Assets = {
 };
 
 type GameScreenProps = {
-	mode: InputMode;
+	mode: InputMode | "watch";
 	start: GameStart; // what the server sent in game:start: the map, my slot and the first state
 	onEnd: (final: DynamicState | null) => void; // the last state (game:end), or null when I left
 };
@@ -81,9 +81,11 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	}, []);
 
 	// The keys of the game (createInput already returns the function that removes them)
-	useEffect(() =>
-		createInput(mode, sendCommand)
-	, [mode]);
+	useEffect(() => {
+		if (mode === "watch")
+			return;
+		return createInput(mode, sendCommand);
+	}, [mode]);
 
 	// When everything is loaded: draw at every frame of the screen, until the component closes
 	useEffect(() => {
@@ -128,11 +130,13 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 		return () => cancelAnimationFrame(frame);
 	}, [assets, start]);
 
-	// the « gives up the match (if only one is left, they win)
+	// Leaves the match, or stops watching it.
 	function handleLeave() {
-		socket.emit("game:leave");
+		socket.emit(mode === "watch" ? "game:unspectate" : "game:leave");
 		onEnd(null);
 	}
+
+	const leaveLabel = mode === "watch" ? "Stop watching" : "Leave the match";
 
 	if (error)
 		return <p>{error}</p>;
@@ -142,7 +146,8 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 		<div className="game-screen">
 			<canvas ref={canvasRef} />
 			{countdown > 0 && <div className="countdown" key={countdown}>{countdown}</div>}
-			<button className="back-button game-leave" onClick={handleLeave} aria-label="Leave the match" title="Leave the match">
+			{mode === "watch" && <p className="game-watching">WATCHING</p>}
+			<button className="back-button game-leave" onClick={handleLeave} aria-label={leaveLabel} title={leaveLabel}>
 				<BackIcon />
 			</button>
 			{touch && mode === "online" && <TouchControls send={sendCommand} />}

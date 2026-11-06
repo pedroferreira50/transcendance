@@ -3,7 +3,7 @@ import type { Server } from "socket.io";
 import type { GameManager, MatchSetup } from "../game/GameManager";
 import { mapsFor } from "../game/mapLoader";
 import type { DynamicState } from "../game/types";
-import { readCharacter, readSettings, setupLobby } from "../lobby";
+import { readCharacter, readCode, readSettings, setupLobby } from "../lobby";
 
 // The database is not opened in the tests: only the UPDATEs are written down
 const db = vi.hoisted(() => ({ run: vi.fn() }));
@@ -69,11 +69,13 @@ function lastOf(socket: FakeSocket, event: string): any {
 
 let server: ReturnType<typeof fakeServer>;
 let createGame: ReturnType<typeof vi.fn>;
+let spectate: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
 	server = fakeServer();
 	createGame = vi.fn(() => "game-1");
-	setupLobby(server.io, { createGame } as unknown as GameManager);
+	spectate = vi.fn();
+	setupLobby(server.io, { createGame, spectate } as unknown as GameManager);
 	db.run.mockClear();
 });
 
@@ -235,6 +237,56 @@ describe("start", () => {
 		});
 		ana.send("lobby:start");
 		expect(lastOf(bia, "lobby:error")).toBe("ana is already in a match");
+	});
+});
+
+describe("spectate", () => {
+	test("readCode: only { code: string }", () => {
+		expect(readCode({ code: "AB12C" })).toBe("AB12C");
+		for (const bad of [undefined, null, "AB12C", {}, { code: 5 }])
+			expect(readCode(bad)).toBeNull();
+	});
+
+	test("hands the match of the lobby, the socket and the user to the GameManager", () => {
+		const { ana, code } = fullLobby();
+		ana.send("lobby:start");
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobbyList:subscribe");
+		cris.send("lobby:spectate", { code });
+		expect(spectate).toHaveBeenCalledWith("game-1", "s3", 3);
+		expect(cris.rooms.has("lobby-list")).toBe(false);
+		expect(lastOf(cris, "lobby:error")).toBeUndefined();
+	});
+
+	test("no match to watch: lobby:error", () => {
+		const { code } = fullLobby();
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobby:spectate", { code });
+		cris.send("lobby:spectate", { code: "NOPE1" });
+		cris.send("lobby:spectate", "junk");
+		expect(cris.received.filter((r) => r.event === "lobby:error")).toHaveLength(3);
+		expect(spectate).not.toHaveBeenCalled();
+	});
+
+	test("someone in a lobby can not watch", () => {
+		const { ana, code } = fullLobby();
+		ana.send("lobby:start");
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobby:create");
+		cris.send("lobby:spectate", { code });
+		expect(lastOf(cris, "lobby:error")).toBe("You are already in a lobby.");
+		expect(spectate).not.toHaveBeenCalled();
+	});
+
+	test("the GameManager refuses: its message goes to the socket", () => {
+		const { ana, code } = fullLobby();
+		ana.send("lobby:start");
+		spectate.mockImplementation(() => {
+			throw new Error("This match can not be watched.");
+		});
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobby:spectate", { code });
+		expect(lastOf(cris, "lobby:error")).toBe("This match can not be watched.");
 	});
 });
 

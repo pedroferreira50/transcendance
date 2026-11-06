@@ -37,6 +37,18 @@
 	}
 }
 
+.game-watching {
+	position: absolute;
+	top: 0.75rem;
+	left: 0.75rem;
+	margin: 0;
+	pointer-events: none;
+	font-family: var(--font-title);
+	font-size: clamp(1rem, 3vmin, 1.75rem);
+	color: var(--sea-light);
+	text-shadow: 0 0 0.3em var(--sea-sides);
+}
+
 /* the « of the match: in the corner of the screen (there is no frame of rocks here) */
 .back-button.game-leave {
 	top: 0.75rem;

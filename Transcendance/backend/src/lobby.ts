@@ -84,6 +84,15 @@ export function readSettings(data: unknown): { seats: PlayerCount; map: string }
     return { seats, map };
 }
 
+// lobby:spectate: only { code: string } passes.
+export function readCode(data: unknown): string | null {
+    if (typeof data !== "object" || data === null || !("code" in data) || typeof data.code !== "string") {
+        return null;
+    }
+
+    return data.code;
+}
+
 // lobby:character: only one of the 4 fish names passes.
 export function readCharacter(data: unknown): Character | null {
     for (const character of CHARACTERS) {
@@ -312,6 +321,31 @@ export function setupLobby(io: Server, games: GameManager) {
             socket.emit("lobby:joined", lobbyState(lobby));
             broadcastLobby(io, lobby);
             broadcastLobbyList(io);
+        });
+
+        // Lets a socket watch a lobby's running match.
+        socket.on("lobby:spectate", (data: unknown) => {
+            const code = readCode(data);
+            const lobby = code === null ? undefined : lobbies.get(code);
+
+            if (!lobby || lobby.gameId === null) {
+                socket.emit("lobby:error", "There is no match to watch.");
+                return;
+            }
+
+            if (isUserInLobby(socket.data.username)) {
+                socket.emit("lobby:error", "You are already in a lobby.");
+                return;
+            }
+
+            try {
+                games.spectate(lobby.gameId, socket.id, socket.data.userId);
+            } catch (error) {
+                socket.emit("lobby:error", error instanceof Error ? error.message : "Could not watch the match.");
+                return;
+            }
+
+            socket.leave(LOBBY_LIST_ROOM);
         });
 
         // Host-only: number of players (2, 3 or 4) and map. Never fewer seats
