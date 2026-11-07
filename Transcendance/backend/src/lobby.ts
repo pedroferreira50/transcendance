@@ -201,8 +201,50 @@ function endMatch(io: Server, lobby: Lobby, players: MatchPlayer[], final: Dynam
         player.ready = false;
     });
 
+    // Their seat was kept during the match, but they did not come back.
+    for (const player of [...lobby.players]) {
+        if (!io.sockets.sockets.has(player.id)) {
+            handlePlayerLeavingLobby(io, player.id);
+        }
+    }
+
     broadcastLobby(io, lobby);
     broadcastLobbyList(io);
+}
+
+// A user who connects while their lobby is running a match: their seat answers
+// to this socket now, and they get lobby:resume, to know where to go after the
+// match (GameManager.rejoin sends game:resume right after, in gameSocket). If
+// their fish already left the match, there is nothing to come back to, so they
+// lose the seat.
+function returnToLobby(io: Server, games: GameManager, socket: Socket) {
+    for (const lobby of lobbies.values()) {
+        const player = lobby.players.find((player) => player.userId === socket.data.userId);
+
+        if (lobby.gameId === null || !player) {
+            continue;
+        }
+
+        if (!games.canRejoin(socket.data.userId)) {
+            handlePlayerLeavingLobby(io, player.id);
+            return;
+        }
+
+        const oldId = player.id;
+
+        socketLobby.delete(oldId);
+        socketLobby.set(socket.id, lobby.code);
+        player.id = socket.id;
+
+        if (lobby.hostId === oldId) {
+            lobby.hostId = socket.id;
+        }
+
+        socket.join(lobby.code);
+        socket.emit("lobby:resume", lobbyState(lobby));
+        broadcastLobby(io, lobby);
+        return;
+    }
 }
 
 // Shared cleanup for anyone leaving a lobby, whether by choice (lobby:leave),
@@ -249,6 +291,8 @@ function handlePlayerLeavingLobby(io: Server, socketId: string) {
 // Registers every lobby socket event. Called once per connected client.
 export function setupLobby(io: Server, games: GameManager) {
     io.on("connection", (socket: Socket) => {
+        returnToLobby(io, games, socket);
+
         // Client is on the lobby-select screen: join the broadcast room for
         // list updates and hand them the current snapshot right away.
         socket.on("lobbyList:subscribe", () => {
@@ -484,12 +528,25 @@ export function setupLobby(io: Server, games: GameManager) {
 
         // Player chose to leave their current lobby voluntarily (the Back button).
         socket.on("lobby:leave", () => {
+            const code = socketLobby.get(socket.id);
+
             handlePlayerLeavingLobby(io, socket.id);
+
+            if (code) {
+                socket.leave(code);
+            }
         });
 
         // Browser closed, connection dropped, or the dev server restarted -
-        // treat it exactly like a voluntary lobby:leave.
+        // treat it like a voluntary lobby:leave. Not during a match: the seat
+        // waits for them (returnToLobby), or for the end of the match (endMatch).
         socket.on("disconnect", () => {
+            const lobby = findLobby(socket.id);
+
+            if (lobby && lobby.gameId !== null) {
+                return;
+            }
+
             handlePlayerLeavingLobby(io, socket.id);
         });
     });

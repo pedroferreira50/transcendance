@@ -113,17 +113,24 @@ export class GameManager {
 		return { room: game.room, slot, socketId: game.players[slot].socketId, local: game.local };
 	}
 
+	// Can this user still come back to their match? It has to be running, and their fish did not leave it
+	// rejoin and lobby.ts call
+	canRejoin(userId: number): boolean {
+		const found = this.find(userId);
+		return found !== null && found.room.state.status !== "finished" && found.room.state.players[found.slot].status !== "left";
+	}
+
 	// The user came back (F5, the internet returned, another tab): their fish answer to this socket now,
 	// and it gets game:resume with the match as it is. gameSocket.ts calls it for every socket that connects
 	// Nothing to come back to (the match ended, or this fish already left it): game:gone, so a screen still open closes
 	rejoin(userId: number, socketId: string): void {
 		const id = this.userGame.get(userId);
 		const game = id === undefined ? undefined : this.games.get(id);
-		const slot = game ? game.players.findIndex((p) => p.userId === userId) : -1;
-		if (!game || game.room.state.status === "finished" || game.room.state.players[slot].status === "left") {
+		if (!game || !this.canRejoin(userId)) {
 			this.transport.toSocket(socketId, "game:gone", null);
 			return;
 		}
+		const slot = game.players.findIndex((p) => p.userId === userId);
 		const now = Date.now();
 		// local: the two slots are the same user, so both fish come back
 		game.players.forEach((player, playerSlot) => {

@@ -70,19 +70,24 @@ function lastOf(socket: FakeSocket, event: string): any {
 let server: ReturnType<typeof fakeServer>;
 let createGame: ReturnType<typeof vi.fn>;
 let spectate: ReturnType<typeof vi.fn>;
+let canRejoin: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
 	server = fakeServer();
 	createGame = vi.fn(() => "game-1");
 	spectate = vi.fn();
-	setupLobby(server.io, { createGame, spectate } as unknown as GameManager);
+	canRejoin = vi.fn(() => true);
+	setupLobby(server.io, { createGame, spectate, canRejoin } as unknown as GameManager);
 	db.run.mockClear();
 });
 
 // the lobbies live in lobby.ts between tests: everyone leaves at the end of each one
+// (lobby:leave: a disconnect alone keeps the seat during a match)
 afterEach(() => {
-	for (const socket of server.sockets.values())
+	for (const socket of server.sockets.values()) {
+		socket.send("lobby:leave");
 		socket.send("disconnect");
+	}
 });
 
 // ana creates a lobby, bia joins; both choose a fish and ready up
@@ -315,5 +320,100 @@ describe("end of the match (onEnd)", () => {
 		expect(lobby.players.map((p: { ready: boolean }) => p.ready)).toEqual([false, false]);
 		ana.send("lobby:ready");
 		expect(lastOf(ana, "lobby:update").players[0].ready).toBe(true);
+	});
+});
+
+describe("connection dropped", () => {
+	// ana (the host) and bia in a running match
+	function inMatch() {
+		const { ana, bia, code } = fullLobby();
+		ana.send("lobby:start");
+		const setup: MatchSetup = createGame.mock.calls[0][0];
+		return { ana, bia, code, setup };
+	}
+
+	test("no match: the player leaves the lobby at once", () => {
+		const { ana, bia } = fullLobby();
+		bia.send("disconnect");
+		expect(lastOf(ana, "lobby:update").players).toHaveLength(1);
+	});
+
+	test("in a match: the seat stays, and whoever comes back gets lobby:resume with the new socket", () => {
+		const { ana, bia, code } = inMatch();
+		bia.received.length = 0;
+		ana.send("disconnect");
+		expect(lastOf(bia, "lobby:update")).toBeUndefined();
+
+		const back = server.connect("s5", 1, "ana");
+		const lobby = lastOf(back, "lobby:resume");
+		expect(lobby.code).toBe(code);
+		expect(lobby.hostId).toBe("s5");
+		expect(lobby.players[0].id).toBe("s5");
+		expect(back.rooms.has(code)).toBe(true);
+		expect(lastOf(bia, "lobby:update").hostId).toBe("s5");
+	});
+
+	test("after coming back, the player is in the lobby again: the rematch works", () => {
+		const { ana, setup } = inMatch();
+		ana.send("disconnect");
+		server.sockets.delete("s1");
+		const back = server.connect("s5", 1, "ana");
+		setup.onEnd!({ winnerSlot: null } as DynamicState);
+		expect(lastOf(back, "lobby:update").players).toHaveLength(2);
+		back.send("lobby:ready");
+		expect(lastOf(back, "lobby:update").players[0].ready).toBe(true);
+	});
+
+	test("another tab takes the seat, and the old tab closing does not touch it", () => {
+		const { ana } = inMatch();
+		const tab = server.connect("s5", 1, "ana");
+		ana.send("disconnect");
+		expect(lastOf(tab, "lobby:resume").players).toHaveLength(2);
+		tab.send("lobby:ready"); // locked during the match, but the socket still has its lobby
+		createGame.mock.calls[0][0].onEnd!({ winnerSlot: null } as DynamicState);
+		expect(lastOf(tab, "lobby:update").players).toHaveLength(2);
+	});
+
+	test("the fish already left the match: no lobby:resume, and the seat is lost", () => {
+		const { ana, bia } = inMatch();
+		ana.send("disconnect");
+		canRejoin.mockReturnValue(false);
+		const back = server.connect("s5", 1, "ana");
+		expect(lastOf(back, "lobby:resume")).toBeUndefined();
+		expect(lastOf(bia, "lobby:update").players).toHaveLength(1);
+		expect(lastOf(bia, "lobby:update").hostId).toBe("s2");
+		back.send("lobby:create");
+		expect(lastOf(back, "lobby:joined")).toBeDefined(); // free to open another lobby
+	});
+
+	test("did not come back: out of the lobby at the end of the match, and the host moves on", () => {
+		const { ana, bia, setup } = inMatch();
+		ana.send("disconnect");
+		server.sockets.delete("s1");
+		setup.onEnd!({ winnerSlot: 1 } as DynamicState);
+		const lobby = lastOf(bia, "lobby:update");
+		expect(lobby.players.map((p: { username: string }) => p.username)).toEqual(["bia"]);
+		expect(lobby.hostId).toBe("s2");
+	});
+
+	test("nobody came back: the lobby is deleted at the end of the match", () => {
+		const { ana, bia, code, setup } = inMatch();
+		ana.send("disconnect");
+		bia.send("disconnect");
+		server.sockets.delete("s1");
+		server.sockets.delete("s2");
+		setup.onEnd!({ winnerSlot: null } as DynamicState);
+		const cris = server.connect("s3", 3, "cris");
+		cris.send("lobby:join", { code });
+		expect(lastOf(cris, "lobby:error")).toBe("Lobby not found.");
+	});
+
+	test("lobby:leave also leaves the room: no more lobby:update for that socket", () => {
+		const { ana, bia, code } = fullLobby();
+		bia.send("lobby:leave");
+		expect(bia.rooms.has(code)).toBe(false);
+		bia.received.length = 0;
+		ana.send("lobby:ready");
+		expect(lastOf(bia, "lobby:update")).toBeUndefined();
 	});
 });

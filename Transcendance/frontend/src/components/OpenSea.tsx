@@ -61,11 +61,23 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 			setResumed(match);
 		}
 
+		// back online, but the server has no match for this player, and took them out of any lobby room
+		function handleGone() {
+			setLobby(null);
+		}
+
 		socket.on("session:replaced", handleReplaced);
 		socket.on("game:resume", handleResume);
+		socket.on("game:gone", handleGone);
+		// the room of a match that came back: Lobby is closed during it, so its changes are kept here
+		socket.on("lobby:resume", setLobby);
+		socket.on("lobby:update", setLobby);
 		return () => {
 			socket.off("session:replaced", handleReplaced);
 			socket.off("game:resume", handleResume);
+			socket.off("game:gone", handleGone);
+			socket.off("lobby:resume", setLobby);
+			socket.off("lobby:update", setLobby);
 		};
 	}, []);
 
@@ -74,15 +86,15 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 		if (final)
 			setResumedEnd(final);
 		else
-			closeResumed(resumed && resumed.local ? "local" : "lobbies");
+			closeResumed(resumed && resumed.local ? "local" : "lobby");
 	}
 
-	// out of the resumed match: online back to LOBBIES (the lobby room was left when the connection dropped),
-	// local back to the choice of the map and the fish
+	// out of the resumed match: online back to its lobby room, local back to the choice of the map and the fish
 	function closeResumed(next: OpenSeaPage) {
 		setResumed(null);
 		setResumedEnd(null);
-		setLobby(null);
+		if (next !== "lobby")
+			setLobby(null);
 		setPage(next);
 	}
 
@@ -100,9 +112,13 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 		return (
 			<Winner
 				final={resumedEnd}
-				backLabel={resumed.local ? "PLAY AGAIN" : "LOBBIES"}
-				onBack={() => closeResumed(resumed.local ? "local" : "lobbies")}
-				onExit={() => closeResumed("menu")}
+				backLabel={resumed.local ? "PLAY AGAIN" : lobby ? undefined : "LOBBIES"}
+				onBack={() => closeResumed(resumed.local ? "local" : "lobby")}
+				onExit={() => {
+					if (lobby)
+						socket.emit("lobby:leave");
+					closeResumed("menu");
+				}}
 			/>
 		);
 	if (resumed)
@@ -137,7 +153,8 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 				}}
 			/>
 		);
-	if (page === "lobbies" && session)
+	// page "lobby" without a lobby: the room is gone, so the player chooses another one
+	if ((page === "lobbies" || (page === "lobby" && !lobby)) && session)
 		return (
 			<LobbySelect
 				onBack={() => setPage("menu")}
