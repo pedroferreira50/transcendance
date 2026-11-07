@@ -25,6 +25,9 @@ type GameScreenProps = {
 // What a key (or a touch button) asks for goes to the server; online it knows whose fish it is by the socket,
 // local the command carries the slot (undefined online: it does not even go in the message)
 function sendCommand(command: Command): void {
+	// no connection: Socket.IO would keep the commands and send all of them at once when it comes back
+	if (!socket.connected)
+		return;
 	if (command.type === "move")
 		socket.emit("game:move", { dir: command.dir, slot: command.slot });
 	else
@@ -42,6 +45,7 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	const [countdown, setCountdown] = useState(start.state.status === "countdown" ? start.countdown : 0);
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [connected, setConnected] = useState(socket.connected); // false: the RECONNECTING message
 	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
 	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
@@ -60,13 +64,32 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 				setCountdown(0);
 		}
 
+		function handleConnect() {
+			setConnected(true);
+		}
+
+		function handleDisconnect() {
+			setConnected(false);
+		}
+
+		// back online, but this match is not there anymore: nothing else would ever arrive for this screen
+		function handleGone() {
+			onEnd(null);
+		}
+
 		socket.on("game:countdown", setCountdown);
 		socket.on("game:state", handleState);
 		socket.on("game:end", onEnd);
+		socket.on("game:gone", handleGone);
+		socket.on("connect", handleConnect);
+		socket.on("disconnect", handleDisconnect);
 		return () => {
 			socket.off("game:countdown", setCountdown);
 			socket.off("game:state", handleState);
 			socket.off("game:end", onEnd);
+			socket.off("game:gone", handleGone);
+			socket.off("connect", handleConnect);
+			socket.off("disconnect", handleDisconnect);
 		};
 	}, [onEnd]);
 
@@ -131,9 +154,11 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	}, [assets, start]);
 
 	// Leaves the match, or stops watching it.
+	// Local: the server ends the match as if the time was over, and its game:end opens the WINNER screen
 	function handleLeave() {
 		socket.emit(mode === "watch" ? "game:unspectate" : "game:leave");
-		onEnd(null);
+		if (mode !== "local")
+			onEnd(null);
 	}
 
 	const leaveLabel = mode === "watch" ? "Stop watching" : "Leave the match";
@@ -147,9 +172,12 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 			<canvas ref={canvasRef} />
 			{countdown > 0 && <div className="countdown" key={countdown}>{countdown}</div>}
 			{mode === "watch" && <p className="game-watching">WATCHING</p>}
-			<button className="back-button game-leave" onClick={handleLeave} aria-label={leaveLabel} title={leaveLabel}>
-				<BackIcon />
-			</button>
+			{!connected && <div className="reconnecting" role="status">RECONNECTING...</div>}
+			{connected && (
+				<button className="back-button game-leave" onClick={handleLeave} aria-label={leaveLabel} title={leaveLabel}>
+					<BackIcon />
+				</button>
+			)}
 			{touch && mode === "online" && <TouchControls send={sendCommand} />}
 		</div>
 	);

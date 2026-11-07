@@ -52,12 +52,15 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
     socket.on('lobby:error', setMessage);
     socket.on('game:start', setMatch);
     socket.on('lobby:kicked', handleKicked);
+    // the connection dropped and came back: the server already took this player out of the room
+    socket.on('game:gone', onBack);
 
     return () => {
       socket.off('lobby:update', setLobby);
       socket.off('lobby:error', setMessage);
       socket.off('game:start', setMatch);
       socket.off('lobby:kicked', handleKicked);
+      socket.off('game:gone', onBack);
     };
   }, [onBack]);
 
