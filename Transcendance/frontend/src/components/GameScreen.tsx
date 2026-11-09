@@ -46,6 +46,7 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [connected, setConnected] = useState(socket.connected); // false: the RECONNECTING message
+	const [leaveConfirm, setLeaveConfirm] = useState(false);
 	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
 	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
@@ -70,6 +71,7 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 
 		function handleDisconnect() {
 			setConnected(false);
+      setLeaveConfirm(false);
 		}
 
 		// back online, but this match is not there anymore: nothing else would ever arrive for this screen
@@ -105,10 +107,10 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 
 	// The keys of the game (createInput already returns the function that removes them)
 	useEffect(() => {
-		if (mode === "watch")
+		if (mode === "watch" || leaveConfirm)
 			return;
 		return createInput(mode, sendCommand);
-	}, [mode]);
+	}, [leaveConfirm, mode]);
 
 	// When everything is loaded: draw at every frame of the screen, until the component closes
 	useEffect(() => {
@@ -156,10 +158,22 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	// Leaves the match, or stops watching it.
 	// Local: the server ends the match as if the time was over, and its game:end opens the WINNER screen
 	function handleLeave() {
-		socket.emit(mode === "watch" ? "game:unspectate" : "game:leave");
-		if (mode !== "local")
-			onEnd(null);
+		if (mode !== "watch") {
+			setLeaveConfirm(true);
+			return;
+		}
+
+		socket.emit("game:unspectate");
+		onEnd(null);
 	}
+
+	function confirmLeave() {
+		socket.emit("game:leave");
+    if (mode !== "local") {
+		  onEnd(null);
+    }
+	}
+
 
 	const leaveLabel = mode === "watch" ? "Stop watching" : "Leave the match";
 
@@ -179,6 +193,27 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 				</button>
 			)}
 			{touch && mode === "online" && <TouchControls send={sendCommand} />}
+			{leaveConfirm && (
+				<div className="leave-confirm-backdrop">
+					<div
+						className="leave-confirm"
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="leave-confirm-title">
+							<h2 id="leave-confirm-title">LEAVE THE MATCH?</h2>
+							<div className="button-row">
+								<button className="sea-button" onClick={confirmLeave}>
+									YES
+								</button>
+
+								<button className="sea-button secondary" onClick={() => setLeaveConfirm(false)}>
+									NO
+								</button>
+							</div>
+
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
