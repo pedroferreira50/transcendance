@@ -1,0 +1,59 @@
+generator client {
+	provider     = "prisma-client"
+	output       = "../src/generated/prisma"
+	moduleFormat = "cjs"
+}
+
+datasource db {
+	provider = "sqlite"
+}
+
+model User {
+	id                   Int    @id @default(autoincrement())
+	username             String @unique
+	email                String @unique
+	passwordHash         String @map("password_hash")
+	wins                 Int    @default(0)
+	losses               Int    @default(0)
+	multiplayerWins      Int    @default(0) @map("multiplayer_wins")
+	multiplayerLosses    Int    @default(0) @map("multiplayer_losses")
+	matchesWon           Match[] @relation("MatchWinner")
+	matchPlayers         MatchPlayer[]
+
+	@@map("users")
+}
+
+model Match {
+	id        String   @id
+	mapName   String   @map("map_name")
+	startedAt DateTime @map("started_at")
+	endedAt   DateTime @map("ended_at")
+	endReason String   @map("end_reason")
+	winnerId  Int?     @map("winner_id")
+	winner    User?    @relation("MatchWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+	players   MatchPlayer[]
+
+	@@index([endedAt])
+	@@index([winnerId])
+	@@map("matches")
+}
+
+model MatchPlayer {
+	id           Int      @id @default(autoincrement())
+	matchId      String   @map("match_id")
+	userId       Int      @map("user_id")
+	slot         Int
+	character    String
+	result       String
+	diamonds     Int
+	moves        Int
+	deaths       Int
+	powerUpsUsed Int      @map("power_ups_used")
+	finishMs     Int?     @map("finish_ms")
+	match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+	user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+	@@unique([matchId, slot])
+	@@index([userId, matchId])
+	@@map("match_players")
+}
