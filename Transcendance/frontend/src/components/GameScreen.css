@@ -56,3 +56,32 @@
 	width: clamp(36px, 6vmin, 64px);
 	height: clamp(36px, 6vmin, 64px);
 }
+
+.leave-confirm-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgb(0 0 0 / 70%);
+}
+
+.leave-confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1rem, 3vh, 2rem);
+    padding: clamp(1.5rem, 5vmin, 3rem);
+    border: var(--line) solid var(--sea-light);
+    background: var(--sea-box);
+    color: var(--sea-light);
+    text-align: center;
+}
+
+.leave-confirm h2 {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(1.4rem, 5vmin, 3rem);
+    font-weight: 400;
+}
