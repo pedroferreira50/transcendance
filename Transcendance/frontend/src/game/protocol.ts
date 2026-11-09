@@ -67,11 +67,12 @@ export type MapInfo = {
 	exit: Position;
 };
 
-// game:start, sent once to each player
+// game:start, sent once to each player, and game:resume, for a player who came back (F5, the internet returned, another tab)
 export type GameStart = {
 	gameId: string;
 	map: MapInfo;
 	you: number | null; // your slot (null = local match: you play both)
 	state: DynamicState;
 	countdown: number; // seconds before the match begins: the first game:countdown can arrive before the screen listens
+	local: boolean; // local match: the screen sends the slot with each command
 };

@@ -99,6 +99,25 @@ function drawMonsters(f: Frame): void {
 		drawSprite(f, f.sprites[`${look}-${f.sharks.facing[i] ?? "left"}`], f.state.monsters[i]);
 }
 
+// The "no connection" icon, drawn in "pixels": the waves of a wi-fi with a red line over them
+const OFFLINE_ICON = ["..#####..", ".#.....#.", "#..###..#", "..#...#..", "....#....", ".........", "....#...."];
+const OFFLINE_SIZE = 9; // pixels on each side: the icon is 9 wide and 7 tall, with one free line above and below
+
+function drawOffline(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+	const pixel = size / OFFLINE_SIZE;
+	ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+	ctx.fillRect(x, y, size, size);
+	ctx.fillStyle = "#fff";
+	OFFLINE_ICON.forEach((row, line) => {
+		for (let column = 0; column < row.length; column++)
+			if (row[column] === "#")
+				ctx.fillRect(x + column * pixel, y + (line + 1) * pixel, pixel, pixel);
+	});
+	ctx.fillStyle = "#ff4d4d";
+	for (let i = 0; i < OFFLINE_SIZE; i++)
+		ctx.fillRect(x + i * pixel, y + i * pixel, pixel, pixel);
+}
+
 function drawPlayer(f: Frame, p: PlayerView): void {
 	const { ctx, tile, now } = f;
 	const x = p.pos.x * tile;
@@ -141,6 +160,9 @@ function drawPlayer(f: Frame, p: PlayerView): void {
 	// the power-up being held, small, in the bottom-right corner
 	if (p.powerUp)
 		ctx.drawImage(f.sprites[`icon-${p.powerUp}`], x + tile * 0.6, y + tile * 0.6, tile * 0.4, tile * 0.4);
+
+	if (p.status === "disconnected")
+		drawOffline(ctx, x + tile * 0.25, y + tile * 0.25, tile * 0.5);
 
 	// the name above (white with a dark outline, readable on any background)
 	ctx.font = `bold ${Math.max(10, Math.round(tile * 0.24))}px sans-serif`;
@@ -219,6 +241,8 @@ function drawPlayerHud(f: Frame, p: PlayerView): void {
 	ctx.restore();
 	if (p.status === "dead")
 		drawLabel(ctx, String(Math.ceil(p.respawnMs / 1000)), portraitX + tile / 2, y + tile / 2, Math.round(tile * 0.5), "#fff");
+	if (p.status === "disconnected")
+		drawOffline(ctx, portraitX + tile * 0.25, y + tile * 0.25, tile * 0.5);
 
 	ctx.drawImage(bar, barX, y, barWidth, tile);
 

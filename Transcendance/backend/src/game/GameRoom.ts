@@ -204,6 +204,13 @@ export class GameRoom {
 			this.finish(inGame[0].slot, "forfeit");
 	}
 
+	// The « of a local match: ends now, as if the time was over (the most diamonds wins, a tie is a draw)
+	endNow(): void {
+		if (this.state.status === "finished")
+			return;
+		this.finish(this.leader(), "timeout");
+	}
+
 	// The socket of a player dropped (false) or came back (true)
 	setConnected(slot: number, connected: boolean, now: number): void {
 		const player = this.state.players[slot];

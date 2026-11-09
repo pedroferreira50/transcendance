@@ -49,6 +49,20 @@
 	text-shadow: 0 0 0.3em var(--sea-sides);
 }
 
+/* the connection dropped: the map stays behind, darker, until the server answers again */
+.reconnecting {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+	background: rgba(0, 0, 0, 0.6);
+	font-family: var(--font-title);
+	font-size: clamp(1.5rem, 7vmin, 4rem);
+	color: var(--sea-light);
+	text-shadow: 0 0 0.15em var(--sea-sides), 0 0 0.4em var(--sea-sides);
+}
+
 /* the « of the match: in the corner of the screen (there is no frame of rocks here) */
 .back-button.game-leave {
 	top: 0.75rem;
