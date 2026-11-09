@@ -1,0 +1,163 @@
+{
+  "common": {
+    "back": "Back",
+    "loading": "Loading...",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "language": "Language"
+  },
+  "intro": {
+    "story": "The cold season has arrived, and the reef is running out of food. Only one creature knows the way to the Open Sea, where the water is calm and there is plenty to eat: an old sea turtle who waits at the far end of the reef. She can carry only one fish on her back, and her price is diamonds.",
+    "play": "PLAY"
+  },
+  "menu": {
+    "title": "OPEN SEA",
+    "local": "PLAY LOCAL",
+    "online": "PLAY ONLINE",
+    "instructions": "INSTRUCTIONS",
+    "login": "Login",
+    "profileOf": "Profile of {{username}}",
+    "replaced": "Open Sea was opened in another window."
+  },
+  "instructions": {
+    "title": "INSTRUCTIONS",
+    "goals": {
+      "diamonds": "Collect enough diamonds",
+      "turtle": "Reach the turtle before your rival does",
+      "sharks": "Watch out for sharks!"
+    },
+    "powerUps": {
+      "speed": "Swim faster for 5 seconds",
+      "freeze": "Freeze everyone for 2 seconds",
+      "freezeNote": "(but don't touch the sharks!)",
+      "enchant": "Enchant sharks for 5 seconds",
+      "enchantNote": "(The sharks won't hurt you!)"
+    },
+    "movement": "(Movement)",
+    "power": "(Power)",
+    "local": "LOCAL",
+    "online": "ONLINE",
+    "player": "Player {{n}}",
+    "players14": "Player 1-4",
+    "or": "or"
+  },
+  "auth": {
+    "loginTitle": "LOGIN",
+    "registerTitle": "REGISTER",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "repeatPassword": "Repeat password",
+    "login": "LOGIN",
+    "signup": "SIGN UP",
+    "register": "REGISTER",
+    "backToLogin": "BACK TO LOGIN",
+    "errors": {
+      "usernameEmpty": "Username cannot be empty.",
+      "usernameInvalid": "Username must be 3-20 characters: letters, numbers or _.",
+      "emailInvalid": "Please enter a valid email.",
+      "passwordEmpty": "Password cannot be empty.",
+      "passwordShort": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "connect": "Could not connect to server."
+    }
+  },
+  "profile": {
+    "title": "PROFILE",
+    "online": "ONLINE",
+    "wins": "WINS",
+    "losses": "LOSSES",
+    "winPercent": "WIN %",
+    "logout": "LOGOUT"
+  },
+  "lobby": {
+    "lobbies": "LOBBIES",
+    "empty": "No lobbies yet. Create one!",
+    "create": "CREATE LOBBY",
+    "join": "JOIN",
+    "full": "FULL",
+    "inGame": "IN GAME",
+    "title": "LOBBY",
+    "settings": "SETTINGS",
+    "players_one": "{{count}} PLAYER",
+    "players_other": "{{count}} PLAYERS",
+    "map": "MAP",
+    "random": "RANDOM",
+    "waiting": "WAITING...",
+    "host": "HOST",
+    "ready": "READY",
+    "notReady": "NOT READY",
+    "start": "START",
+    "kick": "Kick {{username}}",
+    "chooseFish": "Choose your fish",
+    "summary": "{{map}} · {{count}} PLAYERS",
+    "errors": {
+      "connect": "Could not connect to the server."
+    },
+    "playersTitle": "PLAYERS"
+  },
+  "local": {
+    "fishTitle": "FISH",
+    "player": "PLAYER {{n}}",
+    "keys": "W A S D · R",
+    "keys2": "ARROWS · L",
+    "start": "START",
+    "fishOf": "Fish of player {{n}}"
+  },
+  "winner": {
+    "winner": "WINNER",
+    "draw": "DRAW",
+    "isWinner": "{{username}} IS THE WINNER!",
+    "nobody": "NOBODY WON!",
+    "reasons": {
+      "exit": "Reached the turtle first.",
+      "timeout": "Had the most diamonds when the time ran out.",
+      "forfeit": "Was the last one left in the match.",
+      "tie": "The time ran out with a tie in diamonds."
+    },
+    "backToLobby": "BACK TO LOBBY",
+    "playAgain": "PLAY AGAIN",
+    "exit": "EXIT",
+    "diamonds": "diamonds",
+    "deaths": "deaths"
+  },
+  "game": {
+    "loading": "Loading...",
+    "leave": "Leave the match",
+    "powerUp": "power-up"
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Service",
+    "backHome": "Back to Open Sea",
+    "updated": "Last updated: November 2026",
+    "privacy": {
+      "intro": "Open Sea is a free multiplayer game made as a student project. This policy explains which personal data we store and why.",
+      "dataTitle": "Data we collect",
+      "data": "When you create an account we store your username, email address and a hashed password (we never store the password itself). We also store your match results, such as wins, losses, diamonds collected and deaths. The game server keeps a session cookie so you stay logged in.",
+      "useTitle": "How we use it",
+      "use": "Your data is used only to run the game: to authenticate you, show your profile and match history, keep the lobby and match state, and display the leaderboard. We do not sell your data and we do not use it for advertising.",
+      "cookiesTitle": "Cookies and local storage",
+      "cookies": "We use one httpOnly session cookie to keep you logged in. Your browser also stores your language choice locally. You can delete both at any time through your browser settings; deleting the session cookie logs you out.",
+      "retentionTitle": "Retention and rights",
+      "retention": "Account data is kept while your account exists. You may request a copy, correction or deletion of your data by contacting the team. Deleting your account removes your profile and match history.",
+      "contactTitle": "Contact",
+      "contact": "For any privacy question, contact the Open Sea team at privacy@opensea.local."
+    },
+    "terms": {
+      "intro": "By using Open Sea you agree to these terms. If you do not agree, please do not use the game.",
+      "accountsTitle": "Accounts",
+      "accounts": "You must provide a valid email and keep your password secret. You are responsible for everything done with your account. One person may not impersonate another player or create accounts to abuse the game.",
+      "conductTitle": "Fair play",
+      "conduct": "Do not cheat, exploit bugs, automate gameplay or attack the server. Offensive usernames and harassment are not allowed. The team may suspend or delete accounts that break these rules.",
+      "serviceTitle": "The service",
+      "service": "Open Sea is provided free of charge and as-is, without guarantees of availability or fitness for a particular purpose. We may change, pause or stop the game at any time, including for maintenance.",
+      "liabilityTitle": "Liability",
+      "liability": "To the extent permitted by law, the team is not liable for lost data, interruptions or any damage resulting from the use of the game. This is an educational project.",
+      "changesTitle": "Changes",
+      "changes": "We may update these terms. The current version is always published on this page, with the date above. Continued use after a change means you accept the new terms.",
+      "contactTitle": "Contact",
+      "contact": "Questions about these terms can be sent to the Open Sea team at support@opensea.local."
+    }
+  }
+}

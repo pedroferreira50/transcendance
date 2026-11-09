@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { DynamicState, EndReason, PlayerView } from "../game/protocol";
 import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
@@ -20,15 +21,9 @@ const DECORATIONS: Decoration[] = [
 	{ art: "bubbles/diamond", left: 85.3, top: 45.6, width: 7.6 },
 ];
 
-// How the winner won, under their name
-const REASONS: Record<EndReason, string> = {
-	exit: "Reached the turtle first.",
-	timeout: "Had the most diamonds when the time ran out.",
-	forfeit: "Was the last one left in the match.",
-};
-
 // One player of the match: the portrait, the name, the diamonds and the deaths
 function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
+	const { t } = useTranslation();
 	// left the match (or did not come back): their numbers stay, but faded
 	const gone = player.status === "left" || player.status === "disconnected";
 	let className = "result";
@@ -42,8 +37,8 @@ function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
 			<img className="result-portrait" src={`/art/portraits/${player.character}.webp`} alt="" />
 			<span className="result-name">{player.username}</span>
 			<span className="result-numbers">
-				<img className="result-icon" src="/sprites/icon-diamond.webp" alt="diamonds" /> {player.diamonds}
-				<span className="result-deaths" aria-label="deaths">☠ {player.deaths}</span>
+				<img className="result-icon" src="/sprites/icon-diamond.webp" alt={t("winner.diamonds")} /> {player.diamonds}
+				<span className="result-deaths" aria-label={t("winner.deaths")}>☠ {player.deaths}</span>
 			</span>
 		</li>
 	);
@@ -51,21 +46,46 @@ function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
 
 // The end of the match: who won (the fish on the turtle) and how everyone did.
 // A draw (the time ran out with a tie at the top) has no winner: only the turtle
-export default function Winner({ final, onBack, onExit, backLabel = "BACK TO LOBBY" }: WinnerProps) {
-	const winner = final.winnerSlot === null ? null : final.players[final.winnerSlot];
+export default function Winner({ final, onBack, onExit, backLabel }: WinnerProps) {
+	const { t } = useTranslation();
+	let winner: PlayerView | null = null;
+	if (final.winnerSlot !== null) {
+		winner = final.players[final.winnerSlot];
+	}
+
+	const reasons: Record<EndReason, string> = {
+		exit: t("winner.reasons.exit"),
+		timeout: t("winner.reasons.timeout"),
+		forfeit: t("winner.reasons.forfeit"),
+	};
+
+	let title = t("winner.draw");
+	if (winner) {
+		title = t("winner.winner");
+	}
+
+	let winnerArt = "/art/turtle.webp";
+	if (winner) {
+		winnerArt = `/art/winner/${winner.character}.webp`;
+	}
+
+	let reason = t("winner.reasons.tie");
+	if (winner && final.endReason) {
+		reason = reasons[final.endReason];
+	}
 
 	return (
-		<Screen title={winner ? "WINNER" : "DRAW"} onBack={onBack} decorations={DECORATIONS}>
+		<Screen title={title} onBack={onBack} decorations={DECORATIONS}>
 			<div className="winner-screen">
 				<img
 					className="winner-art"
-					src={winner ? `/art/winner/${winner.character}.webp` : "/art/turtle.webp"}
+					src={winnerArt}
 					alt=""
 				/>
-				{winner && (<p className="winner-line">{winner.username} IS THE WINNER!</p>)}
-				{!winner && <p className="winner-line">NOBODY WON!</p>}
+				{winner && (<p className="winner-line">{t("winner.isWinner", { username: winner.username })}</p>)}
+				{!winner && <p className="winner-line">{t("winner.nobody")}</p>}
 				<p className="winner-reason">
-					{winner && final.endReason ? REASONS[final.endReason] : "The time ran out with a tie in diamonds."}
+					{reason}
 				</p>
 
 				<ul className="results">
@@ -75,8 +95,8 @@ export default function Winner({ final, onBack, onExit, backLabel = "BACK TO LOB
 				</ul>
 
 				<div className="button-row">
-					<button className="sea-button" onClick={onBack}>{backLabel}</button>
-					<button className="sea-button secondary" onClick={onExit}>EXIT</button>
+					<button className="sea-button" onClick={onBack}>{backLabel ?? t("winner.backToLobby")}</button>
+					<button className="sea-button secondary" onClick={onExit}>{t("winner.exit")}</button>
 				</div>
 			</div>
 		</Screen>

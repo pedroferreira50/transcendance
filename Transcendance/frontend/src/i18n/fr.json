@@ -1,0 +1,163 @@
+{
+  "common": {
+    "back": "Retour",
+    "loading": "Chargement...",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "language": "Langue"
+  },
+  "intro": {
+    "story": "La saison froide est arrivée et le récif manque de nourriture. Une seule créature connaît le chemin de la Haute Mer, où l'eau est calme et la nourriture abondante : une vieille tortue de mer qui attend à l'autre bout du récif. Elle ne peut porter qu'un seul poisson sur son dos, et son prix, ce sont des diamants.",
+    "play": "JOUER"
+  },
+  "menu": {
+    "title": "OPEN SEA",
+    "local": "JOUER EN LOCAL",
+    "online": "JOUER EN LIGNE",
+    "instructions": "INSTRUCTIONS",
+    "login": "Connexion",
+    "profileOf": "Profil de {{username}}",
+    "replaced": "Open Sea a été ouvert dans une autre fenêtre."
+  },
+  "instructions": {
+    "title": "INSTRUCTIONS",
+    "goals": {
+      "diamonds": "Ramassez assez de diamants",
+      "turtle": "Atteignez la tortue avant votre rival",
+      "sharks": "Attention aux requins !"
+    },
+    "powerUps": {
+      "speed": "Nagez plus vite pendant 5 secondes",
+      "freeze": "Gelez tout le monde pendant 2 secondes",
+      "freezeNote": "(mais ne touchez pas aux requins !)",
+      "enchant": "Enchantez les requins pendant 5 secondes",
+      "enchantNote": "(Les requins ne vous feront pas de mal !)"
+    },
+    "movement": "(Déplacement)",
+    "power": "(Pouvoir)",
+    "local": "LOCAL",
+    "online": "EN LIGNE",
+    "player": "Joueur {{n}}",
+    "players14": "Joueur 1-4",
+    "or": "ou"
+  },
+  "auth": {
+    "loginTitle": "CONNEXION",
+    "registerTitle": "INSCRIPTION",
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "password": "Mot de passe",
+    "repeatPassword": "Répétez le mot de passe",
+    "login": "CONNEXION",
+    "signup": "S'INSCRIRE",
+    "register": "S'INSCRIRE",
+    "backToLogin": "RETOUR À LA CONNEXION",
+    "errors": {
+      "usernameEmpty": "Le nom d'utilisateur ne peut pas être vide.",
+      "usernameInvalid": "Le nom doit contenir 3 à 20 caractères : lettres, chiffres ou _.",
+      "emailInvalid": "Veuillez saisir un email valide.",
+      "passwordEmpty": "Le mot de passe ne peut pas être vide.",
+      "passwordShort": "Le mot de passe doit contenir au moins 8 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "connect": "Impossible de se connecter au serveur."
+    }
+  },
+  "profile": {
+    "title": "PROFIL",
+    "online": "EN LIGNE",
+    "wins": "VICTOIRES",
+    "losses": "DÉFAITES",
+    "winPercent": "% DE VICTOIRES",
+    "logout": "DÉCONNEXION"
+  },
+  "lobby": {
+    "lobbies": "SALONS",
+    "empty": "Aucun salon pour l'instant. Créez-en un !",
+    "create": "CRÉER UN SALON",
+    "join": "REJOINDRE",
+    "full": "COMPLET",
+    "inGame": "EN PARTIE",
+    "title": "SALON",
+    "settings": "RÉGLAGES",
+    "players_one": "{{count}} JOUEUR",
+    "players_other": "{{count}} JOUEURS",
+    "map": "CARTE",
+    "random": "ALÉATOIRE",
+    "waiting": "EN ATTENTE...",
+    "host": "HÔTE",
+    "ready": "PRÊT",
+    "notReady": "PAS PRÊT",
+    "start": "COMMENCER",
+    "kick": "Expulser {{username}}",
+    "chooseFish": "Choisissez votre poisson",
+    "summary": "{{map}} · {{count}} JOUEURS",
+    "errors": {
+      "connect": "Impossible de se connecter au serveur."
+    },
+    "playersTitle": "JOUEURS"
+  },
+  "local": {
+    "fishTitle": "POISSONS",
+    "player": "JOUEUR {{n}}",
+    "keys": "W A S D · R",
+    "keys2": "FLÈCHES · L",
+    "start": "COMMENCER",
+    "fishOf": "Poisson du joueur {{n}}"
+  },
+  "winner": {
+    "winner": "VAINQUEUR",
+    "draw": "ÉGALITÉ",
+    "isWinner": "{{username}} EST LE VAINQUEUR !",
+    "nobody": "PERSONNE N'A GAGNÉ !",
+    "reasons": {
+      "exit": "A atteint la tortue en premier.",
+      "timeout": "Avait le plus de diamants à la fin du temps.",
+      "forfeit": "Était le dernier dans la partie.",
+      "tie": "Le temps s'est écoulé avec une égalité de diamants."
+    },
+    "backToLobby": "RETOUR AU SALON",
+    "playAgain": "REJOUER",
+    "exit": "QUITTER",
+    "diamonds": "diamants",
+    "deaths": "morts"
+  },
+  "game": {
+    "loading": "Chargement...",
+    "leave": "Quitter la partie",
+    "powerUp": "bonus"
+  },
+  "legal": {
+    "privacyTitle": "Politique de confidentialité",
+    "termsTitle": "Conditions d'utilisation",
+    "backHome": "Retour à Open Sea",
+    "updated": "Dernière mise à jour : novembre 2026",
+    "privacy": {
+      "intro": "Open Sea est un jeu multijoueur gratuit réalisé dans le cadre d'un projet étudiant. Cette politique explique quelles données personnelles nous conservons et pourquoi.",
+      "dataTitle": "Données collectées",
+      "data": "Lors de la création d'un compte, nous conservons votre nom d'utilisateur, votre adresse email et un mot de passe haché (nous ne conservons jamais le mot de passe lui-même). Nous conservons aussi les résultats des parties, comme les victoires, les défaites, les diamants ramassés et les morts. Le serveur garde un cookie de session pour vous maintenir connecté.",
+      "useTitle": "Utilisation des données",
+      "use": "Vos données servent uniquement au fonctionnement du jeu : vous authentifier, afficher votre profil et l'historique des parties, maintenir l'état des salons et des parties, et afficher le classement. Nous ne vendons pas vos données et ne les utilisons pas pour la publicité.",
+      "cookiesTitle": "Cookies et stockage local",
+      "cookies": "Nous utilisons un cookie de session httpOnly pour vous maintenir connecté. Votre navigateur conserve aussi votre choix de langue en local. Vous pouvez supprimer les deux à tout moment dans les réglages du navigateur ; supprimer le cookie de session vous déconnecte.",
+      "retentionTitle": "Conservation et droits",
+      "retention": "Les données du compte sont conservées tant que le compte existe. Vous pouvez demander une copie, une correction ou la suppression de vos données en contactant l'équipe. Supprimer votre compte efface votre profil et l'historique des parties.",
+      "contactTitle": "Contact",
+      "contact": "Pour toute question sur la confidentialité, contactez l'équipe Open Sea à privacy@opensea.local."
+    },
+    "terms": {
+      "intro": "En utilisant Open Sea, vous acceptez ces conditions. Si vous n'êtes pas d'accord, veuillez ne pas utiliser le jeu.",
+      "accountsTitle": "Comptes",
+      "accounts": "Vous devez fournir un email valide et garder votre mot de passe secret. Vous êtes responsable de tout ce qui est fait avec votre compte. Il est interdit de se faire passer pour un autre joueur ou de créer des comptes pour abuser du jeu.",
+      "conductTitle": "Jeu équitable",
+      "conduct": "Ne trichez pas, n'exploitez pas de bugs, n'automatisez pas le jeu et n'attaquez pas le serveur. Les noms offensants et le harcèlement sont interdits. L'équipe peut suspendre ou supprimer les comptes qui enfreignent ces règles.",
+      "serviceTitle": "Le service",
+      "service": "Open Sea est fourni gratuitement et en l'état, sans garantie de disponibilité ou d'adéquation à un usage particulier. Nous pouvons modifier, suspendre ou arrêter le jeu à tout moment, notamment pour maintenance.",
+      "liabilityTitle": "Responsabilité",
+      "liability": "Dans la mesure permise par la loi, l'équipe n'est pas responsable des pertes de données, des interruptions ou de tout dommage résultant de l'utilisation du jeu. Il s'agit d'un projet éducatif.",
+      "changesTitle": "Modifications",
+      "changes": "Nous pouvons mettre à jour ces conditions. La version actuelle est toujours publiée sur cette page, avec la date ci-dessus. Continuer à utiliser le jeu après une modification signifie que vous acceptez les nouvelles conditions.",
+      "contactTitle": "Contact",
+      "contact": "Les questions sur ces conditions peuvent être envoyées à l'équipe Open Sea à support@opensea.local."
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import Screen from "./Screen";
 import "./Instructions.css";
 
@@ -15,18 +16,7 @@ type Rule = {
 	after?: string;
 };
 
-const GOALS: Rule[] = [
-	{ icon: "diamond", text: "Collect enough diamonds" },
-	{ icon: "turtle", text: "Reach the turtle before your rival does" },
-	{ icon: "shark", text: "Watch out for sharks!" },
-];
 
-// the seconds are the same as SPEED/FREEZE/ENCHANT_DURATION_MS of backend/src/game/config.ts
-const POWER_UPS: Rule[] = [
-	{ icon: "speed", text: "Swim faster for 5 seconds" },
-	{ icon: "freeze", text: "Freeze everyone for 2 seconds", note: "(but don't touch the sharks!)", after: "shark-frozen" },
-	{ icon: "enchant", text: "Enchant sharks for 5 seconds", note: "(The sharks won't hurt you!)", after: "shark-enchanted" },
-];
 
 // the keys of src/game/input.ts: [up, left, down, right]
 const WASD = ["W", "A", "S", "D"];
@@ -61,6 +51,7 @@ type KeysProps = {
 
 // One set of keys: the 4 of the movement + the one of the power-up
 function Keys({ move, power, powerFirst }: KeysProps) {
+	const { t } = useTranslation();
 	const [up, left, down, right] = move;
 	const movement = (
 		<div className="key-group">
@@ -72,20 +63,26 @@ function Keys({ move, power, powerFirst }: KeysProps) {
 					<kbd className="keycap">{right}</kbd>
 				</div>
 			</div>
-			<span>(Movement)</span>
+			<span>{t("instructions.movement")}</span>
 		</div>
 	);
 	const powerUp = (
 		<div className="key-group">
 			<kbd className="keycap">{power}</kbd>
-			<span>(Power)</span>
+			<span>{t("instructions.power")}</span>
 		</div>
 	);
+	let first = movement;
+	let second = powerUp;
+	if (powerFirst) {
+		first = powerUp;
+		second = movement;
+	}
 	return (
 		<div className="key-row">
-			{powerFirst ? powerUp : movement}
+			{first}
 			<span className="key-plus">+</span>
-			{powerFirst ? movement : powerUp}
+			{second}
 		</div>
 	);
 }
@@ -100,6 +97,7 @@ const PAD: [string, number, number][] = [
 
 // The buttons that phones and tablets show over the match (TouchControls): the cross and the bubble
 function TouchKeys() {
+	const { t } = useTranslation();
 	return (
 		<div className="key-row">
 			<div className="key-group">
@@ -108,12 +106,12 @@ function TouchKeys() {
 						<span key={arrow} className="touch-button" style={{ gridColumn: column, gridRow: row }}>{arrow}</span>
 					))}
 				</div>
-				<span>(Movement)</span>
+				<span>{t("instructions.movement")}</span>
 			</div>
 			<span className="key-plus">+</span>
 			<div className="key-group">
 				<span className="touch-button touch-power" />
-				<span>(Power)</span>
+				<span>{t("instructions.power")}</span>
 			</div>
 		</div>
 	);
@@ -131,41 +129,59 @@ function PlayerKeys({ name, children }: { name: string; children: ReactNode }) {
 
 // How to play: the goal and the power-ups on top, the keys of each mode under them
 export default function Instructions({ onBack }: InstructionsProps) {
+	const { t } = useTranslation();
 	// phones and tablets: the same test as GameScreen. There the local mode (one keyboard) does not exist
 	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
+		const goals: Rule[] = [
+		{ icon: "diamond", text: t("instructions.goals.diamonds") },
+		{ icon: "turtle", text: t("instructions.goals.turtle") },
+		{ icon: "shark", text: t("instructions.goals.sharks") },
+	];
+
+	// the seconds are the same as SPEED/FREEZE/ENCHANT_DURATION_MS of backend/src/game/config.ts
+	const powerUps: Rule[] = [
+		{ icon: "speed", text: t("instructions.powerUps.speed") },
+		{ icon: "freeze", text: t("instructions.powerUps.freeze"), note: t("instructions.powerUps.freezeNote"), after: "shark-frozen" },
+		{ icon: "enchant", text: t("instructions.powerUps.enchant"), note: t("instructions.powerUps.enchantNote"), after: "shark-enchanted" },
+	];
+
+	let onlineKeys = (
+		<div className="key-options">
+			<Keys move={WASD} power="R" />
+			<span className="key-or">{t("instructions.or")}</span>
+			<Keys move={ARROWS} power="L" powerFirst />
+		</div>
+	);
+	if (touch) {
+		onlineKeys = <TouchKeys />;
+	}
 	return (
-		<Screen title="INSTRUCTIONS" onBack={onBack}>
+		<Screen title={t("instructions.title")} onBack={onBack}>
 			<div className="instructions">
 				<div className="rules">
-					<RuleList rules={GOALS} />
-					<RuleList rules={POWER_UPS} />
+					<RuleList rules={goals} />
+					<RuleList rules={powerUps} />
 				</div>
 				<div className="modes">
 					{!touch && (
 						<section className="mode">
-							<span className="gold-badge">LOCAL</span>
+							<span className="gold-badge">{t("instructions.local")}</span>
 							<div className="mode-players">
-								<PlayerKeys name="Player 1">
+								<PlayerKeys name={t("instructions.player", { n: 1 })}>
 									<Keys move={WASD} power="R" />
 								</PlayerKeys>
-								<PlayerKeys name="Player 2">
+								<PlayerKeys name={t("instructions.player", { n: 2 })}>
 									<Keys move={ARROWS} power="L" powerFirst />
 								</PlayerKeys>
 							</div>
 						</section>
 					)}
 					<section className="mode">
-						<span className="gold-badge">ONLINE</span>
+						<span className="gold-badge">{t("instructions.online")}</span>
 						<div className="mode-players">
-							<PlayerKeys name="Player 1-4">
-								{touch ? <TouchKeys /> : (
-									<div className="key-options">
-										<Keys move={WASD} power="R" />
-										<span className="key-or">or</span>
-										<Keys move={ARROWS} power="L" powerFirst />
-									</div>
-								)}
+							<PlayerKeys name={t("instructions.players14")}>
+								{onlineKeys}
 							</PlayerKeys>
 						</div>
 					</section>

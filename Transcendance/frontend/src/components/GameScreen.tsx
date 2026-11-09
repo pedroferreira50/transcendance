@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { createInput, type Command, type InputMode } from "../game/input";
 import type { DynamicState, GameStart } from "../game/protocol";
 import { drawFrame, trackSharks, type SharkMemory } from "../game/renderer";
@@ -33,13 +34,18 @@ function sendCommand(command: Command): void {
 
 // The match screen: draws the last state the server sent, and sends the keys to it
 export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
+	const { t } = useTranslation();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const showWalls = useRef(false);
 	const sharks = useRef<SharkMemory>({ last: [], facing: [] });
 	// the last game:state: a ref and not a state, because the drawing reads it at every frame
 	// and a new state (many per second) does not need React to draw the page again
 	const state = useRef<DynamicState>(start.state);
-	const [countdown, setCountdown] = useState(start.state.status === "countdown" ? start.countdown : 0);
+	const [countdown, setCountdown] = useState(() => {
+		if (start.state.status === "countdown")
+			return start.countdown;
+		return 0;
+	});
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
@@ -137,12 +143,12 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	if (error)
 		return <p>{error}</p>;
 	if (!assets)
-		return <p>Carregando...</p>;
+		return <p>{t("game.loading")}</p>;
 	return (
 		<div className="game-screen">
 			<canvas ref={canvasRef} />
 			{countdown > 0 && <div className="countdown" key={countdown}>{countdown}</div>}
-			<button className="back-button game-leave" onClick={handleLeave} aria-label="Leave the match" title="Leave the match">
+			<button className="back-button game-leave" onClick={handleLeave} aria-label={t("game.leave")} title={t("game.leave")}>
 				<BackIcon />
 			</button>
 			{touch && mode === "online" && <TouchControls send={sendCommand} />}

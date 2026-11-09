@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Character, DynamicState, GameStart } from "../game/protocol";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
@@ -14,12 +15,12 @@ type LocalGameProps = {
 
 const FISH: Character[] = ["goldfish", "betta", "angler", "puffer"];
 
-// The keys of each player (the same as input.ts)
-const KEYS = ["W A S D · R", "ARROWS · L"];
-
 // PLAY LOCAL: two players on the same keyboard. The match runs on the server, like an online one:
 // the map, the fish of each player, the match and the WINNER screen, all inside this component
 export default function LocalGame({ onExit }: LocalGameProps) {
+	const { t } = useTranslation();
+	// The keys of each player (the same as input.ts)
+	const keys = [t("local.keys"), t("local.keys2")];
 	const [map, setMap] = useState<string | null>(null); // null: still choosing the map
 	const [fish, setFish] = useState<(Character | null)[]>([null, null]); // the fish of Player 1 and Player 2
 	const [message, setMessage] = useState("");
@@ -33,7 +34,11 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 		// the same as LobbySelect: socket.active = it tries again by itself (the server is off...);
 		// false = the server refused the connection, and error.message says why
 		function handleConnectError(error: Error) {
-			setMessage(socket.active ? "Could not connect to the server." : error.message);
+			let nextMessage = error.message;
+			if (socket.active) {
+				nextMessage = t("lobby.errors.connect");
+			}
+			setMessage(nextMessage);
 		}
 
 		socket.on("game:start", setMatch);
@@ -44,7 +49,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 			socket.off("local:error", setMessage);
 			socket.off("connect_error", handleConnectError);
 		};
-	}, []);
+	}, [t]);
 
 	// back to the menu: the connection closes, like the « of the LOBBIES screen
 	function handleExit() {
@@ -72,25 +77,29 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 	if (match)
 		return <GameScreen mode="local" start={match} onEnd={handleMatchEnd} />;
 	if (result)
-		return <Winner final={result} backLabel="PLAY AGAIN" onBack={() => setResult(null)} onExit={handleExit} />;
+		return <Winner final={result} backLabel={t("winner.playAgain")} onBack={() => setResult(null)} onExit={handleExit} />;
 	if (map === null)
 		return <MapSelect players={2} onChoose={setMap} onBack={handleExit} />;
 
 	return (
-		<Screen title="FISH" onBack={() => setMap(null)}>
+		<Screen title={t("local.fishTitle")} onBack={() => setMap(null)}>
 			<div className="local-setup">
 				{[0, 1].map((slot) => (
 					<div key={slot} className="local-player">
 						<p className="local-player-name">
-							PLAYER {slot + 1} <span className="local-keys">{KEYS[slot]}</span>
+							{t("local.player", { n: slot + 1 })} <span className="local-keys">{keys[slot]}</span>
 						</p>
-						<div className="fish-choice" role="group" aria-label={`Fish of player ${slot + 1}`}>
+						<div className="fish-choice" role="group" aria-label={t("local.fishOf", { n: slot + 1 })}>
 							{FISH.map((character) => {
 								const other = fish[1 - slot] === character; // the other player already has it
+								let className = "fish-option";
+								if (fish[slot] === character) {
+									className = "fish-option mine";
+								}
 								return (
 									<button
 										key={character}
-										className={fish[slot] === character ? "fish-option mine" : "fish-option"}
+										className={className}
 										disabled={other}
 										onClick={() => choose(slot, character)}
 										aria-label={character}
@@ -106,7 +115,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 				<div className="button-row">
 					<button className="sea-button" onClick={handleStart} disabled={fish[0] === null || fish[1] === null}>
-						START
+						{t("local.start")}
 					</button>
 				</div>
 
