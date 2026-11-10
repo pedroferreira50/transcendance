@@ -61,6 +61,7 @@ describe("start", () => {
 	test("starts the clock and the power-up timer", () => {
 		const r = room();
 		r.start(1000);
+		expect(r.state.startedAt).toBe(1000);
 		expect(r.state.status).toBe("running");
 		expect(r.state.endsAt).toBe(1000 + SIZE_RULES.small.timeLimitMs);
 		expect(r.state.nextPowerUpAt).toBe(1000 + POWERUP_INTERVAL_MS);
@@ -219,6 +220,7 @@ describe("move", () => {
 		r.state.players[0].pos = { x: 9, y: 3 };
 		r.state.players[0].diamonds = r.state.goal;
 		r.move(0, "down", 1000);
+		expect(r.state.endedAt).toBe(1000);
 		expect(r.state.status).toBe("finished");
 		expect(r.state.winnerSlot).toBe(0);
 		expect(r.state.endReason).toBe("exit");
@@ -322,6 +324,7 @@ describe("usePowerUp", () => {
 		const r = running();
 		r.state.players[0].powerUp = "speed";
 		r.usePowerUp(0, 1000);
+		expect(r.state.players[0].powerUpsUsed).toBe(1);
 		expect(r.state.players[0].powerUp).toBeNull();
 		expect(r.state.players[0].speedUntil).toBe(6000);
 		r.move(0, "right", 1000);

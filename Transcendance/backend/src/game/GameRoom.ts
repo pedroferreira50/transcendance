@@ -51,6 +51,8 @@ export class GameRoom {
 			powerUps: [],
 			nextPowerUpAt: 0,
 			endsAt: 0,
+			startedAt: null,
+			endedAt: null,
 			status: "countdown",
 			winnerSlot: null,
 			endReason: null,
@@ -63,6 +65,7 @@ export class GameRoom {
 		if (this.state.status !== "countdown")
 			return;
 		this.state.status = "running";
+		this.state.startedAt = now;
 		this.state.endsAt = now + SIZE_RULES[this.size].timeLimitMs;
 		this.state.nextPowerUpAt = now + POWERUP_INTERVAL_MS;
 		this.dirty = true;
@@ -107,7 +110,7 @@ export class GameRoom {
 		if (this.state.monsters.some((m) => samePos(m, to)))
 			this.kill(player, now);
 		if (samePos(to, this.state.exit) && player.diamonds === this.state.goal)
-			this.finish(slot, "exit");
+			this.finish(slot, "exit", now);
 	}
 
 	// A player uses the power-up they hold (R or L key)
@@ -132,6 +135,7 @@ export class GameRoom {
 				break;
 		}
 		this.events.push({ type: "powerUpUsed", slot, powerUp: player.powerUp });
+		player.powerUpsUsed++;
 		player.powerUp = null;
 		this.dirty = true;
 	}
@@ -161,12 +165,12 @@ export class GameRoom {
 		if (this.state.status !== "running")
 			return;
 		if (now >= this.state.endsAt) {
-			this.finish(this.leader(), "timeout");
+			this.finish(this.leader(), "timeout", now);
 			return;
 		}
 		for (const player of this.state.players)
 			if (player.disconnectedAt !== null && now - player.disconnectedAt >= RECONNECT_TIMEOUT_MS)
-				this.leave(player.slot);
+				this.leave(player.slot, now);
 		if (this.state.status !== "running")
 			return;
 		for (const player of this.state.players) {
@@ -192,7 +196,7 @@ export class GameRoom {
 	}
 
 	// Player gave up (or was away for too long)
-	leave(slot: number): void {
+	leave(slot: number, now = Date.now()): void {
 		const player = this.state.players[slot];
 		if (this.state.status === "finished" || !player || player.status === "left")
 			return;
@@ -201,14 +205,14 @@ export class GameRoom {
 		this.dirty = true;
 		const inGame = this.state.players.filter((p) => p.status !== "left");
 		if (inGame.length === 1)
-			this.finish(inGame[0].slot, "forfeit");
+			this.finish(inGame[0].slot, "forfeit", now);
 	}
 
 	// The « of a local match: ends now, as if the time was over (the most diamonds wins, a tie is a draw)
-	endNow(): void {
+	endNow(now = Date.now()): void {
 		if (this.state.status === "finished")
 			return;
-		this.finish(this.leader(), "timeout");
+		this.finish(this.leader(), "timeout", now);
 	}
 
 	// The socket of a player dropped (false) or came back (true)
@@ -278,10 +282,11 @@ export class GameRoom {
 	}
 
 	// After this, every method ignores the calls (status is no longer "running")
-	private finish(winnerSlot: number | null, reason: EndReason): void {
+	private finish(winnerSlot: number | null, reason: EndReason, now: number): void {
 		this.state.status = "finished";
 		this.state.winnerSlot = winnerSlot;
 		this.state.endReason = reason;
+		this.state.endedAt = now;
 		this.dirty = true;
 	}
 }
@@ -319,6 +324,7 @@ function newPlayer(info: PlayerInfo, slot: number, spawn: Position): Player {
 		diamonds: 0,
 		moves: 0,
 		deaths: 0,
+		powerUpsUsed: 0,
 		facing: "right",
 		status: "playing",
 		lastMoveAt: 0,
