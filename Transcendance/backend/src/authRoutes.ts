@@ -8,16 +8,20 @@ const router = Router();
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/register", async (req, res) => {
-    const { username, password, email } = req.body;
+    const { username, password, email } = req.body ?? {};
 
-    if (!username || !password || !email) {
+    if (
+        typeof username !== "string" || username === "" ||
+        typeof password !== "string" || password === "" ||
+        typeof email !== "string" || email === ""
+    ) {
         res.status(400).json({
             message: "Username, email and password are required."
         });
         return;
     }
 
-    if (typeof email !== "string" || email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
+    if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
         res.status(400).json({
             message: "Invalid email."
         });
@@ -71,9 +75,12 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password } = req.body ?? {};
 
-    if (!username || !password) {
+    if (
+        typeof username !== "string" || username === "" ||
+        typeof password !== "string" || password === ""
+    ) {
         res.status(400).json({
             message: "Username and password are required."
         });
