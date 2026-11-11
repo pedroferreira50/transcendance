@@ -6,6 +6,9 @@ import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
 const router = Router();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[A-Za-z0-9_]{3,16}$/;
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
 
 router.post("/register", async (req, res) => {
     const { username, password, email } = req.body ?? {};
@@ -21,9 +24,30 @@ router.post("/register", async (req, res) => {
         return;
     }
 
+    if (!USERNAME_REGEX.test(username)) {
+        res.status(400).json({
+            message: "Username must be 3 to 16 characters, using only letters, numbers and _."
+        });
+        return;
+    }
+
     if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
         res.status(400).json({
             message: "Invalid email."
+        });
+        return;
+    }
+
+    if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+        res.status(400).json({
+            message: `Password must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters.`
+        });
+        return;
+    }
+
+    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+        res.status(400).json({
+            message: "Password must contain at least one letter and one number."
         });
         return;
     }
@@ -83,6 +107,13 @@ router.post("/login", async (req, res) => {
     ) {
         res.status(400).json({
             message: "Username and password are required."
+        });
+        return;
+    }
+
+    if (password.length > PASSWORD_MAX) {
+        res.status(401).json({
+            message: "Invalid username or password."
         });
         return;
     }
