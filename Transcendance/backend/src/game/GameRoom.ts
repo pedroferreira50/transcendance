@@ -1,10 +1,10 @@
 import {
 	ENCHANT_DURATION_MS, FREEZE_DURATION_MS, INVULNERABLE_MS, MAX_POWERUPS_ON_MAP, MOVE_COOLDOWN_MS, POWERUP_INTERVAL_MS,
-	RECONNECT_TIMEOUT_MS, RESPAWN_DELAY_MS, SPEED_DURATION_MS, SIZE_RULES, diamondCount
+	RECONNECT_TIMEOUT_MS, RESPAWN_DELAY_MS, SPEED_DURATION_MS, SIZE_RULES, TIME_CHANGE_MS, defaultOptions, diamondCount
 } from "./config";
 import { placeDiamonds, placeMonsters, placePowerUp } from "./placement";
 import type {
-	Character, Direction, DynamicState, EndReason, GameEvent, GameState, MapData, MapSize, Player, PlayerView, Position
+	Character, Direction, DynamicState, EndReason, GameEvent, GameState, MapData, MapSize, MatchOptions, Player, PlayerView, Position
 } from "./types";
 
 // Who joins the match (comes from the lobby)
@@ -16,6 +16,7 @@ export type PlayerInfo = {
 
 export type RoomOptions = {
 	local: boolean;
+	match?: MatchOptions; // default defaultOptions()
 	random?: () => number; // default Math.random, tests pass a fixed one
 };
 
@@ -25,7 +26,8 @@ export class GameRoom {
 	dirty = false; // true = something changed and must be sent to the clients
 	events: GameEvent[] = []; // what happened since the last takeEvents()
 	private map: MapData;
-	private size: MapSize;
+	private match: MatchOptions;
+	private timeLimitMs: number; // the time of the map size, changed by match.time
 	private random: () => number;
 
 	constructor(id: string, mapName: string, map: MapData, size: MapSize, players: PlayerInfo[], options: RoomOptions) {
@@ -33,7 +35,8 @@ export class GameRoom {
 		if (!rules.players.includes(players.length))
 			throw new Error(`a ${size} map does not accept ${players.length} players`);
 		this.map = map;
-		this.size = size;
+		this.match = options.match ?? defaultOptions();
+		this.timeLimitMs = rules.timeLimitMs + TIME_CHANGE_MS[this.match.time];
 		this.random = options.random ?? Math.random;
 		const monsters = placeMonsters(map, rules.monsters, this.random);
 		this.state = {
@@ -63,7 +66,7 @@ export class GameRoom {
 		if (this.state.status !== "countdown")
 			return;
 		this.state.status = "running";
-		this.state.endsAt = now + SIZE_RULES[this.size].timeLimitMs;
+		this.state.endsAt = now + this.timeLimitMs;
 		this.state.nextPowerUpAt = now + POWERUP_INTERVAL_MS;
 		this.dirty = true;
 	}
@@ -181,7 +184,7 @@ export class GameRoom {
 		}
 		if (now >= this.state.nextPowerUpAt) {
 			if (this.state.powerUps.length < MAX_POWERUPS_ON_MAP) {
-				const powerUp = placePowerUp(this.map, this.state, this.random);
+				const powerUp = placePowerUp(this.map, this.state, this.match.powerUps, this.random);
 				if (powerUp) {
 					this.state.powerUps.push(powerUp);
 					this.dirty = true;
@@ -239,7 +242,7 @@ export class GameRoom {
 	snapshot(now: number): DynamicState {
 		return {
 			status: this.state.status,
-			timeLeftMs: this.state.status === "countdown" ? SIZE_RULES[this.size].timeLimitMs : msLeft(this.state.endsAt, now),
+			timeLeftMs: this.state.status === "countdown" ? this.timeLimitMs : msLeft(this.state.endsAt, now),
 			goal: this.state.goal,
 			players: this.state.players.map((p) => playerView(p, now)),
 			monsters: [...this.state.monsters],

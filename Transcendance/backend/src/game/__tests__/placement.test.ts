@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { MONSTER_MIN_SPAWN_DISTANCE, SIZE_RULES, diamondCount, MAX_POWERUPS_ON_MAP } from "../config";
+import { MONSTER_MIN_SPAWN_DISTANCE, POWERUP_TYPES, SIZE_RULES, diamondCount, MAX_POWERUPS_ON_MAP } from "../config";
 import { loadMap, MAPS, parseMap } from "../mapLoader";
-import { distancesFrom, freeCells, placeDiamonds, placeMonsters, placePowerUp, posKey, POWERUP_TYPES } from "../placement";
+import { distancesFrom, freeCells, placeDiamonds, placeMonsters, placePowerUp, posKey } from "../placement";
 import type { GameState, MapData, Player, Position } from "../types";
 import { seeded } from "./helpers";
 
@@ -102,7 +102,7 @@ describe("placePowerUp", () => {
 			powerUps: [{ type: "speed", pos: { x: 7, y: 1 } }],
 		});
 		for (let seed = 0; seed < 50; seed++) {
-			const powerUp = placePowerUp(SMALL, s, seeded(seed))!;
+			const powerUp = placePowerUp(SMALL, s, POWERUP_TYPES, seeded(seed))!;
 			expect(["3,1", "5,1", "6,1", "7,1", "1,1", "7,6", "5,4"]).not.toContain(posKey(powerUp.pos));
 			expect(isWall(SMALL, powerUp.pos)).toBe(false);
 			expect(POWERUP_TYPES).toContain(powerUp.type);
@@ -111,13 +111,19 @@ describe("placePowerUp", () => {
 
 	test("the type comes from random", () => {
 		const always = (n: number) => () => n;
-		expect(placePowerUp(SMALL, state(SMALL), always(0))!.type).toBe("speed");
-		expect(placePowerUp(SMALL, state(SMALL), always(0.5))!.type).toBe("freeze");
-		expect(placePowerUp(SMALL, state(SMALL), always(0.99))!.type).toBe("enchant");
+		expect(placePowerUp(SMALL, state(SMALL), POWERUP_TYPES, always(0))!.type).toBe("speed");
+		expect(placePowerUp(SMALL, state(SMALL), POWERUP_TYPES, always(0.5))!.type).toBe("freeze");
+		expect(placePowerUp(SMALL, state(SMALL), POWERUP_TYPES, always(0.99))!.type).toBe("enchant");
+	});
+
+	test("only the types it gets", () => {
+		for (let seed = 0; seed < 20; seed++)
+			expect(placePowerUp(SMALL, state(SMALL), ["freeze"], seeded(seed))!.type).toBe("freeze");
+		expect(placePowerUp(SMALL, state(SMALL), [], seeded(1))).toBeNull();
 	});
 
 	test("null when the map is full", () => {
-		expect(placePowerUp(SMALL, state(SMALL, { diamonds: freeCells(SMALL) }), seeded(1))).toBeNull();
+		expect(placePowerUp(SMALL, state(SMALL, { diamonds: freeCells(SMALL) }), POWERUP_TYPES, seeded(1))).toBeNull();
 	});
 });
 
@@ -131,7 +137,7 @@ describe("the real maps", () => {
 			const diamonds = placeDiamonds(map, diamondCount(size, Math.max(...rules.players)), monsters, random);
 			const s = state(map, { monsters, diamonds });
 			for (let i = 0; i < MAX_POWERUPS_ON_MAP; i++)
-				s.powerUps.push(placePowerUp(map, s, random)!);
+				s.powerUps.push(placePowerUp(map, s, POWERUP_TYPES, random)!);
 			expect(new Set(keys([...monsters, ...diamonds, ...s.powerUps.map((p) => p.pos)])).size)
 				.toBe(monsters.length + diamonds.length + MAX_POWERUPS_ON_MAP);
 		});

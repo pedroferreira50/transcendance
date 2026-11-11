@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Server } from "socket.io";
+import { defaultOptions } from "../game/config";
 import type { GameManager, MatchSetup } from "../game/GameManager";
 import { mapsFor } from "../game/mapLoader";
 import type { DynamicState } from "../game/types";
@@ -106,13 +107,19 @@ function fullLobby() {
 
 describe("readSettings", () => {
 	test("accepts 2, 3 or 4 seats with random or a map for that number", () => {
-		expect(readSettings({ seats: 2, map: "random" })).toEqual({ seats: 2, map: "random" });
-		expect(readSettings({ seats: 3, map: mapsFor(3)[0] })).toEqual({ seats: 3, map: mapsFor(3)[0] });
+		expect(readSettings({ seats: 2, map: "random" })).toEqual({ seats: 2, map: "random", options: defaultOptions() });
+		expect(readSettings({ seats: 3, map: mapsFor(3)[0] })).toEqual({ seats: 3, map: mapsFor(3)[0], options: defaultOptions() });
+	});
+
+	test("with the options of the match, or refused if they are wrong", () => {
+		const options = { time: "long", sharks: "fast", powerUps: ["enchant"] };
+		expect(readSettings({ seats: 2, map: "random", options })).toEqual({ seats: 2, map: "random", options });
+		expect(readSettings({ seats: 2, map: "random", options: { ...options, sharks: "turbo" } })).toBeNull();
 	});
 
 	test("refuses anything else", () => {
 		const onlyFor2 = mapsFor(2).find((map) => !mapsFor(3).includes(map));
-		for (const data of [null, "random", {}, { seats: 5, map: "random" }, { seats: "2", map: "random" }, { seats: 2 }, { seats: 2, map: "nowhere" }, { seats: 3, map: onlyFor2 }])
+		for (const data of [null, "random", {}, { seats: 5, map: "random" }, { seats: "2", map: "random" }, { seats: 2 }, { seats: 2, map: "nowhere" }, { seats: 3, map: onlyFor2 }, { seats: 2, map: "random", options: null }])
 			expect(readSettings(data)).toBeNull();
 	});
 });
@@ -126,12 +133,13 @@ describe("readCharacter", () => {
 });
 
 describe("lobby", () => {
-	test("a new lobby: 2 seats, random map, no fish chosen", () => {
+	test("a new lobby: 2 seats, random map, default options, no fish chosen", () => {
 		const ana = server.connect("s1", 1, "ana");
 		ana.send("lobby:create");
 		const lobby = lastOf(ana, "lobby:joined");
 		expect(lobby.seats).toBe(2);
 		expect(lobby.map).toBe("random");
+		expect(lobby.options).toEqual(defaultOptions());
 		expect(lobby.players).toEqual([{ id: "s1", username: "ana", character: null, ready: false }]);
 	});
 
@@ -172,6 +180,15 @@ describe("lobby", () => {
 		const lobby = lastOf(bia, "lobby:update");
 		expect(lobby.seats).toBe(3);
 		expect(lobby.players.map((p: { ready: boolean }) => p.ready)).toEqual([false, false]);
+	});
+
+	test("settings: the options go to everyone in the lobby; wrong ones change nothing", () => {
+		const { ana, bia } = fullLobby();
+		const options = { time: "short", sharks: "slow", powerUps: ["speed"] };
+		ana.send("lobby:settings", { seats: 2, map: "random", options });
+		expect(lastOf(bia, "lobby:update").options).toEqual(options);
+		ana.send("lobby:settings", { seats: 2, map: "random", options: { ...options, powerUps: ["shark"] } });
+		expect(lastOf(bia, "lobby:update").options).toEqual(options);
 	});
 
 	test("settings: never fewer seats than players inside", () => {
@@ -217,10 +234,21 @@ describe("start", () => {
 		ana.send("lobby:start");
 		const setup: MatchSetup = createGame.mock.calls[0][0];
 		expect(setup.map).toBe("random");
+		expect(setup.options).toEqual(defaultOptions());
 		expect(setup.players).toEqual([
 			{ userId: 1, username: "ana", character: "goldfish", socketId: "s1" },
 			{ userId: 2, username: "bia", character: "betta", socketId: "s2" },
 		]);
+	});
+
+	test("hands the options the host chose to the GameManager", () => {
+		const { ana, bia } = fullLobby();
+		const options = { time: "long", sharks: "fast", powerUps: [] };
+		ana.send("lobby:settings", { seats: 2, map: "random", options });
+		ana.send("lobby:ready");
+		bia.send("lobby:ready");
+		ana.send("lobby:start");
+		expect(createGame.mock.calls[0][0].options).toEqual(options);
 	});
 
 	test("in a match: nobody joins, and settings and fish are locked", () => {

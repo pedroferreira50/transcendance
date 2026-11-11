@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { MAX_POWERUPS_ON_MAP, MOVE_COOLDOWN_MS, POWERUP_INTERVAL_MS, RECONNECT_TIMEOUT_MS, SIZE_RULES, diamondCount } from "../config";
+import { MAX_POWERUPS_ON_MAP, MOVE_COOLDOWN_MS, POWERUP_INTERVAL_MS, RECONNECT_TIMEOUT_MS, SIZE_RULES, TIME_CHANGE_MS, diamondCount } from "../config";
 import { GameRoom, type PlayerInfo } from "../GameRoom";
 import { loadMap } from "../mapLoader";
 import { posKey } from "../placement";
-import type { Direction } from "../types";
+import type { Direction, MatchOptions } from "../types";
 import { seeded } from "./helpers";
 
 const TWO: PlayerInfo[] = [
@@ -468,6 +468,42 @@ describe("tickSecond", () => {
 		r.tickSecond(END + 10_000);
 		expect(r.state.players[0].status).toBe("dead");
 		expect(r.state.powerUps).toHaveLength(0);
+	});
+});
+
+describe("options", () => {
+	function withOptions(changes: Partial<MatchOptions>): GameRoom {
+		const match: MatchOptions = { time: "normal", sharks: "normal", powerUps: ["speed", "freeze", "enchant"], ...changes };
+		return new GameRoom("r1", "small-1", loadMap("small-1"), "small", TWO, { local: false, match, random: seeded(1) });
+	}
+
+	test("the time changes the clock of the map size: short 1 min less, long 2 min more", () => {
+		for (const time of ["short", "long"] as const) {
+			const r = withOptions({ time });
+			const limit = SIZE_RULES.small.timeLimitMs + TIME_CHANGE_MS[time];
+			expect(r.snapshot(0).timeLeftMs).toBe(limit);
+			r.start(1000);
+			expect(r.state.endsAt).toBe(1000 + limit);
+		}
+		expect(TIME_CHANGE_MS.short).toBe(-60_000);
+		expect(TIME_CHANGE_MS.long).toBe(2 * 60_000);
+	});
+
+	test("only the power-ups that are on appear", () => {
+		const r = withOptions({ powerUps: ["enchant"] });
+		r.start(1000);
+		for (let i = 1; i <= MAX_POWERUPS_ON_MAP; i++)
+			r.tickSecond(1000 + i * POWERUP_INTERVAL_MS);
+		expect(r.state.powerUps).toHaveLength(MAX_POWERUPS_ON_MAP);
+		expect(r.state.powerUps.every((p) => p.type === "enchant")).toBe(true);
+	});
+
+	test("no power-up on: none ever appears", () => {
+		const r = withOptions({ powerUps: [] });
+		r.start(1000);
+		for (let i = 1; i <= 10; i++)
+			r.tickSecond(1000 + i * POWERUP_INTERVAL_MS);
+		expect(r.state.powerUps).toEqual([]);
 	});
 });
 

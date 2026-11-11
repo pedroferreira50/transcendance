@@ -175,7 +175,7 @@ describe("broadcast", () => {
 		vi.advanceTimersByTime(STARTED_MS);
 		const before = events("game:state").length;
 		// less than the time until the next shark step
-		vi.advanceTimersByTime(MONSTER_INTERVAL_MS - 2 * BROADCAST_INTERVAL_MS);
+		vi.advanceTimersByTime(MONSTER_INTERVAL_MS.normal - 2 * BROADCAST_INTERVAL_MS);
 		expect(events("game:state").length).toBe(before);
 	});
 
@@ -191,6 +191,23 @@ describe("broadcast", () => {
 		expect(state.players[0].diamonds).toBe(1);
 		const sentEvents = last(events("game:event")).data as GameEvent[];
 		expect(sentEvents).toEqual([{ type: "diamond", slot: 0, pos: { x: 2, y: 1 } }]);
+	});
+});
+
+describe("options", () => {
+	test("the sharks step at the chosen speed", () => {
+		for (const sharks of ["slow", "normal", "fast"] as const) {
+			const fake = fakeTransport();
+			const manager = new GameManager(fake.transport, seeded(1));
+			manager.createGame({ players: PLAYERS, map: "small-1", options: { time: "normal", sharks, powerUps: [] } });
+			vi.advanceTimersByTime(STARTED_MS);
+			const tick = vi.spyOn(manager.find(1)!.room, "tickMonsters");
+			vi.advanceTimersByTime(3000);
+			expect(tick, sharks).toHaveBeenCalledTimes(Math.floor((STARTED_MS + 3000) / MONSTER_INTERVAL_MS[sharks]) - Math.floor(STARTED_MS / MONSTER_INTERVAL_MS[sharks]));
+			manager.find(1)!.room.leave(0); // ends the match: its timers stop
+			vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+		}
+		expect(MONSTER_INTERVAL_MS).toEqual({ slow: 750, normal: 500, fast: 300 });
 	});
 });
 

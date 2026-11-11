@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "socket.io";
-import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS } from "./config";
+import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, defaultOptions } from "./config";
 import { GameRoom, type PlayerInfo } from "./GameRoom";
 import { loadMap, mapSize, pickMap, type PlayerCount } from "./mapLoader";
-import type { DynamicState, GameStart, MapInfo } from "./types";
+import type { DynamicState, GameStart, MapInfo, MatchOptions } from "./types";
 
 // The part of Socket.IO the manager uses. Like now and random in GameRoom, it comes from outside:
 // in the server it is the real Socket.IO (ioTransport), in the tests a fake that writes down what was sent
@@ -34,6 +34,7 @@ export type MatchSetup = {
 	players: MatchPlayer[]; // index = slot
 	map: string; // "random" or the name of a map for this number of players
 	local?: boolean; // 1v1 on one keyboard: both slots are the same user and the same socket
+	options?: MatchOptions; // the time, the sharks and the power-ups (default defaultOptions())
 	onEnd?: (final: DynamicState) => void; // called when the match is over (the lobby goes back to "ready")
 };
 
@@ -74,9 +75,10 @@ export class GameManager {
 		const mapName = pickMap(setup.players.length as PlayerCount, setup.map, this.random); // "random" -> one of the maps for this number of players
 		const id = randomUUID(); // example: "3f2a9c1e-7b4d-4e8a-9c3f-1a2b3c4d5e6f"
 		const local = setup.local ?? false;
+		const options = setup.options ?? defaultOptions();
 		// local: the two fish are guests (userId null), so the match never counts in anyone's results
 		const infos = local ? setup.players.map((p) => ({ ...p, userId: null })) : setup.players;
-		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, random: this.random });
+		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, match: options, random: this.random });
 		// the fixed part of the map (walls, turtle) goes only once, here, and never again in game:state
 		const map: MapInfo = { name: mapName, width: room.state.width, height: room.state.height, walls: room.state.walls, exit: room.state.exit };
 		const game: Game = { id, channel: `game:${id}`, room, map, players: setup.players, local, spectators: new Set(), timers: [], onEnd: setup.onEnd };
@@ -96,7 +98,7 @@ export class GameManager {
 
 		this.countdown(game);
 		// the 'monsters' and the 'second' can start now: GameRoom ignores them until start() (status "running")
-		game.timers.push(setInterval(() => game.room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS));
+		game.timers.push(setInterval(() => game.room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS[options.sharks]));
 		game.timers.push(setInterval(() => game.room.tickSecond(Date.now()), 1000));
 		game.timers.push(setInterval(() => this.broadcast(game), BROADCAST_INTERVAL_MS));
 		return id;
