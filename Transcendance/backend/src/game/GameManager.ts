@@ -42,8 +42,10 @@ type Game = {
 	id: string;
 	channel: string; // Socket.IO room of the match: "game:<id>"
 	room: GameRoom;
+	map: MapInfo;
 	players: MatchPlayer[];
 	local: boolean;
+	spectators: Set<string>;
 	timers: ReturnType<typeof setInterval>[]; // all the intervals of the match, to stop them at the end
 	onEnd?: (final: DynamicState) => void;
 };
@@ -53,6 +55,7 @@ type Game = {
 export class GameManager {
 	private games = new Map<string, Game>();
 	private userGame = new Map<number, string>(); // userId -> id of the match they are in
+	private spectatorGame = new Map<string, string>();
 	private transport: Transport;
 	private random: () => number; // a function with no parameters that returns a number (Math.random, or seeded() in the tests)
 
@@ -74,11 +77,11 @@ export class GameManager {
 		// local: the two fish are guests (userId null), so the match never counts in anyone's results
 		const infos = local ? setup.players.map((p) => ({ ...p, userId: null })) : setup.players;
 		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, random: this.random });
-		const game: Game = { id, channel: `game:${id}`, room, players: setup.players, local, timers: [], onEnd: setup.onEnd };
-		this.games.set(id, game);
-
 		// the fixed part of the map (walls, turtle) goes only once, here, and never again in game:state
 		const map: MapInfo = { name: mapName, width: room.state.width, height: room.state.height, walls: room.state.walls, exit: room.state.exit };
+		const game: Game = { id, channel: `game:${id}`, room, map, players: setup.players, local, spectators: new Set(), timers: [], onEnd: setup.onEnd };
+		this.games.set(id, game);
+
 		const state = room.snapshot(Date.now());
 		room.dirty = false; // the state just went in game:start
 		setup.players.forEach((player, slot) => {
@@ -87,7 +90,7 @@ export class GameManager {
 			// local: only one game:start (the two slots are the same socket), and "you" = null: both fish are theirs
 			if (local && slot > 0)
 				return;
-			const start: GameStart = { gameId: id, map, you: local ? null : slot, state, countdown: COUNTDOWN_SECONDS };
+			const start: GameStart = { gameId: id, map, you: local ? null : slot, state, countdown: COUNTDOWN_SECONDS, local };
 			this.transport.toSocket(player.socketId, "game:start", start); // one by one: each player gets their own "you"
 		});
 
@@ -108,6 +111,67 @@ export class GameManager {
 			return null;
 		const slot = game.players.findIndex((p) => p.userId === userId);
 		return { room: game.room, slot, socketId: game.players[slot].socketId, local: game.local };
+	}
+
+	// Can this user still come back to their match? It has to be running, and their fish did not leave it
+	// rejoin and lobby.ts call
+	canRejoin(userId: number): boolean {
+		const found = this.find(userId);
+		return found !== null && found.room.state.status !== "finished" && found.room.state.players[found.slot].status !== "left";
+	}
+
+	// The user came back (F5, the internet returned, another tab): their fish answer to this socket now,
+	// and it gets game:resume with the match as it is. gameSocket.ts calls it for every socket that connects
+	// Nothing to come back to (the match ended, or this fish already left it): game:gone, so a screen still open closes
+	rejoin(userId: number, socketId: string): void {
+		const id = this.userGame.get(userId);
+		const game = id === undefined ? undefined : this.games.get(id);
+		if (!game || !this.canRejoin(userId)) {
+			this.transport.toSocket(socketId, "game:gone", null);
+			return;
+		}
+		const slot = game.players.findIndex((p) => p.userId === userId);
+		const now = Date.now();
+		// local: the two slots are the same user, so both fish come back
+		game.players.forEach((player, playerSlot) => {
+			if (player.userId !== userId)
+				return;
+			this.transport.leave(player.socketId, game.channel); // the old socket, if it is still open (another tab)
+			player.socketId = socketId; // the disconnect of the old socket is ignored from now on (gameSocket)
+			game.room.setConnected(playerSlot, true, now);
+		});
+		this.transport.join(socketId, game.channel);
+		// countdown 0: the next game:countdown (if any) shows the number, like for a spectator
+		const resume: GameStart = { gameId: game.id, map: game.map, you: game.local ? null : slot, state: game.room.snapshot(now), countdown: 0, local: game.local };
+		this.transport.toSocket(socketId, "game:resume", resume);
+	}
+
+	// Lets a socket watch a running match without controlling a fish.
+	spectate(gameId: string, socketId: string, userId: number): void {
+		const game = this.games.get(gameId);
+		if (!game || game.local || game.room.state.status === "finished")
+			throw new Error("This match can not be watched.");
+		if (this.userGame.has(userId))
+			throw new Error("You are already in a match.");
+		this.unspectate(socketId);
+		this.spectatorGame.set(socketId, gameId);
+		game.spectators.add(socketId);
+		this.transport.join(socketId, game.channel);
+		const start: GameStart = { gameId, map: game.map, you: null, state: game.room.snapshot(Date.now()), countdown: 0, local: false };
+		this.transport.toSocket(socketId, "game:start", start);
+	}
+
+	// Stops a socket from watching its match.
+	unspectate(socketId: string): void {
+		const id = this.spectatorGame.get(socketId);
+		if (id === undefined)
+			return;
+		this.spectatorGame.delete(socketId);
+		const game = this.games.get(id);
+		if (!game)
+			return;
+		game.spectators.delete(socketId);
+		this.transport.leave(socketId, game.channel);
 	}
 
 	// How many matches are running (for the tests and, later, the logs)
@@ -156,6 +220,10 @@ export class GameManager {
 		for (const player of game.players) {
 			this.transport.leave(player.socketId, game.channel);
 			this.userGame.delete(player.userId);
+		}
+		for (const socketId of game.spectators) {
+			this.transport.leave(socketId, game.channel);
+			this.spectatorGame.delete(socketId);
 		}
 		this.games.delete(game.id);
 		if (game.onEnd)

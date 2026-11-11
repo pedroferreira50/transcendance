@@ -4,7 +4,9 @@
     "loading": "Chargement...",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
-    "language": "Langue"
+    "language": "Langue",
+    "yes": "Oui",
+    "no": "Non"
   },
   "intro": {
     "story": "La saison froide est arrivée et le récif manque de nourriture. Une seule créature connaît le chemin de la Haute Mer, où l'eau est calme et la nourriture abondante : une vieille tortue de mer qui attend à l'autre bout du récif. Elle ne peut porter qu'un seul poisson sur son dos, et son prix, ce sont des diamants.",
@@ -77,6 +79,7 @@
     "join": "REJOINDRE",
     "full": "COMPLET",
     "inGame": "EN PARTIE",
+    "watch": "REGARDER",
     "title": "SALON",
     "settings": "RÉGLAGES",
     "players_one": "{{count}} JOUEUR",
@@ -116,6 +119,7 @@
       "tie": "Le temps s'est écoulé avec une égalité de diamants."
     },
     "backToLobby": "RETOUR AU SALON",
+    "backToLobbies": "RETOUR AUX SALONS",
     "playAgain": "REJOUER",
     "exit": "QUITTER",
     "diamonds": "diamants",
@@ -124,6 +128,10 @@
   "game": {
     "loading": "Chargement...",
     "leave": "Quitter la partie",
+    "watching": "EN OBSERVATION",
+    "reconnecting": "RECONNEXION...",
+    "stopWatching": "Arrêter d'observer",
+    "leaveConfirmTitle": "QUITTER LA PARTIE ?",
     "powerUp": "bonus"
   },
   "legal": {

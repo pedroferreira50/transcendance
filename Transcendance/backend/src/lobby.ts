@@ -84,6 +84,15 @@ export function readSettings(data: unknown): { seats: PlayerCount; map: string }
     return { seats, map };
 }
 
+// lobby:spectate: only { code: string } passes.
+export function readCode(data: unknown): string | null {
+    if (typeof data !== "object" || data === null || !("code" in data) || typeof data.code !== "string") {
+        return null;
+    }
+
+    return data.code;
+}
+
 // lobby:character: only one of the 4 fish names passes.
 export function readCharacter(data: unknown): Character | null {
     for (const character of CHARACTERS) {
@@ -192,8 +201,50 @@ function endMatch(io: Server, lobby: Lobby, players: MatchPlayer[], final: Dynam
         player.ready = false;
     });
 
+    // Their seat was kept during the match, but they did not come back.
+    for (const player of [...lobby.players]) {
+        if (!io.sockets.sockets.has(player.id)) {
+            handlePlayerLeavingLobby(io, player.id);
+        }
+    }
+
     broadcastLobby(io, lobby);
     broadcastLobbyList(io);
+}
+
+// A user who connects while their lobby is running a match: their seat answers
+// to this socket now, and they get lobby:resume, to know where to go after the
+// match (GameManager.rejoin sends game:resume right after, in gameSocket). If
+// their fish already left the match, there is nothing to come back to, so they
+// lose the seat.
+function returnToLobby(io: Server, games: GameManager, socket: Socket) {
+    for (const lobby of lobbies.values()) {
+        const player = lobby.players.find((player) => player.userId === socket.data.userId);
+
+        if (lobby.gameId === null || !player) {
+            continue;
+        }
+
+        if (!games.canRejoin(socket.data.userId)) {
+            handlePlayerLeavingLobby(io, player.id);
+            return;
+        }
+
+        const oldId = player.id;
+
+        socketLobby.delete(oldId);
+        socketLobby.set(socket.id, lobby.code);
+        player.id = socket.id;
+
+        if (lobby.hostId === oldId) {
+            lobby.hostId = socket.id;
+        }
+
+        socket.join(lobby.code);
+        socket.emit("lobby:resume", lobbyState(lobby));
+        broadcastLobby(io, lobby);
+        return;
+    }
 }
 
 // Shared cleanup for anyone leaving a lobby, whether by choice (lobby:leave),
@@ -240,6 +291,8 @@ function handlePlayerLeavingLobby(io: Server, socketId: string) {
 // Registers every lobby socket event. Called once per connected client.
 export function setupLobby(io: Server, games: GameManager) {
     io.on("connection", (socket: Socket) => {
+        returnToLobby(io, games, socket);
+
         // Client is on the lobby-select screen: join the broadcast room for
         // list updates and hand them the current snapshot right away.
         socket.on("lobbyList:subscribe", () => {
@@ -312,6 +365,31 @@ export function setupLobby(io: Server, games: GameManager) {
             socket.emit("lobby:joined", lobbyState(lobby));
             broadcastLobby(io, lobby);
             broadcastLobbyList(io);
+        });
+
+        // Lets a socket watch a lobby's running match.
+        socket.on("lobby:spectate", (data: unknown) => {
+            const code = readCode(data);
+            const lobby = code === null ? undefined : lobbies.get(code);
+
+            if (!lobby || lobby.gameId === null) {
+                socket.emit("lobby:error", "There is no match to watch.");
+                return;
+            }
+
+            if (isUserInLobby(socket.data.username)) {
+                socket.emit("lobby:error", "You are already in a lobby.");
+                return;
+            }
+
+            try {
+                games.spectate(lobby.gameId, socket.id, socket.data.userId);
+            } catch (error) {
+                socket.emit("lobby:error", error instanceof Error ? error.message : "Could not watch the match.");
+                return;
+            }
+
+            socket.leave(LOBBY_LIST_ROOM);
         });
 
         // Host-only: number of players (2, 3 or 4) and map. Never fewer seats
@@ -450,12 +528,25 @@ export function setupLobby(io: Server, games: GameManager) {
 
         // Player chose to leave their current lobby voluntarily (the Back button).
         socket.on("lobby:leave", () => {
+            const code = socketLobby.get(socket.id);
+
             handlePlayerLeavingLobby(io, socket.id);
+
+            if (code) {
+                socket.leave(code);
+            }
         });
 
         // Browser closed, connection dropped, or the dev server restarted -
-        // treat it exactly like a voluntary lobby:leave.
+        // treat it like a voluntary lobby:leave. Not during a match: the seat
+        // waits for them (returnToLobby), or for the end of the match (endMatch).
         socket.on("disconnect", () => {
+            const lobby = findLobby(socket.id);
+
+            if (lobby && lobby.gameId !== null) {
+                return;
+            }
+
             handlePlayerLeavingLobby(io, socket.id);
         });
     });

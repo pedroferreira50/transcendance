@@ -57,7 +57,8 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 		onExit();
 	}
 
-	// the match is over (final = game:end) or it was left with the « (final = null: back to the fish)
+	// the match is over (final = game:end), the « included: in the local mode it ends the match like the time
+	// final = null: the connection came back and the match was gone (game:gone), so back to the choice of the fish
 	function handleMatchEnd(final: DynamicState | null) {
 		setMatch(null);
 		setResult(final);

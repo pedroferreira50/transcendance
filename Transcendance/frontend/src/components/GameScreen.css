@@ -37,10 +37,65 @@
 	}
 }
 
+.game-watching {
+	position: absolute;
+	top: 0.75rem;
+	left: 0.75rem;
+	margin: 0;
+	pointer-events: none;
+	font-family: var(--font-title);
+	font-size: clamp(1rem, 3vmin, 1.75rem);
+	color: var(--sea-light);
+	text-shadow: 0 0 0.3em var(--sea-sides);
+}
+
+/* the connection dropped: the map stays behind, darker, until the server answers again */
+.reconnecting {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+	background: rgba(0, 0, 0, 0.6);
+	font-family: var(--font-title);
+	font-size: clamp(1.5rem, 7vmin, 4rem);
+	color: var(--sea-light);
+	text-shadow: 0 0 0.15em var(--sea-sides), 0 0 0.4em var(--sea-sides);
+}
+
 /* the « of the match: in the corner of the screen (there is no frame of rocks here) */
 .back-button.game-leave {
 	top: 0.75rem;
 	right: 0.75rem;
 	width: clamp(36px, 6vmin, 64px);
 	height: clamp(36px, 6vmin, 64px);
+}
+
+.leave-confirm-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgb(0 0 0 / 70%);
+}
+
+.leave-confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1rem, 3vh, 2rem);
+    padding: clamp(1.5rem, 5vmin, 3rem);
+    border: var(--line) solid var(--sea-light);
+    background: var(--sea-box);
+    color: var(--sea-light);
+    text-align: center;
+}
+
+.leave-confirm h2 {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(1.4rem, 5vmin, 3rem);
+    font-weight: 400;
 }

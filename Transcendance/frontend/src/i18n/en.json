@@ -4,7 +4,9 @@
     "loading": "Loading...",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "language": "Language"
+    "language": "Language",
+    "yes": "Yes",
+    "no": "No"
   },
   "intro": {
     "story": "The cold season has arrived, and the reef is running out of food. Only one creature knows the way to the Open Sea, where the water is calm and there is plenty to eat: an old sea turtle who waits at the far end of the reef. She can carry only one fish on her back, and her price is diamonds.",
@@ -77,6 +79,7 @@
     "join": "JOIN",
     "full": "FULL",
     "inGame": "IN GAME",
+    "watch": "WATCH",
     "title": "LOBBY",
     "settings": "SETTINGS",
     "players_one": "{{count}} PLAYER",
@@ -116,6 +119,7 @@
       "tie": "The time ran out with a tie in diamonds."
     },
     "backToLobby": "BACK TO LOBBY",
+    "backToLobbies": "BACK TO LOBBIES",
     "playAgain": "PLAY AGAIN",
     "exit": "EXIT",
     "diamonds": "diamonds",
@@ -124,6 +128,10 @@
   "game": {
     "loading": "Loading...",
     "leave": "Leave the match",
+    "watching": "WATCHING",
+    "reconnecting": "RECONNECTING...",
+    "stopWatching": "Stop watching",
+    "leaveConfirmTitle": "LEAVE THE MATCH?",
     "powerUp": "power-up"
   },
   "legal": {

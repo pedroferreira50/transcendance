@@ -515,6 +515,31 @@ describe("leave", () => {
 	});
 });
 
+describe("endNow", () => {
+	test("the one with the most diamonds wins, as when the time is over", () => {
+		const r = running();
+		r.state.players[1].diamonds = 2;
+		r.endNow();
+		expect(r.state.status).toBe("finished");
+		expect(r.state.winnerSlot).toBe(1);
+		expect(r.state.endReason).toBe("timeout");
+		expect(r.state.players.map((p) => p.status)).toEqual(["playing", "playing"]);
+	});
+
+	test("a tie is a draw", () => {
+		const r = running();
+		r.endNow();
+		expect(r.state.winnerSlot).toBeNull();
+	});
+
+	test("does nothing after the end", () => {
+		const r = running();
+		r.leave(0);
+		r.endNow();
+		expect(r.state.endReason).toBe("forfeit");
+	});
+});
+
 describe("setConnected", () => {
 	test("a disconnected player stops, and plays again on reconnect", () => {
 		const r = running();

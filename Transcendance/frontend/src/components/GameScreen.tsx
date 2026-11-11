@@ -18,7 +18,7 @@ type Assets = {
 };
 
 type GameScreenProps = {
-	mode: InputMode;
+	mode: InputMode | "watch";
 	start: GameStart; // what the server sent in game:start: the map, my slot and the first state
 	onEnd: (final: DynamicState | null) => void; // the last state (game:end), or null when I left
 };
@@ -26,6 +26,9 @@ type GameScreenProps = {
 // What a key (or a touch button) asks for goes to the server; online it knows whose fish it is by the socket,
 // local the command carries the slot (undefined online: it does not even go in the message)
 function sendCommand(command: Command): void {
+	// no connection: Socket.IO would keep the commands and send all of them at once when it comes back
+	if (!socket.connected)
+		return;
 	if (command.type === "move")
 		socket.emit("game:move", { dir: command.dir, slot: command.slot });
 	else
@@ -48,6 +51,8 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	});
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [connected, setConnected] = useState(socket.connected); // false: the RECONNECTING message
+	const [leaveConfirm, setLeaveConfirm] = useState(false);
 	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
 	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
@@ -66,13 +71,33 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 				setCountdown(0);
 		}
 
+		function handleConnect() {
+			setConnected(true);
+		}
+
+		function handleDisconnect() {
+			setConnected(false);
+      setLeaveConfirm(false);
+		}
+
+		// back online, but this match is not there anymore: nothing else would ever arrive for this screen
+		function handleGone() {
+			onEnd(null);
+		}
+
 		socket.on("game:countdown", setCountdown);
 		socket.on("game:state", handleState);
 		socket.on("game:end", onEnd);
+		socket.on("game:gone", handleGone);
+		socket.on("connect", handleConnect);
+		socket.on("disconnect", handleDisconnect);
 		return () => {
 			socket.off("game:countdown", setCountdown);
 			socket.off("game:state", handleState);
 			socket.off("game:end", onEnd);
+			socket.off("game:gone", handleGone);
+			socket.off("connect", handleConnect);
+			socket.off("disconnect", handleDisconnect);
 		};
 	}, [onEnd]);
 
@@ -87,9 +112,11 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	}, []);
 
 	// The keys of the game (createInput already returns the function that removes them)
-	useEffect(() =>
-		createInput(mode, sendCommand)
-	, [mode]);
+	useEffect(() => {
+		if (mode === "watch" || leaveConfirm)
+			return;
+		return createInput(mode, sendCommand);
+	}, [leaveConfirm, mode]);
 
 	// When everything is loaded: draw at every frame of the screen, until the component closes
 	useEffect(() => {
@@ -134,11 +161,27 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 		return () => cancelAnimationFrame(frame);
 	}, [assets, start]);
 
-	// the « gives up the match (if only one is left, they win)
+	// Leaves the match, or stops watching it.
+	// Local: the server ends the match as if the time was over, and its game:end opens the WINNER screen
 	function handleLeave() {
-		socket.emit("game:leave");
+		if (mode !== "watch") {
+			setLeaveConfirm(true);
+			return;
+		}
+
+		socket.emit("game:unspectate");
 		onEnd(null);
 	}
+
+	function confirmLeave() {
+		socket.emit("game:leave");
+    if (mode !== "local") {
+		  onEnd(null);
+    }
+	}
+
+
+	const leaveLabel = mode === "watch" ? t("game.stopWatching") : t("game.leave");
 
 	if (error)
 		return <p>{error}</p>;
@@ -148,10 +191,35 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 		<div className="game-screen">
 			<canvas ref={canvasRef} />
 			{countdown > 0 && <div className="countdown" key={countdown}>{countdown}</div>}
-			<button className="back-button game-leave" onClick={handleLeave} aria-label={t("game.leave")} title={t("game.leave")}>
-				<BackIcon />
-			</button>
+			{mode === "watch" && <p className="game-watching">{t("game.watching")}</p>}
+			{!connected && <div className="reconnecting" role="status">{t("game.reconnecting")}</div>}
+			{connected && (
+				<button className="back-button game-leave" onClick={handleLeave} aria-label={leaveLabel} title={leaveLabel}>
+					<BackIcon />
+				</button>
+			)}
 			{touch && mode === "online" && <TouchControls send={sendCommand} />}
+			{leaveConfirm && (
+				<div className="leave-confirm-backdrop">
+					<div
+						className="leave-confirm"
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="leave-confirm-title">
+							<h2 id="leave-confirm-title">{t("game.leaveConfirmTitle")}</h2>
+							<div className="button-row">
+								<button className="sea-button" onClick={confirmLeave}>
+									{t("common.yes")}
+								</button>
+
+								<button className="sea-button secondary" onClick={() => setLeaveConfirm(false)}>
+									{t("common.no")}
+								</button>
+							</div>
+
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

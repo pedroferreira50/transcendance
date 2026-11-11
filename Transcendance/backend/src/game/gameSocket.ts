@@ -110,27 +110,38 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 	});
 
 	// the "Leave" button: gives up the match (if only one is left, they win by forfeit)
-	// Local: leave(0) is enough, only Player 2 is left and the match ends for both
+	// Local: nobody gives up, the match ends as if the time was over (the most diamonds wins)
 	socket.on("game:leave", () => {
 		const game = current();
 		if (!game)
 			return;
-		if (game.local) {
-			game.room.leave(0); // only Player 2 is left: the match ends now
-		} else
+		if (game.local)
+			game.room.endNow();
+		else
 			game.room.leave(game.slot);
 	});
 
+	socket.on("game:unspectate", () => {
+		games.unspectate(socket.id);
+	});
+
 	// closed the tab, lost the internet...: the fish waits RECONNECT_TIMEOUT_MS before it leaves (tickSecond)
-	// Local: nobody is left to play, so the match ends now
+	// Local: the same wait, for both fish (an F5 does not end the match)
 	socket.on("disconnect", () => {
+		games.unspectate(socket.id);
 		const game = current();
 		// another tab of the same user closing does not touch the match
 		if (!game || game.socketId !== socket.id)
 			return;
+		const now = Date.now();
 		if (game.local) {
-			game.room.leave(0); // only Player 2 is left: the match ends now
+			game.room.setConnected(0, false, now);
+			game.room.setConnected(1, false, now);
 		} else
-			game.room.setConnected(game.slot, false, Date.now());
+			game.room.setConnected(game.slot, false, now);
 	});
+
+	// came back: if this user is in a match that is still running, the fish are theirs again (game:resume)
+	if (typeof socket.data.userId === "number")
+		games.rejoin(socket.data.userId, socket.id);
 }

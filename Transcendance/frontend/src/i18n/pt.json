@@ -4,7 +4,9 @@
     "loading": "Carregando...",
     "privacy": "Política de Privacidade",
     "terms": "Termos de Serviço",
-    "language": "Idioma"
+    "language": "Idioma",
+    "yes": "Sim",
+    "no": "Não"
   },
   "intro": {
     "story": "A estação fria chegou e o recife está ficando sem comida. Só uma criatura conhece o caminho para o Mar Aberto, onde a água é calma e há muito o que comer: uma velha tartaruga marinha que espera no fim do recife. Ela só consegue carregar um peixe nas costas, e o preço dela são diamantes.",
@@ -77,6 +79,7 @@
     "join": "ENTRAR",
     "full": "CHEIA",
     "inGame": "EM PARTIDA",
+    "watch": "ASSISTIR",
     "title": "SALA",
     "settings": "CONFIGURAÇÕES",
     "players_one": "{{count}} JOGADOR",
@@ -116,6 +119,7 @@
       "tie": "O tempo acabou com empate de diamantes."
     },
     "backToLobby": "VOLTAR À SALA",
+    "backToLobbies": "VOLTAR ÀS SALAS",
     "playAgain": "JOGAR DE NOVO",
     "exit": "SAIR",
     "diamonds": "diamantes",
@@ -124,6 +128,10 @@
   "game": {
     "loading": "Carregando...",
     "leave": "Sair da partida",
+    "watching": "ASSISTINDO",
+    "reconnecting": "RECONECTANDO...",
+    "stopWatching": "Parar de assistir",
+    "leaveConfirmTitle": "SAIR DA PARTIDA?",
     "powerUp": "power-up"
   },
   "legal": {
