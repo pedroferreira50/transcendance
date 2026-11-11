@@ -22,6 +22,11 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
+		if (username === "" || password === "") {
+			setMessage("Username and password are required.");
+			return;
+		}
+
 		try {
 			const response = await api("/login", {
 				method: "POST",
@@ -49,6 +54,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 			}
 		} catch (error) {
 			console.error(error);
+			setMessage("Could not connect to server.");
 		}
 	}
 
@@ -72,6 +78,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
                         className="sea-input"
                         type="password"
                         autoComplete="current-password"
+                        maxLength={128}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />
