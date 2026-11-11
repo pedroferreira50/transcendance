@@ -9,8 +9,9 @@ type RegisterProps = {
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const USERNAME_REGEX = /^[A-Za-z0-9_]{3,20}$/;
-const PASSWORD_MIN_LENGTH = 8;
+const USERNAME_REGEX = /^[A-Za-z0-9_]{3,16}$/;
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
 
 function Register({ onLogin }: RegisterProps) {
     const { t } = useTranslation();
@@ -36,7 +37,7 @@ function Register({ onLogin }: RegisterProps) {
 			return;
 		}
 
-		if (!EMAIL_REGEX.test(trimmedEmail)) {
+		if (email.length > 254 || !EMAIL_REGEX.test(trimmedEmail)) {
 			setMessage(t("auth.errors.emailInvalid"));
 			return;
 		}
@@ -46,8 +47,18 @@ function Register({ onLogin }: RegisterProps) {
 			return;
 		}
 
-		if (password.length < PASSWORD_MIN_LENGTH) {
+		if (password.length < PASSWORD_MIN) {
 			setMessage(t("auth.errors.passwordShort"));
+			return;
+		}
+
+		if (password.length > PASSWORD_MAX) {
+			setMessage(t("auth.errors.passwordLong"));
+			return;
+		}
+
+		if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+			setMessage(t("auth.errors.passwordWeak"));
 			return;
 		}
 
@@ -91,7 +102,8 @@ function Register({ onLogin }: RegisterProps) {
                         autoComplete="username"
                         required
                         minLength={3}
-                        maxLength={20}
+                        maxLength={16}
+                        placeholder="3-16 letters, numbers or _"
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />
@@ -117,7 +129,9 @@ function Register({ onLogin }: RegisterProps) {
                         type="password"
                         autoComplete="new-password"
                         required
-                        minLength={PASSWORD_MIN_LENGTH}
+                        minLength={PASSWORD_MIN}
+                        maxLength={PASSWORD_MAX}
+                        placeholder="8+ characters, a letter and a number"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />
@@ -130,7 +144,8 @@ function Register({ onLogin }: RegisterProps) {
                         type="password"
                         autoComplete="new-password"
                         required
-                        minLength={PASSWORD_MIN_LENGTH}
+                        minLength={PASSWORD_MIN}
+                        maxLength={PASSWORD_MAX}
                         value={repeatPassword}
                         onChange={(event) =>
                             setRepeatPassword(event.target.value)

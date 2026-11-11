@@ -56,10 +56,12 @@
     "backToLogin": "VOLTAR AO LOGIN",
     "errors": {
       "usernameEmpty": "O nome de usuário não pode ficar vazio.",
-      "usernameInvalid": "O nome deve ter de 3 a 20 caracteres: letras, números ou _.",
+      "usernameInvalid": "O nome deve ter de 3 a 16 caracteres: letras, números ou _.",
       "emailInvalid": "Digite um email válido.",
       "passwordEmpty": "A senha não pode ficar vazia.",
       "passwordShort": "A senha deve ter pelo menos 8 caracteres.",
+      "passwordLong": "A senha deve ter no máximo 128 caracteres.",
+      "passwordWeak": "A senha deve conter pelo menos uma letra e um número.",
       "passwordMismatch": "As senhas não coincidem.",
       "connect": "Não foi possível conectar ao servidor."
     }

@@ -88,6 +88,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
                         type="password"
                         autoComplete="current-password"
                         required
+                        maxLength={128}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />

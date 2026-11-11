@@ -56,10 +56,12 @@
     "backToLogin": "BACK TO LOGIN",
     "errors": {
       "usernameEmpty": "Username cannot be empty.",
-      "usernameInvalid": "Username must be 3-20 characters: letters, numbers or _.",
+      "usernameInvalid": "Username must be 3-16 characters: letters, numbers or _.",
       "emailInvalid": "Please enter a valid email.",
       "passwordEmpty": "Password cannot be empty.",
       "passwordShort": "Password must be at least 8 characters.",
+      "passwordLong": "Password must be at most 128 characters.",
+      "passwordWeak": "Password must contain at least one letter and one number.",
       "passwordMismatch": "Passwords do not match.",
       "connect": "Could not connect to server."
     }
