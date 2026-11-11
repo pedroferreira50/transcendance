@@ -1,18 +1,57 @@
 .lobby-room {
 	flex: 1;
-	width: min(100%, 64rem);
+	width: min(100%, 80rem);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: clamp(0.6rem, 2.2vh, 1.6rem);
+	gap: clamp(0.4rem, 1.6vh, 1.6rem);
 
 	& .button-row .sea-button {
 		min-width: 6em;
-		font-size: clamp(1.4rem, min(2.8vw, 5vh), 3rem);
+		font-size: clamp(1.4rem, min(2.8vw, 4.5vh), 3rem);
 	}
 	& .sea-button.secondary {
 		font-size: clamp(1.1rem, min(2.2vw, 3.8vh), 2.4rem);
+	}
+
+	/* phones standing up: READY and START side by side, they fit, and the height is for the seats */
+	@media (max-width: 700px) {
+		& .button-row {
+			flex-direction: row;
+		}
+	}
+
+	/* phones lying down: the fish and READY / START on the same line, the height is what is missing */
+	@media (max-height: 500px) {
+		display: grid;
+		grid-template-columns: auto auto;
+		grid-template-areas:
+			"info info"
+			"seats seats"
+			"fish buttons"
+			"message message";
+		place-content: center;
+		justify-items: center;
+		align-items: center;
+		column-gap: clamp(1rem, 4vw, 3rem);
+
+		& .lobby-info {
+			grid-area: info;
+		}
+		& .seats {
+			grid-area: seats;
+		}
+		& .fish-choice {
+			grid-area: fish;
+		}
+		& .button-row {
+			grid-area: buttons;
+			flex-direction: row;
+		}
+		& .form-message {
+			grid-area: message;
+		}
 	}
 }
 
@@ -31,6 +70,25 @@
 	letter-spacing: 0.06em;
 	color: var(--sea-light);
 	line-height: 1.2;
+	padding-block: 0.3em;
+
+	@media (max-height: 500px) {
+		font-size: 1rem;
+	}
+}
+
+/* the options of the match beside the map: the power-ups as small icons in the line of the text */
+.lobby-options {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.3em;
+}
+
+.lobby-power-up {
+	height: 1.1em;
+	width: auto;
 }
 
 /* the seats side by side; on phones 2 in a row */
@@ -44,9 +102,12 @@
 	gap: clamp(0.8rem, 3vw, 3rem);
 }
 
+/* the width is for the name; the portrait (--portrait) also follows the height, so 4 seats fit in short screens */
 .seat {
+	--portrait: min(12vw, 14vh, 11rem);
+
 	position: relative;
-	width: clamp(5.5rem, min(12vw, 20vh), 11rem);
+	width: clamp(5.5rem, 12vw, 11rem);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -57,12 +118,14 @@
 	}
 
 	@media (max-width: 700px) {
-		width: 28vw;
+		--portrait: 22vw;
+
+		width: 22vw;
 	}
 }
 
 .seat-portrait {
-	width: 100%;
+	width: min(100%, var(--portrait));
 	aspect-ratio: 1;
 	object-fit: contain;
 }
@@ -94,8 +157,8 @@
 .seat-kick {
 	position: absolute;
 	top: 0;
-	right: 0;
-	width: 28%;
+	right: calc((100% - min(100%, var(--portrait))) / 2); /* the corner of the portrait, not of the seat */
+	width: calc(min(100%, var(--portrait)) * 0.28);
 	aspect-ratio: 1;
 	padding: 0;
 	display: grid;
@@ -129,7 +192,7 @@
 }
 
 .fish-option {
-	width: clamp(4.5rem, min(10vw, 15vh), 9rem);
+	width: clamp(3rem, min(10vw, 10vh), 9rem);
 	padding: 0.3rem;
 	border: var(--line) solid transparent;
 	border-radius: 1rem;

@@ -6,6 +6,10 @@ import type { Direction } from "../game/protocol";
 // (150 ms, 75 ms with speed): the server ignores the extra ones, like when a key is held
 const REPEAT_MS = 50;
 
+// The size of each arrow: follows the height of the screen, so on a phone lying down the cross
+// does not cover half of the map (64 px on a phone standing up and on tablets, where there is room)
+const ARROW_SIZE = "clamp(40px, 11vh, 64px)";
+
 const BUTTON: CSSProperties = {
 	width: 64,
 	height: 64,
@@ -25,6 +29,16 @@ const PAD: [Direction, string, number, number][] = [
 	["right", "▶", 3, 2],
 	["down", "▼", 2, 3],
 ];
+
+const ARROW: CSSProperties = {
+	...BUTTON,
+	width: ARROW_SIZE,
+	height: ARROW_SIZE,
+	padding: 0, // the arrow in the middle of the circle, even when the circle is small
+	fontSize: `calc(${ARROW_SIZE} * 0.4)`,
+	lineHeight: 1,
+	background: "rgba(0, 0, 0, 0.25)", // a little more of the map shows through
+};
 
 // The buttons of the phones and tablets: arrows at the bottom left, power-up at the bottom right
 export default function TouchControls({ send }: { send: (command: Command) => void }) {
@@ -50,11 +64,11 @@ export default function TouchControls({ send }: { send: (command: Command) => vo
 
 	return (
 		<>
-			<div style={{ position: "fixed", left: 16, bottom: 16, display: "grid", gridTemplateColumns: "repeat(3, 64px)", gap: 4 }}>
+			<div style={{ position: "fixed", left: 8, bottom: 8, display: "grid", gridTemplateColumns: `repeat(3, ${ARROW_SIZE})` }}>
 				{PAD.map(([dir, arrow, column, row]) => (
 					<button
 						key={dir}
-						style={{ ...BUTTON, gridColumn: column, gridRow: row }}
+						style={{ ...ARROW, gridColumn: column, gridRow: row }}
 						onPointerDown={() => start(dir)}
 						onPointerUp={stop}
 						onPointerCancel={stop}

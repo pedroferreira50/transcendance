@@ -4,7 +4,6 @@ import "./MapSelect.css";
 
 type MapSelectProps = {
 	players: PlayerCount;
-	message?: string; // the answer of the server when it refuses ("You are already in a lobby.")
 	onChoose: (map: string) => void; // the name of the map, or "random"
 	onBack: () => void;
 };
@@ -20,7 +19,7 @@ function MapCard({ image, label, onClick }: { image: string; label: string; onCl
 }
 
 // The maps where that number of players fits, and RANDOM (the server picks one when the match starts)
-export default function MapSelect({ players, message, onChoose, onBack }: MapSelectProps) {
+export default function MapSelect({ players, onChoose, onBack }: MapSelectProps) {
 	return (
 		<Screen title="MAP" onBack={onBack}>
 			<div className="map-select">
@@ -30,7 +29,6 @@ export default function MapSelect({ players, message, onChoose, onBack }: MapSel
 					))}
 					<MapCard image="/art/bubbles/empty.webp" label="RANDOM" onClick={() => onChoose("random")} />
 				</div>
-				<p className="form-message" role="status">{message}</p>
 			</div>
 		</Screen>
 	);

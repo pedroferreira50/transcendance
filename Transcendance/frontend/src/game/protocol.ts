@@ -10,6 +10,15 @@ export type Direction = "up" | "down" | "left" | "right";
 
 export type Character = "goldfish" | "betta" | "angler" | "puffer";
 export type PowerUpType = "speed" | "freeze" | "enchant";
+export type MatchTime = "short" | "normal" | "long"; // relative to the time of the map size
+export type SharkSpeed = "slow" | "normal" | "fast";
+
+// What the host (or the local players) choose for the match
+export type MatchOptions = {
+	time: MatchTime;
+	sharks: SharkSpeed;
+	powerUps: PowerUpType[]; // the ones that can appear (empty = none)
+};
 export type PlayerStatus = "playing" | "dead" | "disconnected" | "left" | "finished";
 
 export type PowerUp = {

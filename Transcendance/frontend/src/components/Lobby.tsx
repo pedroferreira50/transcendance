@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { socket } from '../socket';
 import { mapLabel, type PlayerCount } from '../game/maps';
-import type { Character, DynamicState, GameStart } from '../game/protocol';
+import type { Character, DynamicState, GameStart, MatchOptions } from '../game/protocol';
 import GameScreen from './GameScreen';
 import MapSelect from './MapSelect';
+import Options from './Options';
 import Players from './Players';
 import Screen from './Screen';
 import Winner from './Winner';
@@ -21,6 +22,7 @@ export type LobbyState = {
   hostId: string;
   seats: number;
   map: string; // the name of the map, or "random"
+  options: MatchOptions;
   players: LobbyPlayer[];
 };
 
@@ -32,12 +34,14 @@ type LobbyProps = {
 const FISH: Character[] = ['goldfish', 'betta', 'angler', 'puffer'];
 
 // The SETTINGS of the host: closed, choosing the players, or choosing the map for that number
+// (and then the options for that map, while settingsMap is not null)
 type SettingsStep = 'closed' | 'players' | PlayerCount;
 
 const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
   const [lobby, setLobby] = useState<LobbyState>(initialLobby);
   const [message, setMessage] = useState('');
   const [settings, setSettings] = useState<SettingsStep>('closed');
+  const [settingsMap, setSettingsMap] = useState<string | null>(null);
   // the match of this lobby (game:start), or null while in the lobby
   const [match, setMatch] = useState<GameStart | null>(null);
   // the last state of the match that just ended (the WINNER screen), or null
@@ -102,14 +106,25 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
       />
     );
   }
+  if (settings !== 'closed' && settingsMap !== null) {
+    return (
+      <Options
+        initial={lobby.options}
+        confirmLabel="SAVE"
+        onChoose={(options) => {
+          send('lobby:settings', { seats: settings, map: settingsMap, options });
+          setSettingsMap(null);
+          setSettings('closed');
+        }}
+        onBack={() => setSettingsMap(null)}
+      />
+    );
+  }
   if (settings !== 'closed') {
     return (
       <MapSelect
         players={settings}
-        onChoose={(map) => {
-          send('lobby:settings', { seats: settings, map });
-          setSettings('closed');
-        }}
+        onChoose={setSettingsMap}
         onBack={() => setSettings('players')}
       />
     );
@@ -128,6 +143,7 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
           <span className="text-box lobby-settings">
             {mapLabel(lobby.map)} · {lobby.seats} PLAYERS
           </span>
+          <OptionsInfo options={lobby.options} />
           {isHost && (
             <button className="sea-button secondary" onClick={() => setSettings('players')}>
               SETTINGS
@@ -180,6 +196,22 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
     </Screen>
   );
 };
+
+type OptionsInfoProps = {
+  options: MatchOptions;
+};
+
+// "NORMAL TIME · FAST SHARKS" and the bubbles of the power-ups that can appear, for everyone in the lobby
+const OptionsInfo: React.FC<OptionsInfoProps> = ({ options }) => (
+  <span className="text-box lobby-settings lobby-options">
+    {options.time.toUpperCase()} TIME · {options.sharks.toUpperCase()} SHARKS ·{' '}
+    {options.powerUps.length === 0
+      ? 'NO POWER-UPS'
+      : options.powerUps.map((type) => (
+          <img key={type} className="lobby-power-up" src={`/art/icons/${type}.webp`} alt={type} title={type} />
+        ))}
+  </span>
+);
 
 type SeatProps = {
   player: LobbyPlayer | null; // null: an empty seat

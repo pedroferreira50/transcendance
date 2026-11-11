@@ -426,7 +426,7 @@ Funções puras que recebem `ctx`, o estado e o tamanho da casa (`tile`):
 
 | Extra | Pts | Quem | Resumo |
 |---|---|---|---|
-| **Customização** | 1 | Luiz | O host escolhe o tempo, a velocidade dos tubarões (lenta/normal/rápida) e quais power-ups ligar. Como já temos mapas, personagens e power-ups, é pouco trabalho |
+| **Customização**✅ | 1 | Luiz | O host escolhe o tempo, a velocidade dos tubarões (lenta/normal/rápida) e quais power-ups ligar. Como já temos mapas, personagens e power-ups, é pouco trabalho. **Servidor pronto:** `MatchOptions` em `lobby:settings` e `local:start` (`readOptions`): tempo curto/normal/longo (−1 min / o do mapa / +2 min), tubarões a 750/500/300 ms e cada power-up ligado ou desligado; sem opções = as de hoje. **Telas prontas:** OPTIONS depois do MAP (criar lobby, SETTINGS do host e PLAY LOCAL, antes do FISH) e as opções na sala para todos. **Falta:** traduzir os textos novos com o i18n. |
 | **Bot (IA)** | 2 | Luiz | O "1 Player": você contra um jogador controlado pelo servidor. Busca em largura até o diamante mais próximo evitando tubarões, reação de 250–450 ms, 10% de movimentos aleatórios, usa os power-ups quando um humano está perto da tartaruga |
 | **Espectador** | 1 | Pedro | Botão "Assistir" nos lobbies em partida; recebe `game:state` sem controlar nada |
 | **Gamificação** | 1 | Duarte | Conquistas ("ganhou sem morrer", "menos de 60 movimentos", "10 vitórias") + XP/nível + o leaderboard |

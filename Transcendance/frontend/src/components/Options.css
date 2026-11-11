@@ -1,0 +1,138 @@
+/* the 3 rows one under the other, and the button under them */
+.options {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(0.5rem, 3vh, 2rem);
+
+	& .button-row .sea-button {
+		min-width: 6em;
+		font-size: clamp(1.4rem, min(2.8vw, 5vh), 3rem);
+	}
+}
+
+/* a table of 2 columns: the names on the left, the choices on the right, each row in line */
+.option-rows {
+	display: grid;
+	grid-template-columns: auto auto;
+	align-items: center;
+	gap: clamp(0.4rem, 2.5vh, 1.5rem) clamp(1rem, 2vw, 2rem);
+
+	/* phones standing up: no room on the side, the name goes over its choices */
+	@media (max-width: 700px) {
+		grid-template-columns: auto;
+		justify-items: center;
+	}
+}
+
+/* the row does not make a box: its name and its choices are cells of the table */
+.option-row {
+	display: contents;
+}
+
+.option-name {
+	text-align: right;
+	font-family: var(--font-button);
+	font-size: clamp(1.3rem, min(2.4vw, 4.2vh), 2.4rem);
+	letter-spacing: 0.06em;
+	color: var(--sea-light);
+}
+
+.option-choices {
+	display: flex;
+	justify-self: start;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: clamp(0.5rem, 1.5vw, 1.2rem);
+
+	@media (max-width: 700px) {
+		justify-self: center;
+	}
+}
+
+/* SHORT / NORMAL / LONG...: only one of each row is chosen, the light one */
+.option-choice {
+	min-width: 6em;
+	padding: 0.1em 1em;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border: var(--line) solid var(--sea-light);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--sea-light);
+	font-family: var(--font-button);
+	font-size: clamp(1.1rem, min(2.2vw, 3.8vh), 2.2rem);
+	line-height: 1.2;
+	letter-spacing: 0.06em;
+	cursor: pointer;
+
+	/* phones standing up: the 3 choices of a row still fit side by side */
+	@media (max-width: 700px) {
+		min-width: 0;
+		padding-inline: 0.6em;
+	}
+
+	&:hover:not(.chosen) {
+		background: var(--sea-box);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+	&.chosen {
+		background: var(--sea-light);
+		color: var(--sea-sides);
+	}
+}
+
+/* "-1 MIN" / "+2 MIN", smaller under the name */
+.option-hint {
+	font-family: var(--font-text);
+	font-size: 0.5em;
+	letter-spacing: 0;
+}
+
+/* the power-ups: each one on or off; the bubble fades when it is off */
+.power-up-choice {
+	width: clamp(3.5rem, min(8vw, 12vh), 7rem);
+	padding: 0.3rem;
+	border: var(--line) solid transparent;
+	border-radius: 1rem;
+	background: transparent;
+	cursor: pointer;
+
+	& img {
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: contain;
+		display: block;
+		opacity: 0.3;
+	}
+
+	&:hover {
+		background: var(--sea-box);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+	&.on {
+		border-color: var(--sea-light);
+		background: var(--sea-box);
+
+		& img {
+			opacity: 1;
+		}
+	}
+}
+
+.power-up-name {
+	display: block;
+	margin-top: 0.2em;
+	font-family: var(--font-text); /* a button does not take the font of the page */
+	font-size: clamp(0.8rem, min(1.1vw, 2vh), 1rem);
+	color: var(--sea-light);
+}

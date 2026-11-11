@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import type { Character, DynamicState, GameStart } from "../game/protocol";
+import { defaultOptions } from "../game/options";
+import type { Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
 import MapSelect from "./MapSelect";
+import Options from "./Options";
 import Screen from "./Screen";
 import Winner from "./Winner";
 import "./Lobby.css";
@@ -18,9 +20,10 @@ const FISH: Character[] = ["goldfish", "betta", "angler", "puffer"];
 const KEYS = ["W A S D · R", "ARROWS · L"];
 
 // PLAY LOCAL: two players on the same keyboard. The match runs on the server, like an online one:
-// the map, the fish of each player, the match and the WINNER screen, all inside this component
+// the map, the options, the fish of each player, the match and the WINNER screen, all inside this component
 export default function LocalGame({ onExit }: LocalGameProps) {
 	const [map, setMap] = useState<string | null>(null); // null: still choosing the map
+	const [options, setOptions] = useState<MatchOptions | null>(null); // null: still choosing the options
 	const [fish, setFish] = useState<(Character | null)[]>([null, null]); // the fish of Player 1 and Player 2
 	const [message, setMessage] = useState("");
 	const [match, setMatch] = useState<GameStart | null>(null);
@@ -67,7 +70,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 	function handleStart() {
 		setMessage("");
-		socket.emit("local:start", { map, characters: fish });
+		socket.emit("local:start", { map, characters: fish, options });
 	}
 
 	if (match)
@@ -76,9 +79,11 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 		return <Winner final={result} backLabel="PLAY AGAIN" onBack={() => setResult(null)} onExit={handleExit} />;
 	if (map === null)
 		return <MapSelect players={2} onChoose={setMap} onBack={handleExit} />;
+	if (options === null)
+		return <Options initial={defaultOptions()} confirmLabel="NEXT" onChoose={setOptions} onBack={() => setMap(null)} />;
 
 	return (
-		<Screen title="FISH" onBack={() => setMap(null)}>
+		<Screen title="FISH" onBack={() => setOptions(null)}>
 			<div className="local-setup">
 				{[0, 1].map((slot) => (
 					<div key={slot} className="local-player">

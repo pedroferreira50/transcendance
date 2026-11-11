@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import type { PlayerCount } from "../game/maps";
+import { defaultOptions } from "../game/options";
 import { socket } from "../socket";
 import type { LobbyState } from "./Lobby";
 import MapSelect from "./MapSelect";
+import Options from "./Options";
 import Players from "./Players";
 
 type CreateLobbyProps = {
@@ -10,9 +12,10 @@ type CreateLobbyProps = {
 	onCreated: (lobby: LobbyState) => void;
 };
 
-// Creating a lobby: PLAYERS -> MAP -> the server creates it with the two choices.
+// Creating a lobby: PLAYERS -> MAP -> OPTIONS -> the server creates it with the three choices.
 export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
 	const [players, setPlayers] = useState<PlayerCount | null>(null);
+	const [map, setMap] = useState<string | null>(null);
 	const [message, setMessage] = useState("");
 
 	useEffect(() => {
@@ -27,13 +30,16 @@ export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
 
 	if (players === null)
 		return <Players onChoose={setPlayers} onBack={onBack} />;
+	if (map === null)
+		return <MapSelect players={players} onChoose={setMap} onBack={() => setPlayers(null)} />;
 	return (
-		<MapSelect
-			players={players}
+		<Options
+			initial={defaultOptions()}
+			confirmLabel="CREATE"
 			message={message}
-			onChoose={(map) => socket.emit("lobby:create", { seats: players, map })}
+			onChoose={(options) => socket.emit("lobby:create", { seats: players, map, options })}
 			onBack={() => {
-				setPlayers(null);
+				setMap(null);
 				setMessage("");
 			}}
 		/>
