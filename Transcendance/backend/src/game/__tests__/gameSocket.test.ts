@@ -33,7 +33,7 @@ function fakeSocket(id: string, userId?: number) {
 }
 
 function setup() {
-	const games = new GameManager(transport, seeded(1));
+	const games = new GameManager(transport, seeded(1), async () => {});
 	games.createGame({ players: players(), map: "small-1" });
 	vi.advanceTimersByTime(STARTED_MS);
 	const ana = fakeSocket("s1", 1);
@@ -143,7 +143,7 @@ describe("rejoin", () => {
 				if (event === "game:gone")
 					gone.push(to);
 			},
-		}, seeded(1));
+		}, seeded(1), async () => {});
 		const ana = fakeSocket("s1", 1);
 		registerGameEvents(ana.socket, games);
 		if (local)
@@ -232,7 +232,7 @@ describe("spectator", () => {
 			...transport,
 			join: (socketId, channel) => channels.set(socketId, channel),
 			leave: (socketId) => channels.delete(socketId),
-		}, seeded(1));
+		}, seeded(1), async () => {});
 		const id = games.createGame({ players: players(), map: "small-1" });
 		vi.advanceTimersByTime(STARTED_MS);
 		const cris = fakeSocket("w1", 3);
@@ -304,7 +304,7 @@ describe("local match", () => {
 		const games = new GameManager({ ...transport, toSocket: (_id, event, data) => {
 			if (event === "game:start")
 				starts.push(data);
-		} }, seeded(1));
+		} }, seeded(1), async () => {});
 		const ana = fakeSocket("s1", 1);
 		registerGameEvents(ana.socket, games);
 		ana.send("local:start", { map: "small-1", characters: ["goldfish", "betta"] });
@@ -358,7 +358,7 @@ describe("local match", () => {
 		ana.send("local:start", { map: "small-1", characters: ["goldfish", "goldfish"] });
 		expect(ana.emitted.map((e) => e.event)).toEqual(["local:error", "local:error"]);
 		const guest = fakeSocket("s9");
-		registerGameEvents(guest.socket, new GameManager(transport, seeded(1)));
+		registerGameEvents(guest.socket, new GameManager(transport, seeded(1), async () => {}));
 		guest.send("local:start", { map: "small-1", characters: ["goldfish", "betta"] });
 		expect(guest.emitted.map((e) => e.event)).toEqual(["local:error"]);
 	});

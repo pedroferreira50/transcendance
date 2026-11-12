@@ -40,7 +40,7 @@ const STARTED_MS = COUNTDOWN_SECONDS * 1000 + BROADCAST_INTERVAL_MS;
 
 function setup(map = "small-1") {
 	const fake = fakeTransport();
-	const manager = new GameManager(fake.transport, seeded(1));
+	const manager = new GameManager(fake.transport, seeded(1), async () => {});
 	const onEnd = vi.fn();
 	const id = manager.createGame({ players: PLAYERS, map, onEnd });
 	return { ...fake, manager, onEnd, id };
@@ -233,6 +233,63 @@ describe("end of the match", () => {
 		manager.find(1)!.room.leave(0);
 		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
 		expect(() => manager.createGame({ players: PLAYERS, map: "small-1" })).not.toThrow();
+	});
+	test("saves the full state when an online match ends", () => {
+		const fake = fakeTransport();
+		const persistMatch = vi.fn(async () => {});
+		const manager = new GameManager(fake.transport, seeded(1), persistMatch);
+
+		manager.createGame({ players: PLAYERS, map: "small-1" });
+
+		vi.advanceTimersByTime(STARTED_MS);
+		manager.find(1)!.room.leave(0);
+		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+
+		expect(persistMatch).toHaveBeenCalledTimes(1);
+		expect(persistMatch).toHaveBeenCalledWith(
+			expect.objectContaining({
+				status: "finished",
+				endReason: "forfeit",
+				local: false,
+				startedAt: expect.any(Number),
+				endedAt: expect.any(Number),
+			}),
+		);
+	});
+
+	test("does not save a match that ends during the countdown", () => {
+		const fake = fakeTransport();
+		const persistMatch = vi.fn(async () => {});
+		const manager = new GameManager(fake.transport, seeded(1), persistMatch);
+
+		manager.createGame({ players: PLAYERS, map: "small-1" });
+		manager.find(1)!.room.leave(0);
+		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+
+		expect(persistMatch).not.toHaveBeenCalled();
+	});
+
+	test("logs a save failure and still cleans up the match", async () => {
+		const fake = fakeTransport();
+		const persistMatch = vi.fn().mockRejectedValue(new Error("database unavailable"));
+		const logError = vi.spyOn(console, "error").mockImplementation(() => {});
+		const manager = new GameManager(fake.transport, seeded(1), persistMatch);
+
+		manager.createGame({ players: PLAYERS, map: "small-1" });
+
+		vi.advanceTimersByTime(STARTED_MS);
+		manager.find(1)!.room.leave(0);
+		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+
+		await Promise.resolve();
+
+		expect(logError).toHaveBeenCalledWith(
+			expect.stringContaining("Failed to save match"),
+			expect.any(Error),
+		);
+		expect(manager.count).toBe(0);
+
+		logError.mockRestore();
 	});
 });
 

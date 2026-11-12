@@ -31,6 +31,7 @@ export type Player = {
 	diamonds: number; // collected (stops at the goal)
 	moves: number;
 	deaths: number;
+	powerUpsUsed: number;
 	facing: "left" | "right";
 	status: PlayerStatus;
 	lastMoveAt: number;
@@ -65,6 +66,8 @@ export type GameState = {
 	powerUps: PowerUp[];
 	nextPowerUpAt: number;
 	endsAt: number;
+	startedAt: number | null;
+	endedAt: number | null;
 	status: "countdown" | "running" | "finished";
 	winnerSlot: number | null;
 	endReason: EndReason | null;
