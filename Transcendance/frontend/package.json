@@ -1,8 +1,11 @@
 {
-  "name": "my-login-app",
+  "name": "open-sea-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -10,8 +13,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "i18next": "^26.7.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-i18next": "^17.1.12",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../api";
 import Screen from "./Screen";
 
@@ -15,6 +16,7 @@ type LoginProps = {
 };
 
 function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
+    const { t } = useTranslation();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
@@ -22,8 +24,13 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
-		if (username === "" || password === "") {
-			setMessage("Username and password are required.");
+		if (username.trim() === "") {
+			setMessage(t("auth.errors.usernameEmpty"));
+			return;
+		}
+
+		if (password === "") {
+			setMessage(t("auth.errors.passwordEmpty"));
 			return;
 		}
 
@@ -34,7 +41,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 					"Content-Type": "application/json"
 				},
 				body: JSON.stringify({
-					username,
+					username: username.trim(),
 					password
 				})
 			});
@@ -45,7 +52,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 
 			if (response.ok) {
 				onLoginSuccess(
-					username,
+					username.trim(),
 					data.wins,
 					data.losses,
 					data.multiplayerWins,
@@ -54,30 +61,33 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 			}
 		} catch (error) {
 			console.error(error);
-			setMessage("Could not connect to server.");
+			setMessage(t("auth.errors.connect"));
 		}
 	}
 
     return (
-        <Screen title="LOGIN" onBack={onBack}>
-            <form className="sea-form" onSubmit={handleSubmit}>
+        <Screen title={t("auth.loginTitle")} onBack={onBack}>
+            <form className="sea-form" onSubmit={handleSubmit} noValidate>
                 <label className="sea-field">
-                    Username
+                    {t("auth.username")}
                     <input
                         className="sea-input"
                         type="text"
                         autoComplete="username"
+                        required
+                        maxLength={16}
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />
                 </label>
 
                 <label className="sea-field">
-                    Password
+                    {t("auth.password")}
                     <input
                         className="sea-input"
                         type="password"
                         autoComplete="current-password"
+                        required
                         maxLength={128}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
@@ -87,11 +97,11 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
                 <p className="form-message" role="status">{message}</p>
 
                 <button className="sea-button" type="submit">
-                    LOGIN
+                    {t("auth.login")}
                 </button>
 
                 <button className="sea-button secondary" type="button" onClick={onRegister}>
-                    SIGN UP
+                    {t("auth.signup")}
                 </button>
             </form>
         </Screen>

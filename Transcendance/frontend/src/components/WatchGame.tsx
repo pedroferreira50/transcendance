@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DynamicState, GameStart } from "../game/protocol";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
@@ -12,6 +13,7 @@ type WatchGameProps = {
 
 // Shows another lobby's match, then its WINNER screen.
 export default function WatchGame({ start, onBack, onExit }: WatchGameProps) {
+	const { t } = useTranslation();
 	const [result, setResult] = useState<DynamicState | null>(null);
 
 	function handleMatchEnd(final: DynamicState | null) {
@@ -27,6 +29,6 @@ export default function WatchGame({ start, onBack, onExit }: WatchGameProps) {
 	}
 
 	if (result)
-		return <Winner final={result} backLabel="BACK TO LOBBIES" onBack={onBack} onExit={handleExit} />;
+		return <Winner final={result} backLabel={t("winner.backToLobbies")} onBack={onBack} onExit={handleExit} />;
 	return <GameScreen mode="watch" start={start} onEnd={handleMatchEnd} />;
 }

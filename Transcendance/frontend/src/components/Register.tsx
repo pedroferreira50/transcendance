@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { User } from "../types/User";
 import { api } from "../api";
 import Screen from "./Screen";
@@ -13,6 +14,7 @@ const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 
 function Register({ onLogin }: RegisterProps) {
+    const { t } = useTranslation();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -22,44 +24,52 @@ function Register({ onLogin }: RegisterProps) {
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-		if (username === "") {
-			setMessage("Username cannot be empty.");
+		const trimmedUsername = username.trim();
+		const trimmedEmail = email.trim();
+
+		if (trimmedUsername === "") {
+			setMessage(t("auth.errors.usernameEmpty"));
 			return;
 		}
 
-		if (!USERNAME_REGEX.test(username)) {
-			setMessage("Username must be 3 to 16 characters, using only letters, numbers and _.");
+		if (!USERNAME_REGEX.test(trimmedUsername)) {
+			setMessage(t("auth.errors.usernameInvalid"));
 			return;
 		}
 
-		if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
-			setMessage("Please enter a valid email.");
+		if (email.length > 254 || !EMAIL_REGEX.test(trimmedEmail)) {
+			setMessage(t("auth.errors.emailInvalid"));
 			return;
 		}
 
 		if (password === "") {
-			setMessage("Password cannot be empty.");
+			setMessage(t("auth.errors.passwordEmpty"));
 			return;
 		}
 
-		if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
-			setMessage(`Password must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters.`);
+		if (password.length < PASSWORD_MIN) {
+			setMessage(t("auth.errors.passwordShort"));
+			return;
+		}
+
+		if (password.length > PASSWORD_MAX) {
+			setMessage(t("auth.errors.passwordLong"));
 			return;
 		}
 
 		if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-			setMessage("Password must contain at least one letter and one number.");
+			setMessage(t("auth.errors.passwordWeak"));
 			return;
 		}
 
 		if (password !== repeatPassword) {
-			setMessage("Passwords do not match.");
+			setMessage(t("auth.errors.passwordMismatch"));
 			return;
 		}
 
 		const user: User = {
-			username: username,
-			email: email.trim(),
+			username: trimmedUsername,
+			email: trimmedEmail,
 			password: password
 		};
 
@@ -77,32 +87,35 @@ function Register({ onLogin }: RegisterProps) {
 			setMessage(data.message);
 		} catch (error) {
 			console.error(error);
-			setMessage("Could not connect to server.");
+			setMessage(t("auth.errors.connect"));
 		}
 	}
 
     return (
-        <Screen title="REGISTER" onBack={onLogin}>
-            <form className="sea-form" onSubmit={handleSubmit}>
+        <Screen title={t("auth.registerTitle")} onBack={onLogin}>
+            <form className="sea-form" onSubmit={handleSubmit} noValidate>
                 <label className="sea-field">
-                    Username
+                    {t("auth.username")}
                     <input
                         className="sea-input"
                         type="text"
                         autoComplete="username"
+                        required
+                        minLength={3}
                         maxLength={16}
-                        placeholder="3-16 letters, numbers or _"
+                        placeholder={t("auth.usernameHint")}
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />
                 </label>
 
                 <label className="sea-field">
-                    Email
+                    {t("auth.email")}
                     <input
                         className="sea-input"
-                        type="text"
+                        type="email"
                         autoComplete="email"
+                        required
                         maxLength={254}
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
@@ -110,24 +123,28 @@ function Register({ onLogin }: RegisterProps) {
                 </label>
 
                 <label className="sea-field">
-                    Password
+                    {t("auth.password")}
                     <input
                         className="sea-input"
                         type="password"
                         autoComplete="new-password"
+                        required
+                        minLength={PASSWORD_MIN}
                         maxLength={PASSWORD_MAX}
-                        placeholder="8+ characters, a letter and a number"
+                        placeholder={t("auth.passwordHint")}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />
                 </label>
 
                 <label className="sea-field">
-                    Repeat password
+                    {t("auth.repeatPassword")}
                     <input
                         className="sea-input"
                         type="password"
                         autoComplete="new-password"
+                        required
+                        minLength={PASSWORD_MIN}
                         maxLength={PASSWORD_MAX}
                         value={repeatPassword}
                         onChange={(event) =>
@@ -139,11 +156,11 @@ function Register({ onLogin }: RegisterProps) {
                 <p className="form-message" role="status">{message}</p>
 
                 <button className="sea-button" type="submit">
-                    REGISTER
+                    {t("auth.register")}
                 </button>
 
                 <button className="sea-button secondary" type="button" onClick={onLogin}>
-                    BACK TO LOGIN
+                    {t("auth.backToLogin")}
                 </button>
             </form>
         </Screen>

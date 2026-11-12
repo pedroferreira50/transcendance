@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import Decorations, { type Decoration } from "./Decorations";
+import LanguageSwitcher from "./LanguageSwitcher";
 import "./Screen.css";
 
 type ScreenProps = {
@@ -26,18 +28,25 @@ export function BackIcon() {
 // The base of every Open Sea screen (out of the match): the gradient, the frame of rocks,
 // the « that goes one step back, the title, and under it the content of the screen
 export default function Screen({ title, onBack, corner, decorations, children }: ScreenProps) {
+	const { t } = useTranslation();
+
 	return (
 		<div className="screen">
 			<div className="screen-frame" />
 			{decorations && <Decorations items={decorations} />}
 			{onBack && (
-				<button className="back-button" onClick={onBack} aria-label="Back">
+				<button className="back-button" onClick={onBack} aria-label={t("common.back")}>
 					<BackIcon />
 				</button>
 			)}
 			{corner}
 			{title && <h1 className="screen-title">{title}</h1>}
 			<div className="screen-content">{children}</div>
+			<footer className="screen-footer">
+				<a href="/privacy">{t("common.privacy")}</a>
+				<a href="/terms">{t("common.terms")}</a>
+				<LanguageSwitcher />
+			</footer>
 		</div>
 	);
 }

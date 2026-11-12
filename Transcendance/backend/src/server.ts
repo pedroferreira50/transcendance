@@ -12,12 +12,15 @@ import { setupGameSocket } from "./game/gameSocket";
 const app = express();
 const PORT = 3000;
 
+// Behind nginx: req.ip must be the browser, not the proxy container
+app.set("trust proxy", 1);
+
 app.use(cors({
     origin: FRONTEND_ORIGIN,
     credentials: true
 }));
 app.use(express.json());
-app.use(authRoutes);
+app.use("/api", authRoutes);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {

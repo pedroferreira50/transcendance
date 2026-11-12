@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Screen from './Screen';
 import './Profile.css';
 
@@ -12,7 +13,10 @@ type ProfileProps = {
 
 function winPercentage(wins: number, losses: number) {
   const totalGames = wins + losses;
-  return totalGames === 0 ? 0 : (wins / totalGames) * 100;
+  if (totalGames === 0) {
+    return 0;
+  }
+  return (wins / totalGames) * 100;
 }
 
 type StatsBlockProps = {
@@ -22,25 +26,29 @@ type StatsBlockProps = {
 };
 
 // One mode: the gold badge with its name and, under it, the wins, the losses and the % of wins
-const StatsBlock: React.FC<StatsBlockProps> = ({ title, wins, losses }) => (
-  <section className="stats-block">
-    <span className="gold-badge">{title}</span>
-    <div className="stats">
-      <div className="text-box stat">
-        <span className="stat-name">WINS</span>
-        <span className="stat-value">{wins}</span>
+const StatsBlock: React.FC<StatsBlockProps> = ({ title, wins, losses }) => {
+  const { t } = useTranslation();
+
+  return (
+    <section className="stats-block">
+      <span className="gold-badge">{title}</span>
+      <div className="stats">
+        <div className="text-box stat">
+          <span className="stat-name">{t('profile.wins')}</span>
+          <span className="stat-value">{wins}</span>
+        </div>
+        <div className="text-box stat">
+          <span className="stat-name">{t('profile.losses')}</span>
+          <span className="stat-value">{losses}</span>
+        </div>
+        <div className="text-box stat">
+          <span className="stat-name">{t('profile.winPercent')}</span>
+          <span className="stat-value">{winPercentage(wins, losses).toFixed(1)}%</span>
+        </div>
       </div>
-      <div className="text-box stat">
-        <span className="stat-name">LOSSES</span>
-        <span className="stat-value">{losses}</span>
-      </div>
-      <div className="text-box stat">
-        <span className="stat-name">WIN %</span>
-        <span className="stat-value">{winPercentage(wins, losses).toFixed(1)}%</span>
-      </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 // The PROFILE screen: who is logged in, their online results and the logout.
 const Profile: React.FC<ProfileProps> = ({
@@ -49,16 +57,20 @@ const Profile: React.FC<ProfileProps> = ({
   multiplayerLosses,
   onBack,
   onLogout
-}) => (
-  <Screen title="PROFILE" onBack={onBack}>
-    <div className="profile">
-      <p className="profile-name">{username}</p>
-      <StatsBlock title="ONLINE" wins={multiplayerWins} losses={multiplayerLosses} />
-      <button className="sea-button" onClick={onLogout}>
-        LOGOUT
-      </button>
-    </div>
-  </Screen>
-);
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <Screen title={t('profile.title')} onBack={onBack}>
+      <div className="profile">
+        <p className="profile-name">{username}</p>
+        <StatsBlock title={t('profile.online')} wins={multiplayerWins} losses={multiplayerLosses} />
+        <button className="sea-button" onClick={onLogout}>
+          {t('profile.logout')}
+        </button>
+      </div>
+    </Screen>
+  );
+};
 
 export default Profile;

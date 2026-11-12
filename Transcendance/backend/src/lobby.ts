@@ -312,7 +312,14 @@ export function setupLobby(io: Server, games: GameManager) {
 
         // Adds this socket to an existing lobby by code, after checking it
         // actually exists, isn't mid-match, and isn't already full.
-        socket.on("lobby:join", ({ code }: { code: string }) => {
+        socket.on("lobby:join", (data: unknown) => {
+            const code = readCode(data);
+
+            if (code === null) {
+                socket.emit("lobby:error", "Invalid lobby code.");
+                return;
+            }
+
             if (isUserInLobby(socket.data.username)) {
                 socket.emit("lobby:error", "You are already in a lobby.");
                 return;

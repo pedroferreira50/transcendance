@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { socket } from "../socket";
 import type { DynamicState, GameStart } from "../game/protocol";
 import type { Session } from "../types/Session";
@@ -22,11 +23,13 @@ type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
 	onLogin: (session: Session) => void;
 	onLogout: () => void;
+	onRefreshSession: () => Promise<void>;
 };
 
 // Every Open Sea screen goes through here: it keeps which one is open and where each button leads.
 // Who is logged in is kept by App.tsx: it comes in session, and the login and the logout go back to it
-export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
+export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }: OpenSeaProps) {
+	const { t } = useTranslation();
 	const [page, setPage] = useState<OpenSeaPage>("intro");
 	// the screen that asked for the login: after it, the player goes there
 	const [afterLogin, setAfterLogin] = useState<OpenSeaPage>("menu");
@@ -52,7 +55,7 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 			setLobby(null);
 			setResumed(null);
 			setResumedEnd(null);
-			setNotice("Open Sea was opened in another window.");
+			setNotice(t("menu.replaced"));
 			setPage("menu");
 		}
 
@@ -79,7 +82,7 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 			socket.off("lobby:resume", setLobby);
 			socket.off("lobby:update", setLobby);
 		};
-	}, []);
+	}, [t]);
 
 	// the resumed match is over (final = game:end), or it was left with the « or is gone (final = null)
 	function handleResumedEnd(final: DynamicState | null) {
@@ -112,7 +115,7 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 		return (
 			<Winner
 				final={resumedEnd}
-				backLabel={resumed.local ? "PLAY AGAIN" : lobby ? undefined : "LOBBIES"}
+				backLabel={resumed.local ? t("winner.playAgain") : lobby ? undefined : t("lobby.lobbies")}
 				onBack={() => closeResumed(resumed.local ? "local" : "lobby")}
 				onExit={() => {
 					if (lobby)
@@ -199,9 +202,12 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 	// the lobby room (and the match, that opens inside it)
 	if (page === "lobby" && session && lobby)
 		return <Lobby initialLobby={lobby} onBack={() => setPage("lobbies")} />;
+	let menuUsername: string | null = null;
+	if (session !== null)
+		menuUsername = session.username;
 	return (
 		<Menu
-			username={session ? session.username : null}
+			username={menuUsername}
 			notice={notice}
 			onChoose={(choice) => {
 				setNotice("");
@@ -214,7 +220,11 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 			}}
 			onAccount={() => {
 				setNotice("");
-				openWithLogin("profile");
+				if (session) {
+					void onRefreshSession().finally(() => setPage("profile"));
+				} else {
+					openWithLogin("profile");
+				}
 			}}
 			onBack={() => {
 				setNotice("");

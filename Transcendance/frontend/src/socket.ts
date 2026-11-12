@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
-import { API_URL } from "./api";
 
-export const socket = io(API_URL, {
+// Same origin as the page: Vite proxies /socket.io in development and nginx in production.
+export const socket = io({
     autoConnect: false,
     withCredentials: true
 });

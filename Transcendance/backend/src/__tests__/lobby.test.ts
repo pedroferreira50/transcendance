@@ -159,6 +159,15 @@ describe("lobby", () => {
 		expect(lastOf(cris, "lobby:error")).toBe("Lobby is full.");
 	});
 
+	test("a malformed join payload is rejected without crashing", () => {
+		const cris = server.connect("s3", 3, "cris");
+		for (const data of [null, undefined, {}, { code: 1 }]) {
+			cris.send("lobby:join", data);
+			expect(lastOf(cris, "lobby:error")).toBe("Invalid lobby code.");
+		}
+		expect(cris.rooms.size).toBe(0);
+	});
+
 	test("settings: only the host, and everyone has to ready up again", () => {
 		const { ana, bia } = fullLobby();
 		bia.send("lobby:settings", { seats: 3, map: "random" });
