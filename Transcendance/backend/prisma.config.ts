@@ -1,4 +1,6 @@
+import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import { DATABASE_URL } from "./src/databaseConfig";
 
 export default defineConfig({
 	schema: "prisma/schema.prisma",
@@ -6,7 +8,7 @@ export default defineConfig({
 		path: "prisma/migrations",
 	},
 	datasource: {
-		url: "file:./users.db",
+		url: DATABASE_URL,
 		shadowDatabaseUrl: "file:./prisma-shadow.db",
 	},
 });
