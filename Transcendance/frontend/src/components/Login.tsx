@@ -75,7 +75,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
                         type="text"
                         autoComplete="username"
                         required
-                        maxLength={20}
+                        maxLength={16}
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />

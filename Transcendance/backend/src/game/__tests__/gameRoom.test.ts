@@ -394,6 +394,13 @@ describe("tickSecond", () => {
 		expect(r.state.status).toBe("running");
 	});
 
+	test("marks the state dirty so the clock is sent", () => {
+		const r = running();
+		r.dirty = false;
+		r.tickSecond(END - 1);
+		expect(r.dirty).toBe(true);
+	});
+
 	test("time is up -> the one with the most diamonds wins", () => {
 		const r = running();
 		r.state.players[1].diamonds = 2;

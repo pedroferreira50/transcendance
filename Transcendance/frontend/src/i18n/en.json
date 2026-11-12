@@ -50,6 +50,8 @@
     "email": "Email",
     "password": "Password",
     "repeatPassword": "Repeat password",
+    "usernameHint": "3-16 letters, numbers or _",
+    "passwordHint": "8+ characters, a letter and a number",
     "login": "LOGIN",
     "signup": "SIGN UP",
     "register": "REGISTER",
@@ -80,7 +82,6 @@
     "create": "CREATE LOBBY",
     "join": "JOIN",
     "full": "FULL",
-    "inGame": "IN GAME",
     "watch": "WATCH",
     "title": "LOBBY",
     "settings": "SETTINGS",
@@ -95,7 +96,6 @@
     "start": "START",
     "kick": "Kick {{username}}",
     "chooseFish": "Choose your fish",
-    "summary": "{{map}} · {{count}} PLAYERS",
     "errors": {
       "connect": "Could not connect to the server."
     },

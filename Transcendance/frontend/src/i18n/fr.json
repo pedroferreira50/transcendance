@@ -50,6 +50,8 @@
     "email": "Email",
     "password": "Mot de passe",
     "repeatPassword": "Répétez le mot de passe",
+    "usernameHint": "3-16 lettres, chiffres ou _",
+    "passwordHint": "8+ caractères, une lettre et un chiffre",
     "login": "CONNEXION",
     "signup": "S'INSCRIRE",
     "register": "S'INSCRIRE",
@@ -80,7 +82,6 @@
     "create": "CRÉER UN SALON",
     "join": "REJOINDRE",
     "full": "COMPLET",
-    "inGame": "EN PARTIE",
     "watch": "REGARDER",
     "title": "SALON",
     "settings": "RÉGLAGES",
@@ -95,7 +96,6 @@
     "start": "COMMENCER",
     "kick": "Expulser {{username}}",
     "chooseFish": "Choisissez votre poisson",
-    "summary": "{{map}} · {{count}} JOUEURS",
     "errors": {
       "connect": "Impossible de se connecter au serveur."
     },

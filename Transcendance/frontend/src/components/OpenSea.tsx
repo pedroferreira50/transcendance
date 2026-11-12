@@ -23,11 +23,12 @@ type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
 	onLogin: (session: Session) => void;
 	onLogout: () => void;
+	onRefreshSession: () => Promise<void>;
 };
 
 // Every Open Sea screen goes through here: it keeps which one is open and where each button leads.
 // Who is logged in is kept by App.tsx: it comes in session, and the login and the logout go back to it
-export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
+export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }: OpenSeaProps) {
 	const { t } = useTranslation();
 	const [page, setPage] = useState<OpenSeaPage>("intro");
 	// the screen that asked for the login: after it, the player goes there
@@ -219,7 +220,11 @@ export default function OpenSea({ session, onLogin, onLogout }: OpenSeaProps) {
 			}}
 			onAccount={() => {
 				setNotice("");
-				openWithLogin("profile");
+				if (session) {
+					void onRefreshSession().finally(() => setPage("profile"));
+				} else {
+					openWithLogin("profile");
+				}
 			}}
 			onBack={() => {
 				setNotice("");

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import OpenSea from "./components/OpenSea";
 import LegalPage from "./components/LegalPage";
@@ -23,31 +23,26 @@ function App() {
 	const [checkingSession, setCheckingSession] = useState(true);
 	const legalPage = legalPageFromPath();
 
+	const refreshSession = useCallback(async () => {
+		try {
+			const response = await api("/me");
+
+			if (response.ok) {
+				setSession(await response.json());
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}, []);
+
 	useEffect(() => {
 		async function checkSession() {
-			try {
-				const response = await api("/me");
-
-				if (response.ok) {
-					const data = await response.json();
-
-					setSession({
-						username: data.username,
-						wins: data.wins,
-						losses: data.losses,
-						multiplayerWins: data.multiplayerWins,
-						multiplayerLosses: data.multiplayerLosses
-					});
-				}
-			} catch (error) {
-				console.error(error);
-			}
-
+			await refreshSession();
 			setCheckingSession(false);
 		}
 
 		checkSession();
-	}, []);
+	}, [refreshSession]);
 
 	async function handleLogout() {
 		try {
@@ -74,6 +69,7 @@ function App() {
 			session={session}
 			onLogin={setSession}
 			onLogout={handleLogout}
+			onRefreshSession={refreshSession}
 		/>
 	);
 }

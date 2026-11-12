@@ -1,5 +1,5 @@
 #   cp .env.example .env    # then set JWT_SECRET
-#   docker compose -f docker-compose.prod.yml up --build
+#   docker compose -f docker-compose.test.yml up --build
 
 services:
   web:
@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file (see .env.example)}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://localhost}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://localhost:8443}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       DATABASE_URL: ${DATABASE_URL:-file:/app/data/users.db}
     volumes:

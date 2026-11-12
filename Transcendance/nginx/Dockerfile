@@ -1,10 +1,12 @@
+# syntax=docker/dockerfile:1
+
 # Production image: build the frontend, then serve it with nginx as the only entry point.
 # nginx serves the static files and proxies /api and /socket.io to the backend.
 
 FROM node:22-alpine AS frontend-build
 WORKDIR /app
 COPY frontend/package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 COPY frontend/ ./
 RUN npm run build
 

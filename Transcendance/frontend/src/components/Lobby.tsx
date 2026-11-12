@@ -146,7 +146,7 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
           </span>
           {isHost && (
             <button className="sea-button secondary" onClick={() => setSettings('players')}>
-              SETTINGS
+              {t('lobby.settings')}
             </button>
           )}
         </div>

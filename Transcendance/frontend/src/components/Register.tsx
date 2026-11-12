@@ -103,7 +103,7 @@ function Register({ onLogin }: RegisterProps) {
                         required
                         minLength={3}
                         maxLength={16}
-                        placeholder="3-16 letters, numbers or _"
+                        placeholder={t("auth.usernameHint")}
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                     />
@@ -131,7 +131,7 @@ function Register({ onLogin }: RegisterProps) {
                         required
                         minLength={PASSWORD_MIN}
                         maxLength={PASSWORD_MAX}
-                        placeholder="8+ characters, a letter and a number"
+                        placeholder={t("auth.passwordHint")}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                     />

@@ -50,6 +50,8 @@
     "email": "Email",
     "password": "Senha",
     "repeatPassword": "Repita a senha",
+    "usernameHint": "3-16 letras, números ou _",
+    "passwordHint": "8+ caracteres, uma letra e um número",
     "login": "ENTRAR",
     "signup": "CADASTRAR",
     "register": "CADASTRAR",
@@ -80,7 +82,6 @@
     "create": "CRIAR SALA",
     "join": "ENTRAR",
     "full": "CHEIA",
-    "inGame": "EM PARTIDA",
     "watch": "ASSISTIR",
     "title": "SALA",
     "settings": "CONFIGURAÇÕES",
@@ -95,7 +96,6 @@
     "start": "INICIAR",
     "kick": "Expulsar {{username}}",
     "chooseFish": "Escolha o seu peixe",
-    "summary": "{{map}} · {{count}} JOGADORES",
     "errors": {
       "connect": "Não foi possível conectar ao servidor."
     },

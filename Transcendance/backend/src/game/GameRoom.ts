@@ -160,6 +160,8 @@ export class GameRoom {
 	tickSecond(now: number): void {
 		if (this.state.status !== "running")
 			return;
+		// the clock and the respawn timers changed: the next broadcast sends them
+		this.dirty = true;
 		if (now >= this.state.endsAt) {
 			this.finish(this.leader(), "timeout");
 			return;
