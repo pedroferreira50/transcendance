@@ -21,5 +21,10 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - backend-data:/app/data
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - DATABASE_URL=file:/app/data/users.db
+
+volumes:
+  backend-data:

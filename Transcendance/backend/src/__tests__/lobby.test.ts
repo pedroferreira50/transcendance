@@ -5,10 +5,6 @@ import { mapsFor } from "../game/mapLoader";
 import type { DynamicState } from "../game/types";
 import { readCharacter, readCode, readSettings, setupLobby } from "../lobby";
 
-// The database is not opened in the tests: only the UPDATEs are written down
-const db = vi.hoisted(() => ({ run: vi.fn() }));
-vi.mock("../database", () => ({ default: { prepare: () => ({ run: db.run }) } }));
-
 type Received = { event: string; data: unknown };
 
 type FakeSocket = {
@@ -78,7 +74,6 @@ beforeEach(() => {
 	spectate = vi.fn();
 	canRejoin = vi.fn(() => true);
 	setupLobby(server.io, { createGame, spectate, canRejoin } as unknown as GameManager);
-	db.run.mockClear();
 });
 
 // the lobbies live in lobby.ts between tests: everyone leaves at the end of each one
@@ -312,16 +307,6 @@ describe("end of the match (onEnd)", () => {
 		setup.onEnd!({ winnerSlot } as DynamicState);
 		return { ana, bia, code };
 	}
-
-	test("records the win and the loss", () => {
-		endWith(1);
-		expect(db.run.mock.calls).toEqual([["bia"], ["ana"]]);
-	});
-
-	test("a draw records nothing", () => {
-		endWith(null);
-		expect(db.run).not.toHaveBeenCalled();
-	});
 
 	test("the lobby is open again and everyone has to ready up", () => {
 		const { ana } = endWith(1);

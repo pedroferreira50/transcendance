@@ -3,7 +3,8 @@ import type { Server } from "socket.io";
 import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS } from "./config";
 import { GameRoom, type PlayerInfo } from "./GameRoom";
 import { loadMap, mapSize, pickMap, type PlayerCount } from "./mapLoader";
-import type { DynamicState, GameStart, MapInfo } from "./types";
+import type { DynamicState, GameStart, GameState, MapInfo } from "./types";
+import { saveMatch } from "../persistence";
 
 // The part of Socket.IO the manager uses. Like now and random in GameRoom, it comes from outside:
 // in the server it is the real Socket.IO (ioTransport), in the tests a fake that writes down what was sent
@@ -50,19 +51,29 @@ type Game = {
 	onEnd?: (final: DynamicState) => void;
 };
 
+type MatchPersister = (state: GameState) => Promise<void>; // Saves a completed match and its player results.
+
 // All the matches of the server: creates them, runs their timers and sends what changes
 // server.ts creates the only one: new GameManager(ioTransport(io))
+
+// random and persistMatch can be replaced in tests; production uses their defaults.
 export class GameManager {
 	private games = new Map<string, Game>();
 	private userGame = new Map<number, string>(); // userId -> id of the match they are in
 	private spectatorGame = new Map<string, string>();
 	private transport: Transport;
+	private persistMatch: MatchPersister;
+
 	private random: () => number; // a function with no parameters that returns a number (Math.random, or seeded() in the tests)
 
-	// random is optional: when it is not passed, Math.random is used
-	constructor(transport: Transport, random: () => number = Math.random) {
+	constructor(
+		transport: Transport,
+		random: () => number = Math.random,
+		persistMatch: MatchPersister = saveMatch,
+	) {
 		this.transport = transport;
 		this.random = random;
+		this.persistMatch = persistMatch;
 	}
 
 	// Starts a match: game:start for each player, then 3, 2, 1 (game:countdown) and the match begins
@@ -215,8 +226,11 @@ export class GameManager {
 			clearInterval(timer);
 		const final = game.room.snapshot(Date.now());
 		this.transport.toChannel(game.channel, "game:end", final);
-		if (!game.local) // local matches do not count in the results
-			saveResult(final);
+		if (game.room.state.startedAt !== null) {
+			void this.persistMatch(game.room.state).catch((error: unknown) => {
+				console.error(`Failed to save match ${game.id}`, error);
+			});
+		}
 		// free to join another match
 		for (const player of game.players) {
 			this.transport.leave(player.socketId, game.channel);
@@ -230,9 +244,4 @@ export class GameManager {
 		if (game.onEnd)
 			game.onEnd(final); // tells the lobby that the match is over
 	}
-}
-
-// TODO Etapa 7: save the match and each player's result in the database
-// the _ says the parameter is unused on purpose (for now)
-function saveResult(_final: DynamicState): void {
 }

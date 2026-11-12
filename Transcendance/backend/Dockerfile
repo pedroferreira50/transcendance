@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY package*.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+COPY src/databaseConfig.ts ./src/databaseConfig.ts
 RUN --mount=type=cache,target=/root/.npm npm install --no-audit --no-fund
 
 COPY . .
