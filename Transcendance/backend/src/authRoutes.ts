@@ -172,6 +172,8 @@ router.post("/login", loginLimiter, async (req, res) => {
 
         res.json({
             message: "Login successful!",
+            id: user.id,
+            username: user.username,
             wins: user.wins,
             losses: user.losses,
             multiplayerWins: user.multiplayer_wins,
@@ -189,13 +191,14 @@ router.post("/login", loginLimiter, async (req, res) => {
 router.get("/me", requireAuth, (req, res) => {
     try {
         const statement = db.prepare(`
-            SELECT username, wins, losses, multiplayer_wins, multiplayer_losses
+            SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
             FROM users
             WHERE id = ?
         `);
 
         const user = statement.get(req.userId) as
             | {
+                  id: number;
                   username: string;
                   wins: number;
                   losses: number;
@@ -213,6 +216,7 @@ router.get("/me", requireAuth, (req, res) => {
         }
 
         res.json({
+            id: user.id,
             username: user.username,
             wins: user.wins,
             losses: user.losses,

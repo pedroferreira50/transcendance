@@ -5,8 +5,10 @@ import type { DynamicState, GameStart } from "../game/protocol";
 import type { Session } from "../types/Session";
 import CreateLobby from "./CreateLobby";
 import GameScreen from "./GameScreen";
+import History from "./History";
 import Instructions from "./Instructions";
 import Intro from "./Intro";
+import Leaderboard from "./Leaderboard";
 import Lobby, { type LobbyState } from "./Lobby";
 import LocalGame from "./LocalGame";
 import LobbySelect from "./LobbySelect";
@@ -17,7 +19,7 @@ import Register from "./Register";
 import WatchGame from "./WatchGame";
 import Winner from "./Winner";
 
-export type OpenSeaPage = "intro" | "menu" | "instructions" | "login" | "register" | "profile" | "lobbies" | "create" | "lobby" | "local" | "watch";
+export type OpenSeaPage = "intro" | "menu" | "instructions" | "leaderboard" | "login" | "register" | "profile" | "history" | "lobbies" | "create" | "lobby" | "local" | "watch";
 
 type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
@@ -130,13 +132,15 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 		return <Intro onPlay={() => setPage("menu")} />;
 	if (page === "instructions")
 		return <Instructions onBack={() => setPage("menu")} />;
+	if (page === "leaderboard")
+		return <Leaderboard onBack={() => setPage("menu")} />;
 	if (page === "login")
 		return (
 			<Login
 				onBack={() => setPage("menu")}
 				onRegister={() => setPage("register")}
-				onLoginSuccess={(username, wins, losses, multiplayerWins, multiplayerLosses) => {
-					onLogin({ username, wins, losses, multiplayerWins, multiplayerLosses });
+				onLoginSuccess={(session) => {
+					onLogin(session);
 					setPage(afterLogin);
 				}}
 			/>
@@ -146,16 +150,17 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 	if (page === "profile" && session)
 		return (
 			<Profile
-				username={session.username}
-				multiplayerWins={session.multiplayerWins}
-				multiplayerLosses={session.multiplayerLosses}
+				session={session}
 				onBack={() => setPage("menu")}
+				onHistory={() => setPage("history")}
 				onLogout={() => {
 					onLogout();
 					setPage("menu");
 				}}
 			/>
 		);
+	if (page === "history" && session)
+		return <History userId={session.id} onBack={() => setPage("profile")} />;
 	// page "lobby" without a lobby: the room is gone, so the player chooses another one
 	if ((page === "lobbies" || (page === "lobby" && !lobby)) && session)
 		return (
@@ -213,6 +218,8 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 				setNotice("");
 				if (choice === "instructions")
 					setPage("instructions");
+				else if (choice === "leaderboard")
+					setPage("leaderboard");
 				else if (choice === "online")
 					openWithLogin("lobbies");
 				else

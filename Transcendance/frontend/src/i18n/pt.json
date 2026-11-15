@@ -6,7 +6,8 @@
     "terms": "Termos de Serviço",
     "language": "Idioma",
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "retry": "TENTAR DE NOVO"
   },
   "intro": {
     "story": "A estação fria chegou e o recife está ficando sem comida. Só uma criatura conhece o caminho para o Mar Aberto, onde a água é calma e há muito o que comer: uma velha tartaruga marinha que espera no fim do recife. Ela só consegue carregar um peixe nas costas, e o preço dela são diamantes.",
@@ -17,6 +18,7 @@
     "local": "JOGAR LOCAL",
     "online": "JOGAR ONLINE",
     "instructions": "INSTRUÇÕES",
+    "leaderboard": "CLASSIFICAÇÃO",
     "login": "Entrar",
     "profileOf": "Perfil de {{username}}",
     "replaced": "O Open Sea foi aberto em outra janela."
@@ -71,10 +73,53 @@
   "profile": {
     "title": "PERFIL",
     "online": "ONLINE",
+    "totals": "TOTAIS",
+    "matches": "PARTIDAS",
     "wins": "VITÓRIAS",
     "losses": "DERROTAS",
+    "draws": "EMPATES",
+    "forfeits": "DESISTÊNCIAS",
     "winPercent": "% DE VITÓRIAS",
-    "logout": "SAIR"
+    "diamonds": "DIAMANTES",
+    "moves": "MOVIMENTOS",
+    "deaths": "MORTES",
+    "powerUps": "POWER-UPS",
+    "history": "HISTÓRICO",
+    "logout": "SAIR",
+    "errors": {
+      "load": "Não foi possível carregar as tuas estatísticas."
+    }
+  },
+  "history": {
+    "title": "HISTÓRICO DE PARTIDAS",
+    "empty": "Ainda não há partidas. Joga uma partida online para a veres aqui.",
+    "previous": "ANTERIOR",
+    "next": "SEGUINTE",
+    "page": "Página {{page}} de {{pages}}",
+    "results": {
+      "win": "VITÓRIA",
+      "loss": "DERROTA",
+      "draw": "EMPATE",
+      "forfeit": "DESISTÊNCIA"
+    },
+    "errors": {
+      "load": "Não foi possível carregar o teu histórico de partidas."
+    }
+  },
+  "leaderboard": {
+    "title": "CLASSIFICAÇÃO",
+    "rank": "#",
+    "player": "JOGADOR",
+    "matches": "PARTIDAS",
+    "wins": "VITÓRIAS",
+    "losses": "DERROTAS",
+    "draws": "EMPATES",
+    "winPercent": "% DE VITÓRIAS",
+    "empty": "Ainda não foi jogada nenhuma partida.",
+    "rule": "Jogadores com pelo menos uma partida, ordenados por vitórias, depois percentagem de vitórias, depois nome.",
+    "errors": {
+      "load": "Não foi possível carregar a classificação."
+    }
   },
   "lobby": {
     "lobbies": "SALAS",

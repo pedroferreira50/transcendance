@@ -5,6 +5,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
+import { createStatsRouter } from "./statsRoutes";
+import prisma from "./prisma";
 import { setupOneConnectionPerUser, setupSocketAuth } from "./socketAuth";
 import { GameManager, ioTransport } from "./game/GameManager";
 import { setupGameSocket } from "./game/gameSocket";
@@ -21,6 +23,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use("/api", authRoutes);
+app.use("/api", createStatsRouter(prisma));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {

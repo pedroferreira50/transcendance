@@ -6,7 +6,8 @@
     "terms": "Conditions d'utilisation",
     "language": "Langue",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "retry": "RÉESSAYER"
   },
   "intro": {
     "story": "La saison froide est arrivée et le récif manque de nourriture. Une seule créature connaît le chemin de la Haute Mer, où l'eau est calme et la nourriture abondante : une vieille tortue de mer qui attend à l'autre bout du récif. Elle ne peut porter qu'un seul poisson sur son dos, et son prix, ce sont des diamants.",
@@ -17,6 +18,7 @@
     "local": "JOUER EN LOCAL",
     "online": "JOUER EN LIGNE",
     "instructions": "INSTRUCTIONS",
+    "leaderboard": "CLASSEMENT",
     "login": "Connexion",
     "profileOf": "Profil de {{username}}",
     "replaced": "Open Sea a été ouvert dans une autre fenêtre."
@@ -71,10 +73,53 @@
   "profile": {
     "title": "PROFIL",
     "online": "EN LIGNE",
+    "totals": "TOTAUX",
+    "matches": "PARTIES",
     "wins": "VICTOIRES",
     "losses": "DÉFAITES",
+    "draws": "ÉGALITÉS",
+    "forfeits": "ABANDONS",
     "winPercent": "% DE VICTOIRES",
-    "logout": "DÉCONNEXION"
+    "diamonds": "DIAMANTS",
+    "moves": "DÉPLACEMENTS",
+    "deaths": "MORTS",
+    "powerUps": "BONUS",
+    "history": "HISTORIQUE",
+    "logout": "DÉCONNEXION",
+    "errors": {
+      "load": "Impossible de charger vos statistiques."
+    }
+  },
+  "history": {
+    "title": "HISTORIQUE DES PARTIES",
+    "empty": "Aucune partie pour l'instant. Jouez une partie en ligne pour la voir ici.",
+    "previous": "PRÉCÉDENT",
+    "next": "SUIVANT",
+    "page": "Page {{page}} sur {{pages}}",
+    "results": {
+      "win": "VICTOIRE",
+      "loss": "DÉFAITE",
+      "draw": "ÉGALITÉ",
+      "forfeit": "ABANDON"
+    },
+    "errors": {
+      "load": "Impossible de charger votre historique de parties."
+    }
+  },
+  "leaderboard": {
+    "title": "CLASSEMENT",
+    "rank": "#",
+    "player": "JOUEUR",
+    "matches": "PARTIES",
+    "wins": "VICTOIRES",
+    "losses": "DÉFAITES",
+    "draws": "ÉGALITÉS",
+    "winPercent": "% DE VICTOIRES",
+    "empty": "Aucune partie n'a encore été jouée.",
+    "rule": "Joueurs avec au moins une partie, classés par victoires, puis pourcentage de victoires, puis nom.",
+    "errors": {
+      "load": "Impossible de charger le classement."
+    }
   },
   "lobby": {
     "lobbies": "SALONS",

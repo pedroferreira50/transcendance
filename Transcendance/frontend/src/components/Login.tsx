@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../api";
+import type { Session } from "../types/Session";
 import Screen from "./Screen";
 
 type LoginProps = {
     onBack: () => void;
     onRegister: () => void;
-    onLoginSuccess: (
-        username: string,
-        wins: number,
-        losses: number,
-        multiplayerWins: number,
-        multiplayerLosses: number
-    ) => void;
+    onLoginSuccess: (session: Session) => void;
 };
 
 function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
@@ -51,13 +46,14 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 			setMessage(data.message);
 
 			if (response.ok) {
-				onLoginSuccess(
-					username.trim(),
-					data.wins,
-					data.losses,
-					data.multiplayerWins,
-					data.multiplayerLosses
-				);
+				onLoginSuccess({
+					id: data.id,
+					username: data.username,
+					wins: data.wins,
+					losses: data.losses,
+					multiplayerWins: data.multiplayerWins,
+					multiplayerLosses: data.multiplayerLosses
+				});
 			}
 		} catch (error) {
 			console.error(error);
