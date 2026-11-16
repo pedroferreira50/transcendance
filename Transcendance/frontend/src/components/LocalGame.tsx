@@ -85,7 +85,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 	if (map === null)
 		return <MapSelect players={2} onChoose={setMap} onBack={handleExit} />;
 	if (options === null)
-		return <Options initial={defaultOptions()} confirmLabel="NEXT" onChoose={setOptions} onBack={() => setMap(null)} />;
+		return <Options initial={defaultOptions()} confirmLabel={t("options.next")} onChoose={setOptions} onBack={() => setMap(null)} />;
 
 	return (
 

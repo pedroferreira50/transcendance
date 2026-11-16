@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { POWER_UPS, SHARK_SPEEDS, TIME_CHANGE, TIMES } from "../game/options";
 import type { MatchOptions, PowerUpType } from "../game/protocol";
 import Screen from "./Screen";
@@ -6,7 +7,7 @@ import "./Options.css";
 
 type OptionsProps = {
 	initial: MatchOptions; // what is chosen when the screen opens
-	confirmLabel: string; // "CREATE", "SAVE", "NEXT"
+	confirmLabel: string; // already translated: t("options.create"), t("options.save"), t("options.next")
 	message?: string; // the answer of the server when it refuses ("You are already in a lobby.")
 	onChoose: (options: MatchOptions) => void;
 	onBack: () => void;
@@ -14,6 +15,7 @@ type OptionsProps = {
 
 // The rules of the match, after the map: the time, the speed of the sharks and the power-ups that can appear
 export default function Options({ initial, confirmLabel, message, onChoose, onBack }: OptionsProps) {
+	const { t } = useTranslation();
 	const [options, setOptions] = useState<MatchOptions>(initial);
 
 	// on/off; the list stays in the order of POWER_UPS, whatever the order of the clicks
@@ -24,12 +26,12 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 	}
 
 	return (
-		<Screen title="OPTIONS" onBack={onBack}>
+		<Screen title={t("options.title")} onBack={onBack}>
 			<div className="options">
 				<div className="option-rows">
 					<div className="option-row">
-						<span className="option-name">TIME</span>
-						<div className="option-choices" role="group" aria-label="Time">
+						<span className="option-name">{t("options.time")}</span>
+						<div className="option-choices" role="group" aria-label={t("options.time")}>
 							{TIMES.map((time) => (
 								<button
 									key={time}
@@ -37,7 +39,7 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 									aria-pressed={options.time === time}
 									onClick={() => setOptions({ ...options, time })}
 								>
-									{time.toUpperCase()}
+									{t(`options.times.${time}`)}
 									{TIME_CHANGE[time] && <span className="option-hint">{TIME_CHANGE[time]}</span>}
 								</button>
 							))}
@@ -45,8 +47,8 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 					</div>
 
 					<div className="option-row">
-						<span className="option-name">SHARKS</span>
-						<div className="option-choices" role="group" aria-label="Sharks">
+						<span className="option-name">{t("options.sharks")}</span>
+						<div className="option-choices" role="group" aria-label={t("options.sharks")}>
 							{SHARK_SPEEDS.map((sharks) => (
 								<button
 									key={sharks}
@@ -54,15 +56,15 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 									aria-pressed={options.sharks === sharks}
 									onClick={() => setOptions({ ...options, sharks })}
 								>
-									{sharks.toUpperCase()}
+									{t(`options.sharkSpeeds.${sharks}`)}
 								</button>
 							))}
 						</div>
 					</div>
 
 					<div className="option-row">
-						<span className="option-name">POWER-UPS</span>
-						<div className="option-choices" role="group" aria-label="Power-ups">
+						<span className="option-name">{t("options.powerUps")}</span>
+						<div className="option-choices" role="group" aria-label={t("options.powerUps")}>
 							{POWER_UPS.map((type) => (
 								<button
 									key={type}
@@ -71,7 +73,7 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 									onClick={() => toggle(type)}
 								>
 									<img src={`/art/bubbles/${type}.webp`} alt="" />
-									<span className="power-up-name">{type}</span>
+									<span className="power-up-name">{t(`options.powerUpNames.${type}`)}</span>
 								</button>
 							))}
 						</div>

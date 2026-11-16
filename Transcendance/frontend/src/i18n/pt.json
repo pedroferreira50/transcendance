@@ -154,6 +154,32 @@
     "start": "INICIAR",
     "fishOf": "Peixe do jogador {{n}}"
   },
+  "options": {
+    "title": "OPÇÕES",
+    "time": "TEMPO",
+    "sharks": "TUBARÕES",
+    "powerUps": "POWER-UPS",
+    "times": {
+      "short": "CURTO",
+      "normal": "NORMAL",
+      "long": "LONGO"
+    },
+    "sharkSpeeds": {
+      "slow": "LENTOS",
+      "normal": "NORMAIS",
+      "fast": "RÁPIDOS"
+    },
+    "powerUpNames": {
+      "speed": "velocidade",
+      "freeze": "congelar",
+      "enchant": "encantar"
+    },
+    "create": "CRIAR",
+    "save": "SALVAR",
+    "next": "PRÓXIMO",
+    "summary": "TEMPO {{time}} · TUBARÕES {{sharks}}",
+    "noPowerUps": "SEM POWER-UPS"
+  },
   "winner": {
     "winner": "VENCEDOR",
     "draw": "EMPATE",

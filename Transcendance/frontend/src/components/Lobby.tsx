@@ -112,7 +112,7 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
     return (
       <Options
         initial={lobby.options}
-        confirmLabel="SAVE"
+        confirmLabel={t('options.save')}
         onChoose={(options) => {
           send('lobby:settings', { seats: settings, map: settingsMap, options });
           setSettingsMap(null);
@@ -232,16 +232,29 @@ type OptionsInfoProps = {
 };
 
 // "NORMAL TIME · FAST SHARKS" and the bubbles of the power-ups that can appear, for everyone in the lobby
-const OptionsInfo: React.FC<OptionsInfoProps> = ({ options }) => (
-  <span className="text-box lobby-settings lobby-options">
-    {options.time.toUpperCase()} TIME · {options.sharks.toUpperCase()} SHARKS ·{' '}
-    {options.powerUps.length === 0
-      ? 'NO POWER-UPS'
-      : options.powerUps.map((type) => (
-          <img key={type} className="lobby-power-up" src={`/art/icons/${type}.webp`} alt={type} title={type} />
-        ))}
-  </span>
-);
+const OptionsInfo: React.FC<OptionsInfoProps> = ({ options }) => {
+  const { t } = useTranslation();
+
+  return (
+    <span className="text-box lobby-settings lobby-options">
+      {t('options.summary', {
+        time: t(`options.times.${options.time}`),
+        sharks: t(`options.sharkSpeeds.${options.sharks}`)
+      })} ·{' '}
+      {options.powerUps.length === 0
+        ? t('options.noPowerUps')
+        : options.powerUps.map((type) => (
+            <img
+              key={type}
+              className="lobby-power-up"
+              src={`/art/icons/${type}.webp`}
+              alt={t(`options.powerUpNames.${type}`)}
+              title={t(`options.powerUpNames.${type}`)}
+            />
+          ))}
+    </span>
+  );
+};
 
 type SeatProps = {
   player: LobbyPlayer | null; // null: an empty seat

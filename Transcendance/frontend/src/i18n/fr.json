@@ -154,6 +154,32 @@
     "start": "COMMENCER",
     "fishOf": "Poisson du joueur {{n}}"
   },
+  "options": {
+    "title": "OPTIONS",
+    "time": "TEMPS",
+    "sharks": "REQUINS",
+    "powerUps": "BONUS",
+    "times": {
+      "short": "COURT",
+      "normal": "NORMAL",
+      "long": "LONG"
+    },
+    "sharkSpeeds": {
+      "slow": "LENTS",
+      "normal": "NORMAUX",
+      "fast": "RAPIDES"
+    },
+    "powerUpNames": {
+      "speed": "vitesse",
+      "freeze": "gel",
+      "enchant": "enchantement"
+    },
+    "create": "CRÉER",
+    "save": "ENREGISTRER",
+    "next": "SUIVANT",
+    "summary": "TEMPS {{time}} · REQUINS {{sharks}}",
+    "noPowerUps": "SANS BONUS"
+  },
   "winner": {
     "winner": "VAINQUEUR",
     "draw": "ÉGALITÉ",

@@ -154,6 +154,32 @@
     "start": "START",
     "fishOf": "Fish of player {{n}}"
   },
+  "options": {
+    "title": "OPTIONS",
+    "time": "TIME",
+    "sharks": "SHARKS",
+    "powerUps": "POWER-UPS",
+    "times": {
+      "short": "SHORT",
+      "normal": "NORMAL",
+      "long": "LONG"
+    },
+    "sharkSpeeds": {
+      "slow": "SLOW",
+      "normal": "NORMAL",
+      "fast": "FAST"
+    },
+    "powerUpNames": {
+      "speed": "speed",
+      "freeze": "freeze",
+      "enchant": "enchant"
+    },
+    "create": "CREATE",
+    "save": "SAVE",
+    "next": "NEXT",
+    "summary": "{{time}} TIME · {{sharks}} SHARKS",
+    "noPowerUps": "NO POWER-UPS"
+  },
   "winner": {
     "winner": "WINNER",
     "draw": "DRAW",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PlayerCount } from "../game/maps";
 import { defaultOptions } from "../game/options";
 import { socket } from "../socket";
@@ -14,6 +15,7 @@ type CreateLobbyProps = {
 
 // Creating a lobby: PLAYERS -> MAP -> OPTIONS -> the server creates it with the three choices.
 export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
+	const { t } = useTranslation();
 	const [players, setPlayers] = useState<PlayerCount | null>(null);
 	const [map, setMap] = useState<string | null>(null);
 	const [message, setMessage] = useState("");
@@ -35,7 +37,7 @@ export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
 	return (
 		<Options
 			initial={defaultOptions()}
-			confirmLabel="CREATE"
+			confirmLabel={t("options.create")}
 			message={message}
 			onChoose={(options) => socket.emit("lobby:create", { seats: players, map, options })}
 			onBack={() => {
