@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from "react-i18next";
 import { socket } from '../socket';
 import { mapLabel, type PlayerCount } from '../game/maps';
 import type { Character, DynamicState, GameStart } from '../game/protocol';
@@ -35,6 +36,7 @@ const FISH: Character[] = ['goldfish', 'betta', 'angler', 'puffer'];
 type SettingsStep = 'closed' | 'players' | PlayerCount;
 
 const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
+  const { t } = useTranslation();
   const [lobby, setLobby] = useState<LobbyState>(initialLobby);
   const [message, setMessage] = useState('');
   const [settings, setSettings] = useState<SettingsStep>('closed');
@@ -118,41 +120,69 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
   // one seat for each player of the match: who sits there, or nobody yet
   const seats: (LobbyPlayer | null)[] = [];
   for (let i = 0; i < lobby.seats; i++) {
-    seats.push(i < lobby.players.length ? lobby.players[i] : null);
+    if (i < lobby.players.length) {
+      seats.push(lobby.players[i]);
+    } else {
+      seats.push(null);
+    }
+  }
+
+  let mapName = mapLabel(lobby.map);
+  if (lobby.map === 'random') {
+    mapName = t('lobby.random');
+  }
+
+  let readyLabel = t('lobby.ready');
+  if (me && me.ready) {
+    readyLabel = t('lobby.notReady');
   }
 
   return (
-    <Screen title="LOBBY" onBack={handleBack}>
+    <Screen title={t('lobby.title')} onBack={handleBack}>
       <div className="lobby-room">
         <div className="lobby-info">
           <span className="text-box lobby-settings">
-            {mapLabel(lobby.map)} · {lobby.seats} PLAYERS
+            {mapName} · {t('lobby.players', { count: lobby.seats })}
           </span>
           {isHost && (
             <button className="sea-button secondary" onClick={() => setSettings('players')}>
-              SETTINGS
+              {t('lobby.settings')}
             </button>
           )}
         </div>
 
         <ul className="seats">
-          {seats.map((player, i) => (
-            <Seat
-              key={player ? player.id : `empty-${i}`}
-              player={player}
-              isHost={player !== null && player.id === lobby.hostId}
-              onKick={isHost && player && player.id !== socket.id ? () => send('lobby:kick', player.id) : null}
-            />
-          ))}
+          {seats.map((player, i) => {
+            let seatKey = `empty-${i}`;
+            if (player !== null) {
+              seatKey = player.id;
+            }
+            let onKick: (() => void) | null = null;
+            if (isHost && player !== null && player.id !== socket.id) {
+              onKick = () => send('lobby:kick', player.id);
+            }
+            return (
+              <Seat
+                key={seatKey}
+                player={player}
+                isHost={player !== null && player.id === lobby.hostId}
+                onKick={onKick}
+              />
+            );
+          })}
         </ul>
 
-        <div className="fish-choice" role="group" aria-label="Choose your fish">
+        <div className="fish-choice" role="group" aria-label={t('lobby.chooseFish')}>
           {FISH.map((fish) => {
             const owner = lobby.players.find((player) => player.character === fish);
+			let fishClass = 'fish-option';
+            if (owner && owner === me) {
+              fishClass = 'fish-option mine';
+            }
             return (
               <button
                 key={fish}
-                className={owner && owner === me ? 'fish-option mine' : 'fish-option'}
+                className={fishClass}
                 disabled={owner !== undefined && owner !== me}
                 onClick={() => send('lobby:character', fish)}
                 aria-label={fish}
@@ -166,11 +196,11 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
 
         <div className="button-row">
           <button className="sea-button" onClick={() => send('lobby:ready')} disabled={!me || !me.character}>
-            {me && me.ready ? 'NOT READY' : 'READY'}
+            {readyLabel}
           </button>
           {isHost && (
             <button className="sea-button" onClick={() => send('lobby:start')} disabled={!allReady}>
-              START
+              {t('lobby.start')}
             </button>
           )}
         </div>
@@ -189,29 +219,35 @@ type SeatProps = {
 
 // One seat: the portrait of the fish (the empty bubble before choosing), the name, HOST and READY
 const Seat: React.FC<SeatProps> = ({ player, isHost, onKick }) => {
+  const { t } = useTranslation();
   if (!player) {
     return (
       <li className="seat empty">
         <img className="seat-portrait" src="/art/bubbles/empty.webp" alt="" />
-        <span className="seat-name">WAITING...</span>
+        <span className="seat-name">{t('lobby.waiting')}</span>
       </li>
     );
+  }
+
+  let portrait = '/art/bubbles/empty.webp';
+  if (player.character) {
+    portrait = `/art/portraits/${player.character}.webp`;
   }
 
   return (
     <li className="seat">
       <img
         className="seat-portrait"
-        src={player.character ? `/art/portraits/${player.character}.webp` : '/art/bubbles/empty.webp'}
+        src={portrait}
         alt=""
       />
       <span className="seat-name">{player.username}</span>
       <div className="seat-badges">
-        {isHost && <span className="gold-badge">HOST</span>}
-        {player.ready && <span className="gold-badge">READY</span>}
+        {isHost && <span className="gold-badge">{t('lobby.host')}</span>}
+        {player.ready && <span className="gold-badge">{t('lobby.ready')}</span>}
       </div>
       {onKick && (
-        <button className="seat-kick" onClick={onKick} aria-label={`Kick ${player.username}`} title={`Kick ${player.username}`}>
+        <button className="seat-kick" onClick={onKick} aria-label={t('lobby.kick', { username: player.username })} title={t('lobby.kick', { username: player.username })}>
           <KickIcon />
         </button>
       )}

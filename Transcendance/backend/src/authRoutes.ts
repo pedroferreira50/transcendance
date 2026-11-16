@@ -2,15 +2,28 @@ import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
 import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
+import { createRateLimiter } from "./rateLimit";
 
 const router = Router();
+
+const registerLimiter = createRateLimiter({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: "Too many registration attempts. Try again later."
+});
+
+const loginLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: "Too many login attempts. Try again later."
+});
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,16}$/;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 
-router.post("/register", async (req, res) => {
+router.post("/register", registerLimiter, async (req, res) => {
     const { username, password, email } = req.body ?? {};
 
     if (
@@ -98,7 +111,7 @@ router.post("/register", async (req, res) => {
     }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
     const { username, password } = req.body ?? {};
 
     if (
@@ -159,6 +172,8 @@ router.post("/login", async (req, res) => {
 
         res.json({
             message: "Login successful!",
+            id: user.id,
+            username: user.username,
             wins: user.wins,
             losses: user.losses,
             multiplayerWins: user.multiplayer_wins,
@@ -176,13 +191,14 @@ router.post("/login", async (req, res) => {
 router.get("/me", requireAuth, (req, res) => {
     try {
         const statement = db.prepare(`
-            SELECT username, wins, losses, multiplayer_wins, multiplayer_losses
+            SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
             FROM users
             WHERE id = ?
         `);
 
         const user = statement.get(req.userId) as
             | {
+                  id: number;
                   username: string;
                   wins: number;
                   losses: number;
@@ -200,6 +216,7 @@ router.get("/me", requireAuth, (req, res) => {
         }
 
         res.json({
+            id: user.id,
             username: user.username,
             wins: user.wins,
             losses: user.losses,

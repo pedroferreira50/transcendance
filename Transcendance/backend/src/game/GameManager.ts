@@ -207,6 +207,7 @@ export class GameManager {
 	}
 
 	// Every BROADCAST_INTERVAL_MS: what happened (game:event) and the new state (game:state), only if something changed
+	// (the running clock marks the room dirty every second, so timeLeftMs and respawnMs stay fresh)
 	private broadcast(game: Game): void {
 		const events = game.room.takeEvents();
 		if (game.room.dirty) {

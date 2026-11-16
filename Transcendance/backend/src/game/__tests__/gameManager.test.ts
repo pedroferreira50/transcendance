@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, SIZE_RULES } from "../config";
+import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, SIZE_RULES } from "../config";
 import { GameManager, type MatchPlayer, type Transport } from "../GameManager";
 import { mapsFor } from "../mapLoader";
 import type { DynamicState, GameEvent, GameStart } from "../types";
@@ -170,13 +170,13 @@ describe("spectate", () => {
 });
 
 describe("broadcast", () => {
-	test("nothing changed: no game:state", () => {
+	test("the running clock is sent every second", () => {
 		const { events } = setup();
 		vi.advanceTimersByTime(STARTED_MS);
-		const before = events("game:state").length;
-		// less than the time until the next shark step
-		vi.advanceTimersByTime(MONSTER_INTERVAL_MS - 2 * BROADCAST_INTERVAL_MS);
-		expect(events("game:state").length).toBe(before);
+		const before = last(events("game:state")).data as DynamicState;
+		vi.advanceTimersByTime(1000 + BROADCAST_INTERVAL_MS);
+		const after = last(events("game:state")).data as DynamicState;
+		expect(after.timeLeftMs).toBeLessThan(before.timeLeftMs);
 	});
 
 	test("a move is sent in the next broadcast, with its events", () => {

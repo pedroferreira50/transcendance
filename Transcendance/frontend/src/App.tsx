@@ -1,64 +1,77 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import OpenSea from "./components/OpenSea";
+import LegalPage from "./components/LegalPage";
 import type { Session } from "./types/Session";
 import { api } from "./api";
 import { socket } from "./socket";
 
+// The two legal pages have their own URLs (/privacy and /terms), so they also work on a direct load
+function legalPageFromPath(): "privacy" | "terms" | null {
+	const path = window.location.pathname.replace(/\/+$/, "");
+	if (path === "/privacy")
+		return "privacy";
+	if (path === "/terms")
+		return "terms";
+	return null;
+}
+
 // The App keeps who is logged in (the session); which screen is open is kept by OpenSea
 function App() {
-    const [session, setSession] = useState<Session | null>(null);
-    const [checkingSession, setCheckingSession] = useState(true);
+	const { t } = useTranslation();
+	const [session, setSession] = useState<Session | null>(null);
+	const [checkingSession, setCheckingSession] = useState(true);
+	const legalPage = legalPageFromPath();
 
-    useEffect(() => {
-        async function checkSession() {
-            try {
-                const response = await api("/me");
+	const refreshSession = useCallback(async () => {
+		try {
+			const response = await api("/me");
 
-                if (response.ok) {
-                    const data = await response.json();
+			if (response.ok) {
+				setSession(await response.json());
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}, []);
 
-                    setSession({
-                        username: data.username,
-                        wins: data.wins,
-                        losses: data.losses,
-                        multiplayerWins: data.multiplayerWins,
-                        multiplayerLosses: data.multiplayerLosses
-                    });
-                }
-            } catch (error) {
-                console.error(error);
-            }
+	useEffect(() => {
+		async function checkSession() {
+			await refreshSession();
+			setCheckingSession(false);
+		}
 
-            setCheckingSession(false);
-        }
+		checkSession();
+	}, [refreshSession]);
 
-        checkSession();
-    }, []);
+	async function handleLogout() {
+		try {
+			await api("/logout", {
+				method: "POST"
+			});
+		} catch (error) {
+			console.error(error);
+		}
 
-    async function handleLogout() {
-        try {
-            await api("/logout", {
-                method: "POST"
-            });
-        } catch (error) {
-            console.error(error);
-        }
+		socket.disconnect();
+		setSession(null);
+	}
 
-        socket.disconnect();
-        setSession(null);
-    }
+	if (legalPage)
+		return <LegalPage kind={legalPage} />;
 
-    if (checkingSession) {
-        return <p>Loading...</p>;
-    }
+	if (checkingSession) {
+		return <p>{t("common.loading")}</p>;
+	}
 
-    return (
-        <OpenSea
-            session={session}
-            onLogin={setSession}
-            onLogout={handleLogout}
-        />
-    );
+	return (
+		<OpenSea
+			session={session}
+			onLogin={setSession}
+			onLogout={handleLogout}
+			onRefreshSession={refreshSession}
+		/>
+	);
 }
 
 export default App;

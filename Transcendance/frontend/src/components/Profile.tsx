@@ -1,64 +1,139 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { api } from '../api';
+import type { Session } from '../types/Session';
+import type { StatsResponse, UserStats } from '../types/Stats';
 import Screen from './Screen';
 import './Profile.css';
 
 type ProfileProps = {
-  username: string;
-  multiplayerWins: number;
-  multiplayerLosses: number;
+  session: Session;
   onBack: () => void;
+  onHistory: () => void;
   onLogout: () => void;
 };
 
-function winPercentage(wins: number, losses: number) {
-  const totalGames = wins + losses;
-  return totalGames === 0 ? 0 : (wins / totalGames) * 100;
-}
+type StatItem = {
+  label: string;
+  value: string | number;
+};
 
 type StatsBlockProps = {
   title: string;
-  wins: number;
-  losses: number;
+  items: StatItem[];
 };
 
-// One mode: the gold badge with its name and, under it, the wins, the losses and the % of wins
-const StatsBlock: React.FC<StatsBlockProps> = ({ title, wins, losses }) => (
+// One group of numbers: the gold badge with its name and, under it, one box per total
+const StatsBlock: React.FC<StatsBlockProps> = ({ title, items }) => (
   <section className="stats-block">
     <span className="gold-badge">{title}</span>
     <div className="stats">
-      <div className="text-box stat">
-        <span className="stat-name">WINS</span>
-        <span className="stat-value">{wins}</span>
-      </div>
-      <div className="text-box stat">
-        <span className="stat-name">LOSSES</span>
-        <span className="stat-value">{losses}</span>
-      </div>
-      <div className="text-box stat">
-        <span className="stat-name">WIN %</span>
-        <span className="stat-value">{winPercentage(wins, losses).toFixed(1)}%</span>
-      </div>
+      {items.map((item) => (
+        <div className="text-box stat" key={item.label}>
+          <span className="stat-name">{item.label}</span>
+          <span className="stat-value">{item.value}</span>
+        </div>
+      ))}
     </div>
   </section>
 );
 
-// The PROFILE screen: who is logged in, their online results and the logout.
-const Profile: React.FC<ProfileProps> = ({
-  username,
-  multiplayerWins,
-  multiplayerLosses,
-  onBack,
-  onLogout
-}) => (
-  <Screen title="PROFILE" onBack={onBack}>
-    <div className="profile">
-      <p className="profile-name">{username}</p>
-      <StatsBlock title="ONLINE" wins={multiplayerWins} losses={multiplayerLosses} />
-      <button className="sea-button" onClick={onLogout}>
-        LOGOUT
-      </button>
-    </div>
-  </Screen>
-);
+// The PROFILE screen: who is logged in, the totals calculated from their match
+// records (not the old counters), the way to the history and the logout.
+const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout }) => {
+  const { t } = useTranslation();
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStats() {
+      try {
+        const response = await api(`/users/${session.id}/stats`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data: StatsResponse = await response.json();
+        if (!cancelled)
+          setStats(data.stats);
+      } catch (loadError) {
+        if (cancelled)
+          return;
+        console.error(loadError);
+        setError(t('profile.errors.load'));
+      } finally {
+        if (!cancelled)
+          setLoading(false);
+      }
+    }
+
+    void loadStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey, session.id, t]);
+
+  function retry() {
+    setLoading(true);
+    setError('');
+    setReloadKey((key) => key + 1);
+  }
+
+  return (
+    <Screen title={t('profile.title')} onBack={onBack}>
+      <div className="profile">
+        <p className="profile-name">{session.username}</p>
+
+        {loading && <p className="profile-message">{t('common.loading')}</p>}
+
+        {!loading && error && (
+          <div className="profile-message" role="alert">
+            <p className="form-message">{error}</p>
+            <button className="sea-button secondary" onClick={retry}>
+              {t('common.retry')}
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && stats && (
+          <>
+            <StatsBlock
+              title={t('profile.online')}
+              items={[
+                { label: t('profile.matches'), value: stats.matches },
+                { label: t('profile.wins'), value: stats.wins },
+                { label: t('profile.losses'), value: stats.losses },
+                { label: t('profile.draws'), value: stats.draws },
+                { label: t('profile.forfeits'), value: stats.forfeits },
+                { label: t('profile.winPercent'), value: `${stats.winPercentage.toFixed(1)}%` }
+              ]}
+            />
+            <StatsBlock
+              title={t('profile.totals')}
+              items={[
+                { label: t('profile.diamonds'), value: stats.diamonds },
+                { label: t('profile.moves'), value: stats.moves },
+                { label: t('profile.deaths'), value: stats.deaths },
+                { label: t('profile.powerUps'), value: stats.powerUpsUsed }
+              ]}
+            />
+            <button className="sea-button secondary" onClick={onHistory}>
+              {t('profile.history')}
+            </button>
+          </>
+        )}
+
+        <button className="sea-button" onClick={onLogout}>
+          {t('profile.logout')}
+        </button>
+      </div>
+    </Screen>
+  );
+};
 
 export default Profile;

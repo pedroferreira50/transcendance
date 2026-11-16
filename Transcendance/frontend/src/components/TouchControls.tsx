@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import { toCommand, type Command } from "../game/input";
 import type { Direction } from "../game/protocol";
 
@@ -28,6 +29,7 @@ const PAD: [Direction, string, number, number][] = [
 
 // The buttons of the phones and tablets: arrows at the bottom left, power-up at the bottom right
 export default function TouchControls({ send }: { send: (command: Command) => void }) {
+	const { t } = useTranslation();
 	const timer = useRef<number | undefined>(undefined);
 
 	const stop = () => {
@@ -66,7 +68,7 @@ export default function TouchControls({ send }: { send: (command: Command) => vo
 				))}
 			</div>
 			<button
-				aria-label="power-up"
+				aria-label={t("game.powerUp")}
 				style={{ ...BUTTON, position: "fixed", right: 16, bottom: 16, width: 88, height: 88, background: "url(/sprites/bubble.webp) center / cover, rgba(0, 0, 0, 0.35)" }}
 				onPointerDown={() => send(toCommand("powerUp"))}
 				onContextMenu={(event) => event.preventDefault()}

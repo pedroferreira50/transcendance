@@ -1,7 +1,5 @@
-export const API_URL = "http://localhost:3000";
-
 export function api(path: string, options: RequestInit = {}) {
-    return fetch(API_URL + path, {
+    return fetch("/api" + path, {
         ...options,
         credentials: "include"
     });

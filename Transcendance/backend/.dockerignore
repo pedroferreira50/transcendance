@@ -3,3 +3,7 @@ dist
 .git
 npm-debug.log
 users.db
+.env
+.env.*
+data
+src/generated/prisma

@@ -1,0 +1,113 @@
+.history {
+	flex: 1;
+	width: min(100%, 56rem);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(1rem, 3vh, 2rem);
+}
+
+.history-message {
+	margin: 0;
+	text-align: center;
+	font-size: clamp(1rem, min(1.8vw, 3vh), 1.5rem);
+}
+
+/* many matches: the list scrolls and the pager stays on the screen */
+.history-list {
+	box-sizing: border-box;
+	width: 100%;
+	max-height: 55vh;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+/* date | map | fish | opponents | result | diamonds | deaths */
+.history-row {
+	display: grid;
+	grid-template-columns: minmax(9em, 1.3fr) 1fr 1fr minmax(7em, 1.4fr) 1fr auto auto;
+	align-items: center;
+	gap: 0.6rem 1rem;
+	font-size: clamp(0.85rem, min(1.2vw, 2.2vh), 1.1rem);
+}
+
+.history-date,
+.history-map,
+.history-character,
+.history-opponents {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.history-map,
+.history-character {
+	font-family: var(--font-button);
+	font-size: 1.3em;
+	color: var(--sea-light);
+}
+
+.history-result {
+	font-family: var(--font-button);
+	font-size: 1.3em;
+	text-align: center;
+}
+
+.history-result-win {
+	color: #8ef0a8;
+}
+
+.history-result-loss,
+.history-result-forfeit {
+	color: #ff9d9d;
+}
+
+.history-result-draw {
+	color: var(--sea-light);
+}
+
+.history-stat {
+	font-family: var(--font-button);
+	font-size: 1.3em;
+	white-space: nowrap;
+}
+
+.history-pager {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(0.6rem, 2vw, 1.5rem);
+}
+
+.history-page {
+	font-family: var(--font-button);
+	font-size: clamp(1.1rem, min(2vw, 3.6vh), 1.8rem);
+}
+
+/* phones: one match per card, labels before the values */
+@media (max-width: 700px) {
+	.history-list {
+		max-height: 60vh;
+	}
+
+	.history-row {
+		grid-template-columns: 1fr 1fr;
+		row-gap: 0.4rem;
+	}
+
+	.history-date,
+	.history-opponents {
+		grid-column: 1 / -1;
+	}
+
+	.history-result {
+		text-align: left;
+	}
+}

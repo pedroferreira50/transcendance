@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { mapLabel, mapsFor, type PlayerCount } from "../game/maps";
 import Screen from "./Screen";
 import "./MapSelect.css";
@@ -21,14 +22,16 @@ function MapCard({ image, label, onClick }: { image: string; label: string; onCl
 
 // The maps where that number of players fits, and RANDOM (the server picks one when the match starts)
 export default function MapSelect({ players, message, onChoose, onBack }: MapSelectProps) {
+	const { t } = useTranslation();
+
 	return (
-		<Screen title="MAP" onBack={onBack}>
+		<Screen title={t("lobby.map")} onBack={onBack}>
 			<div className="map-select">
 				<div className="map-grid">
 					{mapsFor(players).map((name) => (
 						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name)} onClick={() => onChoose(name)} />
 					))}
-					<MapCard image="/art/bubbles/empty.webp" label="RANDOM" onClick={() => onChoose("random")} />
+					<MapCard image="/art/bubbles/empty.webp" label={t("lobby.random")} onClick={() => onChoose("random")} />
 				</div>
 				<p className="form-message" role="status">{message}</p>
 			</div>

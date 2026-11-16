@@ -1,28 +1,62 @@
+## Open Sea
+
+A browser multiplayer game: fish compete for diamonds and try to reach the turtle at the far end of the reef.
+
 ## Technologies used
 
 **Frontend** (`frontend/`)
-- **React 19** + **TypeScript** — UI, written as function components with hooks (`useState`, `useEffect`).
-- **Vite** — dev server and build tool.
-- **socket.io-client** — real-time connection to the backend for lobbies and live multiplayer matches.
-- Plain inline CSS (no UI framework) — each page/component styles itself with a `style={{ ... }}` object.
+- **React 19** + **TypeScript** — UI, written as function components with hooks.
+- **Vite** — dev server, build tool, and proxy to the backend.
+- **socket.io-client** — real-time lobbies and live matches.
+- **i18next / react-i18next** — English, Portuguese, and French.
+- **Canvas** — the game board, sprites, and touch controls.
 
 **Backend** (`backend/`)
-- **Express** — REST API for registration, login, and recording solo-game results.
-- **Socket.IO** — real-time layer for the lobby system and multiplayer matches (lobby browsing, ready-up, live click counts, match results).
-- **better-sqlite3** — the database driver; stores users and their stats in a local SQLite file (`users.db`).
+- **Express 5** — REST API for registration, login, session lookup, and logout.
+- **Socket.IO** — lobby browsing, ready-up, match start, live game state, spectators, and reconnect/resume.
+- **better-sqlite3** — SQLite user accounts and win/loss statistics.
 - **argon2** — password hashing.
-- **tsx** — runs the TypeScript backend directly in dev (`tsx watch`), restarting on file changes.
+- **jsonwebtoken** + httpOnly cookie — sessions.
+- **tsx** — runs the TypeScript backend directly in dev (`tsx watch`).
 
 **Infrastructure**
-- **Docker** + **docker-compose** — `docker-compose.yml` runs the frontend (port 5173) and backend (port 3000) as two containers, each with the source folder bind-mounted in so edits hot-reload without rebuilding the image.
+- **Docker + Compose** — `docker-compose.yml` for development, `docker-compose.test.yml` for the nginx HTTPS deployment.
+- **nginx** — serves the built frontend, proxies `/api` and `/socket.io`, and generates a self-signed certificate on first start.
 
 ## Running it
 
+### Development
+
 ```
+cp backend/.env.example backend/.env    # then set JWT_SECRET
 docker compose up --build
 ```
 
 Frontend: http://localhost:5173 — Backend: http://localhost:3000
+
+The frontend calls relative `/api/*` paths; Vite forwards them to the backend. Socket.IO uses `/socket.io`.
+
+### HTTPS / production-style build
+
+```
+cp .env.example .env    # then set JWT_SECRET
+docker compose -f docker-compose.test.yml up --build
+```
+
+Open https://localhost:8443 (the self-signed certificate triggers a browser warning). HTTP on http://localhost:8080 redirects to https://localhost:8443.
+
+`FRONTEND_ORIGIN` must match the browser origin, including the published port. `DATABASE_URL` and the `backend-data` volume keep the SQLite database across container recreations.
+
+## API
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/register` | Create an account. |
+| `POST` | `/api/login` | Log in and set the session cookie. |
+| `GET` | `/api/me` | Current user and statistics. |
+| `POST` | `/api/logout` | Clear the session cookie. |
+
+Login and registration are rate-limited per IP. The session cookie is `httpOnly`; `COOKIE_SECURE=true` is required when served over HTTPS.
 
 ## Project structure
 
@@ -30,98 +64,41 @@ Frontend: http://localhost:5173 — Backend: http://localhost:3000
 
 | File | Purpose |
 |---|---|
-| `docker-compose.yml` | Defines the `frontend` and `backend` services, their ports, and bind mounts. |
-
-> Note: all frontend config files (`package.json`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `index.html`) live inside `frontend/`. The old unused copies that used to sit at the repo root were removed.
+| `docker-compose.yml` | Development services: Vite frontend and backend with bind mounts. |
+| `docker-compose.test.yml` | nginx HTTPS deployment with a persistent SQLite volume. |
+| `nginx/` | nginx config, frontend production build, and self-signed certificate generation. |
 
 ### `backend/`
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Builds the backend image (`node:22`), installs build tools needed by native modules (`argon2`, `better-sqlite3`), runs `npm run dev`. |
-| `package.json` | Backend dependencies and scripts (`dev`, `build`, `start`). |
-| `tsconfig.json` | TypeScript compiler config. |
-| `users.db` | The local SQLite database file — created/migrated automatically by `database.ts` on startup. Ignored by Git (each developer has their own). |
-| `src/server.ts` | Express app entry point. Defines the REST endpoints (`POST /register`, `POST /login`, `POST /game-result`), wraps Express in a plain `http.Server`, and attaches the Socket.IO server to it before calling `setupLobby`. |
-| `src/database.ts` | Opens the SQLite connection and creates the `users` table (`username`, `password_hash`, `wins`, `losses`, `multiplayer_wins`, `multiplayer_losses`), migrating in any missing columns on an existing database. |
-| `src/lobby.ts` | All Socket.IO real-time logic: the browsable lobby list, creating/joining/readying/starting/kicking within a lobby, and the multiplayer match itself (per-second countdown, click tracking, winner detection, persisting the result to the database). See the comments above each function in that file for details. |
+| `src/server.ts` | Express + Socket.IO entry point; mounts auth routes under `/api`. |
+| `src/auth.ts` | JWT signing/verification, cookie helpers, and `requireAuth`. |
+| `src/authRoutes.ts` | Register, login, me, and logout routes with rate limiting. |
+| `src/database.ts` | Opens SQLite from `DATABASE_URL` (or `users.db`) and migrates the users table. |
+| `src/databasePath.ts` | Converts plain paths and `file:` URLs into a SQLite path. |
+| `src/rateLimit.ts` | In-memory fixed-window limiter for the auth endpoints. |
+| `src/lobby.ts` | Lobby list, create/join/ready/kick/settings, match start/end, persistence of results. |
+| `src/socketAuth.ts` | Socket authentication and one-connection-per-user. |
+| `src/game/GameManager.ts` | Creates matches, countdown, per-second tick, broadcasts, spectators, reconnect. |
+| `src/game/GameRoom.ts` | Game rules: movement, diamonds, sharks, power-ups, respawns, win conditions. |
+| `src/game/gameSocket.ts` | Validates and routes player input, local matches, spectating, and reconnects. |
+| `src/game/mapLoader.ts`, `placement.ts` | `.ber` map loading/validation and random placement. |
+| `maps/` | Maps for 2, 3, and 4 players. |
+| `src/**/__tests__/` | Vitest suites. Requires Node 22 (the project's Docker images). |
 
 ### `frontend/`
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Builds the frontend image (`node:22-alpine`), runs the Vite dev server bound to all interfaces so Docker can expose it. |
-| `package.json` | Frontend dependencies and scripts (`dev`, `build`, `lint`, `preview`). |
-| `vite.config.ts` | Vite configuration (just the React plugin). |
-| `index.html` | The single HTML page Vite serves; loads `src/main.tsx`. |
-| `public/favicon.svg`, `public/icons.svg` | Static assets served as-is (not processed by Vite's bundler). |
-| `src/main.tsx` | React entry point — mounts `<App />` into the page's `#root` element. |
-| `src/App.tsx` | Top-level page router. Holds the shared session state (logged-in username, solo/multiplayer win-loss counts, the current match) in `useState`, and renders whichever screen `page` is currently set to. |
-| `src/index.css` | Global styles — CSS variables, `body`/`#root` resets, heading styles. |
-| `src/App.css` | Leftover from the original Vite template; no longer imported anywhere. |
-| `src/socket.ts` | Exports a single shared `socket.io-client` instance (created once, `autoConnect: false`) so every multiplayer screen talks to the same connection instead of opening a new one each. |
-| `src/types/User.ts` | The `User` type (`{ username, password }`) used when submitting the registration form. |
-| `src/assets/` | Background images/GIFs used by each page (login, dashboard, lobby, game, profile) plus the poker table image and a few leftover/unused template assets (`react.svg`, `vite.svg`, `hero.png`). |
-| `src/components/Login.tsx` | Login form. Posts to `/login`; on success, passes the username and both solo/multiplayer stat pairs up to `App`. |
-| `src/components/Register.tsx` | Registration form with client-side validation (matching passwords, non-empty fields); posts to `/register`. |
-| `src/components/Dashboard.tsx` | Post-login home screen: "Play Solo" / "Play Multiplayer" / "Logout" buttons, plus the slide-out Profile panel toggle. |
-| `src/components/Profile.tsx` | Displays the username and separate solo/multiplayer win-loss-percentage stat blocks; rendered inside Dashboard's slide-out panel. |
-| `src/components/Game.tsx` | The solo game: a 10-second countdown, a click counter, and a fixed target (20) — reports the result to `/game-result` when time runs out. |
-| `src/components/LobbySelect.tsx` | Multiplayer entry screen: shows the live list of open lobbies to join, or a button to create a new one. |
-| `src/components/Lobby.tsx` | Inside one lobby: the player list (with host label and ready status), your own ready toggle, and — if you're the host — Kick buttons and the Start Match button. |
-| `src/components/MultiplayerGame.tsx` | The live multiplayer match: renders each seated player as a circular avatar positioned around the poker table background, with only your own seat's button clickable, driven entirely by events from the shared `socket`. |
+| `src/App.tsx` | Session bootstrap/logout and legal-page routing. |
+| `src/OpenSea` screens (`src/components/`) | Intro, menu, instructions, login/register, profile, lobby list, lobby room, local setup, match, spectator view, and winner screen. |
+| `src/game/` | Protocol types, map metadata, keyboard/touch input, renderer, and sprites. |
+| `src/i18n/` | `en.json`, `pt.json`, `fr.json`, and i18next setup. |
+| `src/api.ts` | `fetch` wrapper for `/api/*`. |
+| `src/socket.ts` | Shared Socket.IO client (`autoConnect: false`). |
+| `src/types/` | Session and registration form types. |
 
-## Real-time flow (backend `lobby.ts` in one paragraph)
+## Real-time flow
 
-A lobby is a `Map` entry keyed by a short generated code, which also doubles as a Socket.IO room name. Players browsing for a game join a `lobby-list` room and get pushed live updates of open lobbies; joining a specific lobby moves them into that lobby's room instead. The host can kick players or start the match once everyone's readied up; starting a match snapshots the current lobby roster into a `Match`, runs a server-side countdown, and tallies clicks per player until time runs out (or everyone but one player disconnects), at which point the winner's/losers' stats are written to the database and each player receives their own updated totals.
-
-
-To do List:
-
-Use a CSS framework or styling solution of your choice (e.g., Tailwind CSS,
-Bootstrap, Material-UI, Styled Components, etc.)
-
-Store credentials (API keys, environment variables, etc.) in a local .env file that is
-ignored by Git, and provide an .env.example file.
-
-Points, we need 14
-
-Major: Use a framework for both the frontend and backend. 2 points
-
-Minor: Use a frontend framework (React, Vue, Angular, Svelte, etc.). 1 point
-
-Minor: Use a backend framework (Express, Fastify, NestJS, Django, etc.). 1 point
-
-Major: Implement real-time features using WebSockets or similar technology. 2 point
-
-Minor: Support for multiple languages (at least 3 languages). 1 point
-
-Minor: Support for additional browsers. 1 point
-
-Major: Standard user management and authentication. 2 points
-
-Minor: Game statistics and match history (requires a game module). 1 point
-
-• Major: Advanced permissions system: 2 points (not sure if its too much work but if not its worth the points)
-◦ View, edit, and delete users (CRUD).
-◦ Roles management (admin, user, guest, moderator, etc.).
-◦ Different views and actions based on user role.
-
-• Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.). 1 point (same as the above not sure if its too much work)
-
-Major: Implement a complete web-based game where users can play against each other. 2 points
-
-Major: Multiplayer game (more than two players). 2 points
-
-Major: Add another game with user history and matchmaking. 2 points
-
-Minor: Advanced chat features (enhances the basic chat from "User interaction" module). 1 point
-
-Minor: Implement a tournament system. 1 point
-
-• Minor: Game customization options. 1 point (depends on what type of game we do)
-
-• Minor: A gamification system to reward users for their actions 1 point
-
-
-total 23 points, we need atleast 14.
+A lobby is a `Map` entry keyed by a short code, which is also the Socket.IO room name. Browsers subscribe to the `lobby-list` room for live summaries. Inside a lobby, players choose fish and ready up; the host chooses seats/map and starts the match. `GameManager` snapshots the roster, sends a countdown, then runs a server-authoritative game loop: `/api` handles accounts, while Socket.IO sends `game:state` (at most once per second while running, plus after changes), `game:event` for hits and pickups, and `game:end` with the final result. Scores are written to SQLite when an online match ends. Disconnected players can reconnect and resume; spectators receive the same game events without a seat. Local matches run in the browser without affecting statistics.

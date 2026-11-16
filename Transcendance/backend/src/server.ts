@@ -5,6 +5,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { setupLobby } from "./lobby";
 import authRoutes from "./authRoutes";
+import { createStatsRouter } from "./statsRoutes";
+import prisma from "./prisma";
 import { setupOneConnectionPerUser, setupSocketAuth } from "./socketAuth";
 import { GameManager, ioTransport } from "./game/GameManager";
 import { setupGameSocket } from "./game/gameSocket";
@@ -12,12 +14,16 @@ import { setupGameSocket } from "./game/gameSocket";
 const app = express();
 const PORT = 3000;
 
+// Behind nginx: req.ip must be the browser, not the proxy container
+app.set("trust proxy", 1);
+
 app.use(cors({
     origin: FRONTEND_ORIGIN,
     credentials: true
 }));
 app.use(express.json());
-app.use(authRoutes);
+app.use("/api", authRoutes);
+app.use("/api", createStatsRouter(prisma));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
