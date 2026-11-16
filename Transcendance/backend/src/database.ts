@@ -1,6 +1,15 @@
 import Database from "better-sqlite3";
+import { DATABASE_PATH } from "./databaseConfig";
+import fs from "node:fs";
+import path from "node:path";
+import { resolveDatabasePath } from "./databasePath";
 
-const db = new Database("users.db");
+const databasePath = resolveDatabasePath(process.env.DATABASE_URL ?? "users.db");
+
+if (databasePath !== ":memory:")
+    fs.mkdirSync(path.dirname(path.resolve(databasePath)), { recursive: true });
+
+const db = new Database(DATABASE_PATH);
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (

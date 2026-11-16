@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
 import "./Menu.css";
 
-export type MenuChoice = "local" | "online" | "instructions";
+export type MenuChoice = "local" | "online" | "instructions" | "leaderboard";
 
 type MenuProps = {
 	username: string | null; // null: nobody logged in
@@ -37,10 +38,14 @@ function AccountIcon() {
 
 // The first screen of Open Sea: the name of the game and the 3 ways to go on
 export default function Menu({ username, notice, onChoose, onAccount, onBack }: MenuProps) {
+	const { t } = useTranslation();
 	// phones and tablets: the same test as GameScreen. There is no keyboard for the local mode
 	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 	// logged in: the profile of the user; if not: the login
-	const accountLabel = username === null ? "Login" : `Profile of ${username}`;
+	let accountLabel = t("menu.login");
+	if (username !== null) {
+		accountLabel = t("menu.profileOf", { username });
+	}
 	const account = (
 		<button className="account-button" onClick={onAccount} aria-label={accountLabel} title={accountLabel}>
 			<AccountIcon />
@@ -48,13 +53,14 @@ export default function Menu({ username, notice, onChoose, onAccount, onBack }: 
 	);
 
 	return (
-		<Screen title="OPEN SEA" onBack={onBack} corner={account} decorations={DECORATIONS}>
+		<Screen title={t("menu.title")} onBack={onBack} corner={account} decorations={DECORATIONS}>
 			<div className="menu">
 				<img className="menu-fish" src="/art/fish/goldfish.webp" alt="" />
 				<div className="button-row">
-					{!touch && <button className="sea-button" onClick={() => onChoose("local")}>PLAY LOCAL</button>}
-					<button className="sea-button" onClick={() => onChoose("online")}>PLAY ONLINE</button>
-					<button className="sea-button" onClick={() => onChoose("instructions")}>INSTRUCTIONS</button>
+					{!touch && <button className="sea-button" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
+					<button className="sea-button" onClick={() => onChoose("online")}>{t("menu.online")}</button>
+					<button className="sea-button" onClick={() => onChoose("instructions")}>{t("menu.instructions")}</button>
+					<button className="sea-button" onClick={() => onChoose("leaderboard")}>{t("menu.leaderboard")}</button>
 				</div>
 				{notice && <p className="form-message" role="status">{notice}</p>}
 			</div>

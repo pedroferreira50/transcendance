@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { createInput, type Command, type InputMode } from "../game/input";
 import type { DynamicState, GameStart } from "../game/protocol";
 import { drawFrame, trackSharks, type SharkMemory } from "../game/renderer";
@@ -36,13 +37,18 @@ function sendCommand(command: Command): void {
 
 // The match screen: draws the last state the server sent, and sends the keys to it
 export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
+	const { t } = useTranslation();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const showWalls = useRef(false);
 	const sharks = useRef<SharkMemory>({ last: [], facing: [] });
 	// the last game:state: a ref and not a state, because the drawing reads it at every frame
 	// and a new state (many per second) does not need React to draw the page again
 	const state = useRef<DynamicState>(start.state);
-	const [countdown, setCountdown] = useState(start.state.status === "countdown" ? start.countdown : 0);
+	const [countdown, setCountdown] = useState(() => {
+		if (start.state.status === "countdown")
+			return start.countdown;
+		return 0;
+	});
 	const [assets, setAssets] = useState<Assets | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [connected, setConnected] = useState(socket.connected); // false: the RECONNECTING message
@@ -175,18 +181,18 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	}
 
 
-	const leaveLabel = mode === "watch" ? "Stop watching" : "Leave the match";
+	const leaveLabel = mode === "watch" ? t("game.stopWatching") : t("game.leave");
 
 	if (error)
 		return <p>{error}</p>;
 	if (!assets)
-		return <p>Carregando...</p>;
+		return <p>{t("game.loading")}</p>;
 	return (
 		<div className="game-screen">
 			<canvas ref={canvasRef} />
 			{countdown > 0 && <div className="countdown" key={countdown}>{countdown}</div>}
-			{mode === "watch" && <p className="game-watching">WATCHING</p>}
-			{!connected && <div className="reconnecting" role="status">RECONNECTING...</div>}
+			{mode === "watch" && <p className="game-watching">{t("game.watching")}</p>}
+			{!connected && <div className="reconnecting" role="status">{t("game.reconnecting")}</div>}
 			{connected && (
 				<button className="back-button game-leave" onClick={handleLeave} aria-label={leaveLabel} title={leaveLabel}>
 					<BackIcon />
@@ -200,14 +206,14 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="leave-confirm-title">
-							<h2 id="leave-confirm-title">LEAVE THE MATCH?</h2>
+							<h2 id="leave-confirm-title">{t("game.leaveConfirmTitle")}</h2>
 							<div className="button-row">
 								<button className="sea-button" onClick={confirmLeave}>
-									YES
+									{t("common.yes")}
 								</button>
 
 								<button className="sea-button secondary" onClick={() => setLeaveConfirm(false)}>
-									NO
+									{t("common.no")}
 								</button>
 							</div>
 

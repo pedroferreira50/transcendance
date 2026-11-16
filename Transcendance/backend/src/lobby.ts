@@ -1,5 +1,4 @@
 import type { Server, Socket } from "socket.io";
-import db from "./database";
 import { CHARACTERS, defaultOptions } from "./game/config";
 import type { GameManager, MatchPlayer } from "./game/GameManager";
 import { readOptions } from "./game/gameSocket";
@@ -155,16 +154,6 @@ function broadcastLobby(io: Server, lobby: Lobby) {
     io.to(lobby.code).emit("lobby:update", lobbyState(lobby));
 }
 
-// Persists a finished match's outcome: +1 win for the winner, +1 loss for everyone else.
-// TODO Etapa 7: moves to saveResult (GameManager), with the full match history.
-function recordMultiplayerResult(winnerUsername: string, loserUsernames: string[]) {
-    db.prepare(`UPDATE users SET multiplayer_wins = multiplayer_wins + 1 WHERE username = ?`).run(winnerUsername);
-
-    for (const loserUsername of loserUsernames) {
-        db.prepare(`UPDATE users SET multiplayer_losses = multiplayer_losses + 1 WHERE username = ?`).run(loserUsername);
-    }
-}
-
 // Hands the lobby to the GameManager: slot = order in the lobby. From here on
 // the match talks to the players with game:* events (GameManager, gameSocket).
 function startMatch(io: Server, games: GameManager, lobby: Lobby) {
@@ -183,7 +172,7 @@ function startMatch(io: Server, games: GameManager, lobby: Lobby) {
             players,
             map: lobby.map,
             options: lobby.options,
-            onEnd: (final) => endMatch(io, lobby, players, final)
+            onEnd: (final) => endMatch(io, lobby, final)
         });
     } catch (error) {
         // e.g. one of the players is still in another match
@@ -194,19 +183,9 @@ function startMatch(io: Server, games: GameManager, lobby: Lobby) {
     broadcastLobbyList(io);
 }
 
-// Called by the GameManager when the match is over (time, forfeit or
-// everyone left): records the win/loss (skipped for a draw) and resets the
-// lobby so a rematch needs everyone to ready up again.
-function endMatch(io: Server, lobby: Lobby, players: MatchPlayer[], final: DynamicState) {
-    if (final.winnerSlot !== null) {
-        const winner = players[final.winnerSlot];
-        const losers = players
-            .filter((_, slot) => slot !== final.winnerSlot)
-            .map((player) => player.username);
-
-        recordMultiplayerResult(winner.username, losers);
-    }
-
+// Called by the GameManager when a match ends: resets the lobby so a rematch
+// needs everyone to ready up again.
+function endMatch(io: Server, lobby: Lobby, final: DynamicState) {
     lobby.gameId = null;
     lobby.players.forEach((player) => {
         player.ready = false;
@@ -345,7 +324,14 @@ export function setupLobby(io: Server, games: GameManager) {
 
         // Adds this socket to an existing lobby by code, after checking it
         // actually exists, isn't mid-match, and isn't already full.
-        socket.on("lobby:join", ({ code }: { code: string }) => {
+        socket.on("lobby:join", (data: unknown) => {
+            const code = readCode(data);
+
+            if (code === null) {
+                socket.emit("lobby:error", "Invalid lobby code.");
+                return;
+            }
+
             if (isUserInLobby(socket.data.username)) {
                 socket.emit("lobby:error", "You are already in a lobby.");
                 return;

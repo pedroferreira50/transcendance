@@ -1,4 +1,5 @@
 import type { Decoration } from "./Decorations";
+import { useTranslation } from "react-i18next";
 import Screen from "./Screen";
 import "./Intro.css";
 
@@ -19,16 +20,13 @@ const DECORATIONS: Decoration[] = [
 
 // The story of the game, before the menu
 export default function Intro({ onPlay }: IntroProps) {
+	const { t } = useTranslation();
+
 	return (
-		<Screen title="OPEN SEA" decorations={DECORATIONS}>
+		<Screen title={t("menu.title")} decorations={DECORATIONS}>
 			<div className="intro">
-				<p className="text-box story">
-					The cold season has arrived, and the reef is running out of food.
-					Only one creature knows the way to the Open Sea, where the water is calm
-					and there is plenty to eat: an old sea turtle who waits at the far end of the reef.
-					She can carry only <strong>one fish</strong> on her back, and her price is diamonds.
-				</p>
-				<button className="sea-button intro-play" onClick={onPlay}>PLAY</button>
+				<p className="text-box story">{t("intro.story")}</p>
+				<button className="sea-button intro-play" onClick={onPlay}>{t("intro.play")}</button>
 			</div>
 		</Screen>
 	);
