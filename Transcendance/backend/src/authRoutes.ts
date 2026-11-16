@@ -1,6 +1,7 @@
 import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
+import prisma from "./prisma";
 import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
 import { createRateLimiter } from "./rateLimit";
 
@@ -229,6 +230,47 @@ router.get("/me", requireAuth, (req, res) => {
         res.status(500).json({
             message: "Could not load user."
         });
+    }
+});
+
+router.get("/progression", requireAuth, async (req, res) => {
+    const userId = req.userId;
+
+    if (userId === undefined) {
+        res.status(401).json({ message: "Not logged in." });
+        return;
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                totalXp: true,
+                achievements: {
+                    select: {
+                        achievementKey: true,
+                        unlockedAt: true,
+                    },
+                },
+                multiplayerWins: true,
+            },
+        });
+
+        if (!user) {
+            res.status(404).json({ message: "User not found." });
+            return;
+        }
+
+        res.json({
+            totalXp: user.totalXp,
+            level: Math.floor(user.totalXp / 100) + 1,
+            achievements: user.achievements,
+            multiplayerWins: user.multiplayerWins,
+            winsUntilTen: Math.max(0, 10 - user.multiplayerWins),
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Could not load progression." });
     }
 });
 
