@@ -60,15 +60,71 @@ export async function saveMatch(state: GameState, database: typeof prisma = pris
         });
 
         for (const player of players) {
+            const xpEarned =
+                player.result === "forfeit"
+                    ? 0
+                    : 10 + (player.result === "win" ? 10 : 0);
+            if (xpEarned > 0) {
+                await tx.user.update({
+                    where: { id: player.userId },
+                    data: { totalXp: { increment: xpEarned } },
+                });
+            }
+            if (player.result === "win" && player.deaths === 0) {
+                await tx.userAchievement.upsert({
+                    where: {
+                        userId_achievementKey: {
+                            userId: player.userId,
+                            achievementKey: "no_death_win",
+                        },
+                    },
+                    create: {
+                        userId: player.userId,
+                        achievementKey: "no_death_win",
+                    },
+                    update: {},
+                });
+            }
+            if (player.result === "win" && endReason === "exit" && player.moves < 60) {
+                await tx.userAchievement.upsert({
+                    where: {
+                        userId_achievementKey: {
+                            userId: player.userId,
+                            achievementKey: "fast_exit",
+                        },
+                    },
+                    create: {
+                        userId: player.userId,
+                        achievementKey: "fast_exit",
+                    },
+                    update: {},
+                });
+            }
             if (player.result === "draw")
                 continue;
 
-            await tx.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: player.userId },
                 data: player.result === "win"
                     ? { multiplayerWins: { increment: 1 } }
                     : { multiplayerLosses: { increment: 1 } },
             });
+
+            if (player.result === "win" && updatedUser.multiplayerWins >= 10) {
+                await tx.userAchievement.upsert({
+                    where: {
+                        userId_achievementKey: {
+                            userId: player.userId,
+                            achievementKey: "ten_online_wins",
+                        },
+                    },
+                    create: {
+                        userId: player.userId,
+                        achievementKey: "ten_online_wins",
+                    },
+                    update: {},
+                });
+            }
         }
     });
 }

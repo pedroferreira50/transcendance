@@ -28,6 +28,7 @@ describe("saveMatch database transaction", () => {
 		for (const migration of [
 			"20261109160000_baseline_users",
 			"20261109170000_match_history",
+			"20261116102500_gamification",
 		]) {
 			setupDatabase.exec(readFileSync(
 				resolve("prisma", "migrations", migration, "migration.sql"),
@@ -81,15 +82,23 @@ describe("saveMatch database transaction", () => {
 			"SELECT COUNT(*) AS count FROM match_players",
 		).get() as { count: number };
 		const users = verificationDatabase.prepare(
-			"SELECT multiplayer_wins, multiplayer_losses FROM users ORDER BY id",
-		).all() as { multiplayer_wins: number; multiplayer_losses: number }[];
+			"SELECT total_xp, multiplayer_wins, multiplayer_losses FROM users ORDER BY id",
+		).all() as {
+			total_xp: number;
+			multiplayer_wins: number;
+			multiplayer_losses: number;
+		}[];
+		const achievementCount = verificationDatabase.prepare(
+			"SELECT COUNT(*) AS count FROM user_achievements",
+		).get() as { count: number };
 		verificationDatabase.close();
 
 		expect(matchCount.count).toBe(0);
 		expect(playerCount.count).toBe(0);
 		expect(users).toEqual([
-			{ multiplayer_wins: 0, multiplayer_losses: 0 },
-			{ multiplayer_wins: 0, multiplayer_losses: 0 },
+			{ total_xp: 0, multiplayer_wins: 0, multiplayer_losses: 0 },
+			{ total_xp: 0, multiplayer_wins: 0, multiplayer_losses: 0 },
 		]);
+		expect(achievementCount.count).toBe(0);
 	});
 });
