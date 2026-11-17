@@ -154,12 +154,13 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 				mySlot: start.you,
 				showWalls: showWalls.current,
 				sharks: sharks.current,
+				names: start.local ? state.current.players.map((p) => t("game.localPlayer", { n: p.slot + 1 })) : undefined,
 			});
 			frame = requestAnimationFrame(draw);
 		};
 		frame = requestAnimationFrame(draw);
 		return () => cancelAnimationFrame(frame);
-	}, [assets, start]);
+	}, [assets, start, t]);
 
 	// Leaves the match, or stops watching it.
 	// Local: the server ends the match as if the time was over, and its game:end opens the WINNER screen

@@ -1,8 +1,9 @@
 import type { Server, Socket } from "socket.io";
-import { CHARACTERS } from "./game/config";
+import { CHARACTERS, defaultOptions } from "./game/config";
 import type { GameManager, MatchPlayer } from "./game/GameManager";
+import { readOptions } from "./game/gameSocket";
 import { mapsFor, type PlayerCount } from "./game/mapLoader";
-import type { Character, DynamicState } from "./game/types";
+import type { Character, DynamicState, MatchOptions } from "./game/types";
 
 // One player's state while sitting in a lobby, before any match has started.
 type LobbyPlayer = {
@@ -22,6 +23,7 @@ type Lobby = {
     players: LobbyPlayer[];
     seats: PlayerCount; // how many players the match needs (2, 3 or 4)
     map: string; // "random" or one of mapsFor(seats)
+    options: MatchOptions; // the time, the sharks and the power-ups of the match
     gameId: string | null;
 };
 
@@ -63,8 +65,10 @@ function findLobby(socketId: string): Lobby | undefined {
 }
 
 // lobby:settings comes from the browser, so it can be anything: only
-// { seats: 2 | 3 | 4, map: "random" or a map for that many players } passes.
-export function readSettings(data: unknown): { seats: PlayerCount; map: string } | null {
+// { seats: 2 | 3 | 4, map: "random" or a map for that many players, options? } passes
+// (options: see readOptions; not sent = undefined, and whoever calls decides: the default ones
+// for a new lobby, the current ones for the SETTINGS of a lobby).
+export function readSettings(data: unknown): { seats: PlayerCount; map: string; options?: MatchOptions } | null {
     if (typeof data !== "object" || data === null || !("seats" in data) || !("map" in data)) {
         return null;
     }
@@ -80,7 +84,17 @@ export function readSettings(data: unknown): { seats: PlayerCount; map: string }
         return null;
     }
 
-    return { seats, map };
+    if (!("options" in data)) {
+        return { seats, map };
+    }
+
+    const options = readOptions(data.options);
+
+    if (!options) {
+        return null;
+    }
+
+    return { seats, map, options };
 }
 
 // lobby:spectate: only { code: string } passes.
@@ -130,6 +144,7 @@ function lobbyState(lobby: Lobby) {
         hostId: lobby.hostId,
         seats: lobby.seats,
         map: lobby.map,
+        options: lobby.options,
         players: lobby.players.map((player) => ({
             id: player.id,
             username: player.username,
@@ -161,6 +176,7 @@ function startMatch(io: Server, games: GameManager, lobby: Lobby) {
         lobby.gameId = games.createGame({
             players,
             map: lobby.map,
+            options: lobby.options,
             onEnd: (final) => endMatch(io, lobby, final)
         });
     } catch (error) {
@@ -287,7 +303,7 @@ export function setupLobby(io: Server, games: GameManager) {
                 return;
             }
 
-            // the players and the map chosen before creating; without them (or invalid): 2 players, random map
+            // the players, the map and the options chosen before creating; without them (or invalid): 2 players, random map, default options
             const settings = readSettings(data);
             const code = generateLobbyCode();
 
@@ -297,6 +313,7 @@ export function setupLobby(io: Server, games: GameManager) {
                 players: [{ id: socket.id, userId: socket.data.userId, username: socket.data.username, character: null, ready: false }],
                 seats: settings ? settings.seats : 2,
                 map: settings ? settings.map : "random",
+                options: settings?.options ?? defaultOptions(),
                 gameId: null
             };
 
@@ -396,6 +413,10 @@ export function setupLobby(io: Server, games: GameManager) {
 
             lobby.seats = settings.seats;
             lobby.map = settings.map;
+            // without options (only the players or the map changed), the lobby keeps the ones it has
+            if (settings.options) {
+                lobby.options = settings.options;
+            }
             lobby.players.forEach((player) => {
                 player.ready = false;
             });

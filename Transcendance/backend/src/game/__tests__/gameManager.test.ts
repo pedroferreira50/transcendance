@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, SIZE_RULES } from "../config";
+import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, SIZE_RULES } from "../config";
 import { GameManager, type MatchPlayer, type Transport } from "../GameManager";
 import { mapsFor } from "../mapLoader";
 import type { DynamicState, GameEvent, GameStart } from "../types";
@@ -177,6 +177,7 @@ describe("broadcast", () => {
 		vi.advanceTimersByTime(1000 + BROADCAST_INTERVAL_MS);
 		const after = last(events("game:state")).data as DynamicState;
 		expect(after.timeLeftMs).toBeLessThan(before.timeLeftMs);
+
 	});
 
 	test("a move is sent in the next broadcast, with its events", () => {
@@ -191,6 +192,23 @@ describe("broadcast", () => {
 		expect(state.players[0].diamonds).toBe(1);
 		const sentEvents = last(events("game:event")).data as GameEvent[];
 		expect(sentEvents).toEqual([{ type: "diamond", slot: 0, pos: { x: 2, y: 1 } }]);
+	});
+});
+
+describe("options", () => {
+	test("the sharks step at the chosen speed", () => {
+		for (const sharks of ["slow", "normal", "fast"] as const) {
+			const fake = fakeTransport();
+			const manager = new GameManager(fake.transport, seeded(1));
+			manager.createGame({ players: PLAYERS, map: "small-1", options: { time: "normal", sharks, powerUps: [] } });
+			vi.advanceTimersByTime(STARTED_MS);
+			const tick = vi.spyOn(manager.find(1)!.room, "tickMonsters");
+			vi.advanceTimersByTime(3000);
+			expect(tick, sharks).toHaveBeenCalledTimes(Math.floor((STARTED_MS + 3000) / MONSTER_INTERVAL_MS[sharks]) - Math.floor(STARTED_MS / MONSTER_INTERVAL_MS[sharks]));
+			manager.find(1)!.room.leave(0); // ends the match: its timers stop
+			vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+		}
+		expect(MONSTER_INTERVAL_MS).toEqual({ slow: 750, normal: 500, fast: 300 });
 	});
 });
 

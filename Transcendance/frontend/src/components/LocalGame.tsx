@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { defaultOptions } from "../game/options";
+import type { Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
 import { useTranslation } from "react-i18next";
-import type { Character, DynamicState, GameStart } from "../game/protocol";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
 import MapSelect from "./MapSelect";
+import Options from "./Options";
 import Screen from "./Screen";
 import Winner from "./Winner";
 import "./Lobby.css";
@@ -16,12 +18,14 @@ type LocalGameProps = {
 const FISH: Character[] = ["goldfish", "betta", "angler", "puffer"];
 
 // PLAY LOCAL: two players on the same keyboard. The match runs on the server, like an online one:
-// the map, the fish of each player, the match and the WINNER screen, all inside this component
+// the map, the options, the fish of each player, the match and the WINNER screen, all inside this component
 export default function LocalGame({ onExit }: LocalGameProps) {
 	const { t } = useTranslation();
 	// The keys of each player (the same as input.ts)
 	const keys = [t("local.keys"), t("local.keys2")];
 	const [map, setMap] = useState<string | null>(null); // null: still choosing the map
+	const [options, setOptions] = useState<MatchOptions>(defaultOptions()); // kept when the « of FISH goes back to OPTIONS
+	const [optionsChosen, setOptionsChosen] = useState(false); // false: still on the OPTIONS screen
 	const [fish, setFish] = useState<(Character | null)[]>([null, null]); // the fish of Player 1 and Player 2
 	const [message, setMessage] = useState("");
 	const [match, setMatch] = useState<GameStart | null>(null);
@@ -72,18 +76,21 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 	function handleStart() {
 		setMessage("");
-		socket.emit("local:start", { map, characters: fish });
+		socket.emit("local:start", { map, characters: fish, options });
 	}
 
 	if (match)
 		return <GameScreen mode="local" start={match} onEnd={handleMatchEnd} />;
 	if (result)
-		return <Winner final={result} backLabel={t("winner.playAgain")} onBack={() => setResult(null)} onExit={handleExit} />;
+		return <Winner final={result} backLabel={t("winner.playAgain")} local onBack={() => setResult(null)} onExit={handleExit} />;
 	if (map === null)
 		return <MapSelect players={2} onChoose={setMap} onBack={handleExit} />;
+	if (!optionsChosen)
+		return <Options initial={options} confirmLabel={t("options.next")} onChoose={(chosen) => { setOptions(chosen); setOptionsChosen(true); }} onBack={() => setMap(null)} />;
 
 	return (
-		<Screen title={t("local.fishTitle")} onBack={() => setMap(null)}>
+
+		<Screen title={t("local.fishTitle")} onBack={() => setOptionsChosen(false)}>
 			<div className="local-setup">
 				{[0, 1].map((slot) => (
 					<div key={slot} className="local-player">

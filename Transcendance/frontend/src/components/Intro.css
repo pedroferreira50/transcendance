@@ -4,7 +4,7 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: space-evenly;
-	gap: clamp(1.5rem, 5vh, 4rem);
+	gap: clamp(0.75rem, 5vh, 4rem);
 }
 
 /* the speech balloon: the text box with a "tail" in the bottom left corner */
@@ -24,6 +24,9 @@
 
 	@media (max-width: 700px), (max-height: 500px) {
 		max-width: 30em; /* there the images are not on the sides of the box */
+	}
+	@media (max-height: 500px) {
+		line-height: 1.5;
 	}
 
 	/* the tail is a triangle: a box without size where only one border has color */

@@ -139,7 +139,7 @@ process.stdin.on("keypress", (_text: string, key: { name?: string; ctrl?: boolea
 		room.move(slot, what, Date.now());
 });
 
-setInterval(() => room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS);
+setInterval(() => room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS.normal);
 setInterval(() => room.tickSecond(Date.now()), 1000);
 setInterval(() => {
 	const now = Date.now();

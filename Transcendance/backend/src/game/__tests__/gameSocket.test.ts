@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Socket } from "socket.io";
-import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, RECONNECT_TIMEOUT_MS } from "../config";
+import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, RECONNECT_TIMEOUT_MS, SIZE_RULES, defaultOptions } from "../config";
 import { GameManager, type MatchPlayer, type Transport } from "../GameManager";
-import { readDirection, readLocalSetup, readSlot, registerGameEvents } from "../gameSocket";
+import { readDirection, readLocalSetup, readOptions, readSlot, registerGameEvents } from "../gameSocket";
 import type { GameStart } from "../types";
 import { seeded } from "./helpers";
 
@@ -279,7 +279,9 @@ describe("readSlot and readLocalSetup", () => {
 
 	test("accepts a map for 2 players (or random) and two different fish", () => {
 		expect(readLocalSetup({ map: "small-1", characters: ["goldfish", "betta"] }))
-			.toEqual({ map: "small-1", characters: ["goldfish", "betta"] });
+			.toEqual({ map: "small-1", characters: ["goldfish", "betta"], options: defaultOptions() });
+		const options = { time: "short", sharks: "slow", powerUps: [] };
+		expect(readLocalSetup({ map: "small-1", characters: ["goldfish", "betta"], options })).toMatchObject({ options });
 		expect(readLocalSetup({ map: "random", characters: ["angler", "puffer"] })).not.toBeNull();
 	});
 
@@ -292,9 +294,40 @@ describe("readSlot and readLocalSetup", () => {
 			{ map: "small-1", characters: ["goldfish", "shark"] },
 			{ map: "small-1", characters: ["goldfish"] },
 			{ map: 1, characters: ["goldfish", "betta"] },
+			{ map: "small-1", characters: ["goldfish", "betta"], options: { time: "short" } },
 		];
 		for (const data of wrong)
 			expect(readLocalSetup(data)).toBeNull();
+	});
+});
+
+describe("readOptions", () => {
+	test("not sent: normal time, normal sharks and every power-up", () => {
+		expect(readOptions(undefined)).toEqual({ time: "normal", sharks: "normal", powerUps: ["speed", "freeze", "enchant"] });
+	});
+
+	test("each time, each speed and any group of power-ups (none included), always in the same order", () => {
+		expect(readOptions({ time: "short", sharks: "fast", powerUps: [] })).toEqual({ time: "short", sharks: "fast", powerUps: [] });
+		expect(readOptions({ time: "long", sharks: "slow", powerUps: ["enchant", "speed"] }))
+			.toEqual({ time: "long", sharks: "slow", powerUps: ["speed", "enchant"] });
+	});
+
+	test("refuses anything else", () => {
+		const ok = { time: "normal", sharks: "normal", powerUps: ["speed"] };
+		const wrong = [
+			null,
+			"fast",
+			{},
+			{ time: "normal", sharks: "normal" },
+			{ ...ok, time: "forever" },
+			{ ...ok, sharks: "turbo" },
+			{ ...ok, powerUps: "speed" },
+			{ ...ok, powerUps: ["speed", "speed"] },
+			{ ...ok, powerUps: ["shark"] },
+			{ ...ok, powerUps: [1] },
+		];
+		for (const data of wrong)
+			expect(readOptions(data)).toBeNull();
 	});
 });
 
@@ -319,6 +352,18 @@ describe("local match", () => {
 		expect(room.state.local).toBe(true);
 		expect(room.state.players.map((p) => p.username)).toEqual(["Player 1", "Player 2"]);
 		expect(room.state.players.map((p) => p.userId)).toEqual([null, null]);
+	});
+
+	test("local:start with options: the match uses them", () => {
+		const starts: GameStart[] = [];
+		const games = new GameManager({ ...transport, toSocket: (_id, event, data) => {
+			if (event === "game:start")
+				starts.push(data as GameStart);
+		} }, seeded(1));
+		const ana = fakeSocket("s1", 1);
+		registerGameEvents(ana.socket, games);
+		ana.send("local:start", { map: "small-1", characters: ["goldfish", "betta"], options: { time: "short", sharks: "normal", powerUps: [] } });
+		expect(starts[0].state.timeLeftMs).toBe(SIZE_RULES.small.timeLimitMs - 60_000);
 	});
 
 	test("each command moves the fish of its slot; without a slot nothing moves", () => {

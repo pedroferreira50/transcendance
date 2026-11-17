@@ -1,8 +1,6 @@
 import { MONSTER_MIN_SPAWN_DISTANCE } from "./config";
 import type { GameState, MapData, Position, PowerUp, PowerUpType } from "./types";
 
-export const POWERUP_TYPES: PowerUpType[] = ["speed", "freeze", "enchant"];
-
 // To use a position as a key of Set/Map | "3,5" 
 export function posKey(pos: Position): string {
 	return `${pos.x},${pos.y}`;
@@ -72,14 +70,14 @@ export function placeDiamonds(map: MapData, count: number, occupied: Position[],
 	return pickRandom(freeCells(map, occupied), count, random);
 }
 
-// One new power-up during the match, or null if there is no free cell
-export function placePowerUp(map: MapData, state: GameState, random: () => number): PowerUp | null {
+// One new power-up during the match, of one of these types, or null if there is no free cell (or no type)
+export function placePowerUp(map: MapData, state: GameState, types: PowerUpType[], random: () => number): PowerUp | null {
 	const players = state.players.filter((p) => p.status !== "dead" && p.status !== "left").map((p) => p.pos);
 	const powerUps = state.powerUps.map((p) => p.pos);
 	const cells = freeCells(map, [...state.diamonds, ...state.monsters, ...powerUps, ...players]);
-	if (cells.length === 0)
+	if (cells.length === 0 || types.length === 0)
 		return null;
 	const [pos] = pickRandom(cells, 1, random);
-	const type = POWERUP_TYPES[Math.floor(random() * POWERUP_TYPES.length)];
+	const type = types[Math.floor(random() * types.length)];
 	return { type, pos };
 }

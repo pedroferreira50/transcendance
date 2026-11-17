@@ -1,9 +1,9 @@
 import type { Server, Socket } from "socket.io";
-import { CHARACTERS } from "./config";
+import { CHARACTERS, MATCH_TIMES, POWERUP_TYPES, SHARK_SPEEDS, defaultOptions } from "./config";
 import type { GameManager } from "./GameManager";
 import { DIRECTIONS } from "./GameRoom";
 import { mapsFor } from "./mapLoader";
-import type { Character, Direction } from "./types";
+import type { Character, Direction, MatchOptions } from "./types";
 
 // What the browser sends can be anything (an old version, a bug, someone typing in the console):
 // only { dir: "up" | "down" | "left" | "right" } becomes a Direction, everything else is null
@@ -25,16 +25,39 @@ export function readSlot(data: unknown): number | null {
 	return null;
 }
 
+// The options of a match (lobby:settings, local:start): not sent = the default ones, anything wrong = null
+// { time: "short" | "normal" | "long", sharks: "slow" | "normal" | "fast", powerUps: the ones that can appear }
+export function readOptions(data: unknown): MatchOptions | null {
+	if (data === undefined)
+		return defaultOptions();
+	if (typeof data !== "object" || data === null || !("time" in data) || !("sharks" in data) || !("powerUps" in data))
+		return null;
+	const time = MATCH_TIMES.find((t) => t === data.time);
+	const sharks = SHARK_SPEEDS.find((s) => s === data.sharks);
+	const sent: unknown = data.powerUps;
+	if (!time || !sharks || !Array.isArray(sent))
+		return null;
+	// in the order of POWERUP_TYPES; an unknown or repeated one makes the lists differ in size
+	const powerUps = POWERUP_TYPES.filter((type) => sent.includes(type));
+	if (powerUps.length !== sent.length)
+		return null;
+	return { time, sharks, powerUps };
+}
+
 export type LocalSetup = {
 	map: string; // "random" or a map for 2 players
 	characters: [Character, Character]; // the fish of slot 0 and of slot 1, never the same
+	options: MatchOptions;
 };
 
-// local:start { map, characters }: the same care as readDirection, the data can be anything
+// local:start { map, characters, options? }: the same care as readDirection, the data can be anything
 export function readLocalSetup(data: unknown): LocalSetup | null {
 	if (typeof data !== "object" || data === null || !("map" in data) || !("characters" in data))
 		return null;
 	const { map, characters } = data;
+	const options = readOptions("options" in data ? data.options : undefined);
+	if (!options)
+		return null;
 	if (typeof map !== "string" || (map !== "random" && !mapsFor(2).includes(map)))
 		return null;
 	if (!Array.isArray(characters) || characters.length !== 2 || characters[0] === characters[1])
@@ -43,7 +66,7 @@ export function readLocalSetup(data: unknown): LocalSetup | null {
 	const second = CHARACTERS.find((c) => c === characters[1]);
 	if (!first || !second)
 		return null;
-	return { map, characters: [first, second] };
+	return { map, characters: [first, second], options };
 }
 
 // server.ts will call, once: every socket that connects gets the game events
@@ -82,7 +105,7 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 			{ userId, username: `Player ${slot + 1}`, character, socketId: socket.id }
 		));
 		try {
-			games.createGame({ players, map: setup.map, local: true });
+			games.createGame({ players, map: setup.map, local: true, options: setup.options });
 		} catch (error) {
 			socket.emit("local:error", error instanceof Error ? error.message : "Could not start the match.");
 		}

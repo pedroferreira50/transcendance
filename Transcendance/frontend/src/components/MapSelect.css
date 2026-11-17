@@ -17,7 +17,7 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: var(--gap);
-	width: min(100%, 60rem);
+	width: min(100%, 60rem, 140vh); /* on short screens the 2 rows of cards also have to fit in the height */
 
 	@media (max-width: 700px) {
 		--columns: 2;

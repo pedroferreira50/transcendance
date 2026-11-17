@@ -154,6 +154,33 @@
     "start": "START",
     "fishOf": "Fish of player {{n}}"
   },
+  "options": {
+    "title": "OPTIONS",
+    "time": "TIME",
+    "sharks": "SHARKS",
+    "powerUps": "POWER-UPS",
+    "times": {
+      "short": "SHORT",
+      "normal": "NORMAL",
+      "long": "LONG"
+    },
+    "minutes": "{{value}} MIN",
+    "sharkSpeeds": {
+      "slow": "SLOW",
+      "normal": "NORMAL",
+      "fast": "FAST"
+    },
+    "powerUpNames": {
+      "speed": "speed",
+      "freeze": "freeze",
+      "enchant": "enchant"
+    },
+    "create": "CREATE",
+    "save": "SAVE",
+    "next": "NEXT",
+    "summary": "{{time}} TIME · {{sharks}} SHARKS",
+    "noPowerUps": "NO POWER-UPS"
+  },
   "winner": {
     "winner": "WINNER",
     "draw": "DRAW",
@@ -179,7 +206,8 @@
     "reconnecting": "RECONNECTING...",
     "stopWatching": "Stop watching",
     "leaveConfirmTitle": "LEAVE THE MATCH?",
-    "powerUp": "power-up"
+    "powerUp": "power-up",
+    "localPlayer": "Player {{n}}"
   },
   "legal": {
     "privacyTitle": "Privacy Policy",
