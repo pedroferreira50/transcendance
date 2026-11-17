@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { POWER_UPS, SHARK_SPEEDS, TIME_CHANGE, TIMES } from "../game/options";
+import { POWER_UPS, SHARK_SPEEDS, TIME_CHANGE_MS, TIMES } from "../game/options";
 import type { MatchOptions, PowerUpType } from "../game/protocol";
 import Screen from "./Screen";
 import "./Options.css";
@@ -12,6 +12,12 @@ type OptionsProps = {
 	onChoose: (options: MatchOptions) => void;
 	onBack: () => void;
 };
+
+// -60000 -> "-1", 120000 -> "+2": the minutes a time adds to the map, with the sign
+function minutes(ms: number): string {
+	const value = ms / 60_000;
+	return value > 0 ? `+${value}` : String(value);
+}
 
 // The rules of the match, after the map: the time, the speed of the sharks and the power-ups that can appear
 export default function Options({ initial, confirmLabel, message, onChoose, onBack }: OptionsProps) {
@@ -40,7 +46,9 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 									onClick={() => setOptions({ ...options, time })}
 								>
 									{t(`options.times.${time}`)}
-									{TIME_CHANGE[time] && <span className="option-hint">{TIME_CHANGE[time]}</span>}
+									{TIME_CHANGE_MS[time] !== 0 && (
+										<span className="option-hint">{t("options.minutes", { value: minutes(TIME_CHANGE_MS[time]) })}</span>
+									)}
 								</button>
 							))}
 						</div>
@@ -64,7 +72,7 @@ export default function Options({ initial, confirmLabel, message, onChoose, onBa
 
 					<div className="option-row">
 						<span className="option-name">{t("options.powerUps")}</span>
-						<div className="option-choices" role="group" aria-label={t("options.powerUps")}>
+						<div className="option-choices power-up-choices" role="group" aria-label={t("options.powerUps")}>
 							{POWER_UPS.map((type) => (
 								<button
 									key={type}

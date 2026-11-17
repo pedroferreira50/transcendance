@@ -66,8 +66,9 @@ function findLobby(socketId: string): Lobby | undefined {
 
 // lobby:settings comes from the browser, so it can be anything: only
 // { seats: 2 | 3 | 4, map: "random" or a map for that many players, options? } passes
-// (options: see readOptions; not sent = the default ones).
-export function readSettings(data: unknown): { seats: PlayerCount; map: string; options: MatchOptions } | null {
+// (options: see readOptions; not sent = undefined, and whoever calls decides: the default ones
+// for a new lobby, the current ones for the SETTINGS of a lobby).
+export function readSettings(data: unknown): { seats: PlayerCount; map: string; options?: MatchOptions } | null {
     if (typeof data !== "object" || data === null || !("seats" in data) || !("map" in data)) {
         return null;
     }
@@ -83,7 +84,11 @@ export function readSettings(data: unknown): { seats: PlayerCount; map: string; 
         return null;
     }
 
-    const options = readOptions("options" in data ? data.options : undefined);
+    if (!("options" in data)) {
+        return { seats, map };
+    }
+
+    const options = readOptions(data.options);
 
     if (!options) {
         return null;
@@ -308,7 +313,7 @@ export function setupLobby(io: Server, games: GameManager) {
                 players: [{ id: socket.id, userId: socket.data.userId, username: socket.data.username, character: null, ready: false }],
                 seats: settings ? settings.seats : 2,
                 map: settings ? settings.map : "random",
-                options: settings ? settings.options : defaultOptions(),
+                options: settings?.options ?? defaultOptions(),
                 gameId: null
             };
 
@@ -408,7 +413,10 @@ export function setupLobby(io: Server, games: GameManager) {
 
             lobby.seats = settings.seats;
             lobby.map = settings.map;
-            lobby.options = settings.options;
+            // without options (only the players or the map changed), the lobby keeps the ones it has
+            if (settings.options) {
+                lobby.options = settings.options;
+            }
             lobby.players.forEach((player) => {
                 player.ready = false;
             });

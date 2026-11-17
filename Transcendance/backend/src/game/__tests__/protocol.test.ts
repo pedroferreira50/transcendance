@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
-import { defaultOptions, MATCH_TIMES, POWERUP_TYPES, SHARK_SPEEDS } from "../config";
+import { defaultOptions, MATCH_TIMES, POWERUP_TYPES, SHARK_SPEEDS, TIME_CHANGE_MS } from "../config";
 import { mapsFor } from "../mapLoader";
 
 const BACKEND = path.join(__dirname, "..", "types.ts");
@@ -45,10 +45,11 @@ test("frontend maps.ts has the same maps for each number of players", async () =
 });
 
 // the screen OPTIONS of the frontend shows the choices of its copy: the same ones the server accepts
-test("frontend options.ts has the same choices and defaults", async () => {
+test("frontend options.ts has the same choices, time changes and defaults", async () => {
 	const frontend = await import(FRONTEND_OPTIONS);
 	expect(frontend.TIMES).toEqual(MATCH_TIMES);
 	expect(frontend.SHARK_SPEEDS).toEqual(SHARK_SPEEDS);
 	expect(frontend.POWER_UPS).toEqual(POWERUP_TYPES);
+	expect(frontend.TIME_CHANGE_MS).toEqual(TIME_CHANGE_MS);
 	expect(frontend.defaultOptions()).toEqual(defaultOptions());
 });

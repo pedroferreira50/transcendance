@@ -95,9 +95,17 @@
 	letter-spacing: 0;
 }
 
+/* the row of the power-ups never breaks: the 3 get smaller together instead */
+.power-up-choices {
+	flex-wrap: nowrap;
+}
+
 /* the power-ups: each one on or off; the bubble fades when it is off */
+/* each one as wide as its bubble or its name, whichever is bigger, so a long name ("enchantement") never covers the next bubble;
+   only on very narrow screens they get smaller (min-width: 0) and the long name breaks */
 .power-up-choice {
-	width: clamp(3.5rem, min(8vw, 12vh), 7rem);
+	flex: 0 1 auto;
+	min-width: 0;
 	padding: 0.3rem;
 	border: var(--line) solid transparent;
 	border-radius: 1rem;
@@ -105,7 +113,8 @@
 	cursor: pointer;
 
 	& img {
-		width: 100%;
+		width: clamp(3rem, min(8vw, 12vh), 6.4rem);
+		margin-inline: auto;
 		aspect-ratio: 1;
 		object-fit: contain;
 		display: block;
@@ -133,6 +142,13 @@
 	display: block;
 	margin-top: 0.2em;
 	font-family: var(--font-text); /* a button does not take the font of the page */
-	font-size: clamp(0.8rem, min(1.1vw, 2vh), 1rem);
+	font-size: clamp(0.75rem, min(1.1vw, 2vh), 1rem);
 	color: var(--sea-light);
+	text-align: center;
+	overflow-wrap: anywhere;
+
+	/* small phones (320 px): a bit smaller, so "velocidade" and "enchantement" still fit whole */
+	@media (max-width: 340px) {
+		font-size: 0.65rem;
+	}
 }

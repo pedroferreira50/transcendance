@@ -158,12 +158,13 @@
     "title": "OPÇÕES",
     "time": "TEMPO",
     "sharks": "TUBARÕES",
-    "powerUps": "POWER-UPS",
+    "powerUps": "PODERES",
     "times": {
       "short": "CURTO",
       "normal": "NORMAL",
       "long": "LONGO"
     },
+    "minutes": "{{value}} MIN",
     "sharkSpeeds": {
       "slow": "LENTOS",
       "normal": "NORMAIS",
@@ -178,7 +179,7 @@
     "save": "SALVAR",
     "next": "PRÓXIMO",
     "summary": "TEMPO {{time}} · TUBARÕES {{sharks}}",
-    "noPowerUps": "SEM POWER-UPS"
+    "noPowerUps": "SEM PODERES"
   },
   "winner": {
     "winner": "VENCEDOR",
@@ -205,7 +206,8 @@
     "reconnecting": "RECONECTANDO...",
     "stopWatching": "Parar de assistir",
     "leaveConfirmTitle": "SAIR DA PARTIDA?",
-    "powerUp": "power-up"
+    "powerUp": "power-up",
+    "localPlayer": "Jogador {{n}}"
   },
   "legal": {
     "privacyTitle": "Política de Privacidade",

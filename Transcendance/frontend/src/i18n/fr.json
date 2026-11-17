@@ -164,6 +164,7 @@
       "normal": "NORMAL",
       "long": "LONG"
     },
+    "minutes": "{{value}} MIN",
     "sharkSpeeds": {
       "slow": "LENTS",
       "normal": "NORMAUX",
@@ -205,7 +206,8 @@
     "reconnecting": "RECONNEXION...",
     "stopWatching": "Arrêter d'observer",
     "leaveConfirmTitle": "QUITTER LA PARTIE ?",
-    "powerUp": "bonus"
+    "powerUp": "bonus",
+    "localPlayer": "Joueur {{n}}"
   },
   "legal": {
     "privacyTitle": "Politique de confidentialité",

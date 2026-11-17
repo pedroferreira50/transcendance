@@ -164,6 +164,7 @@
       "normal": "NORMAL",
       "long": "LONG"
     },
+    "minutes": "{{value}} MIN",
     "sharkSpeeds": {
       "slow": "SLOW",
       "normal": "NORMAL",
@@ -205,7 +206,8 @@
     "reconnecting": "RECONNECTING...",
     "stopWatching": "Stop watching",
     "leaveConfirmTitle": "LEAVE THE MATCH?",
-    "powerUp": "power-up"
+    "powerUp": "power-up",
+    "localPlayer": "Player {{n}}"
   },
   "legal": {
     "privacyTitle": "Privacy Policy",

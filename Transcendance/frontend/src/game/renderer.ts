@@ -22,6 +22,7 @@ export type Frame = {
 	mySlot: number | null; // whose screen this is (null = local match, both players)
 	showWalls: boolean; // F2
 	sharks: SharkMemory;
+	names?: string[]; // local match: the names to draw, by slot ("Jogador 1"...), translated by the screen
 };
 
 const WALL = "#1b2b36";
@@ -170,9 +171,10 @@ function drawPlayer(f: Frame, p: PlayerView): void {
 	ctx.textBaseline = "bottom";
 	ctx.lineWidth = 3;
 	ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
-	ctx.strokeText(p.username, x + tile / 2, y + 2);
+	const name = f.names?.[p.slot] ?? p.username;
+	ctx.strokeText(name, x + tile / 2, y + 2);
 	ctx.fillStyle = "#fff";
-	ctx.fillText(p.username, x + tile / 2, y + 2);
+	ctx.fillText(name, x + tile / 2, y + 2);
 }
 
 function drawPlayers(f: Frame): void {

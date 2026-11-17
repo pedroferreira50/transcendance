@@ -237,21 +237,25 @@ const OptionsInfo: React.FC<OptionsInfoProps> = ({ options }) => {
 
   return (
     <span className="text-box lobby-settings lobby-options">
-      {t('options.summary', {
-        time: t(`options.times.${options.time}`),
-        sharks: t(`options.sharkSpeeds.${options.sharks}`)
-      })} ·{' '}
-      {options.powerUps.length === 0
-        ? t('options.noPowerUps')
-        : options.powerUps.map((type) => (
-            <img
-              key={type}
-              className="lobby-power-up"
-              src={`/art/icons/${type}.webp`}
-              alt={t(`options.powerUpNames.${type}`)}
-              title={t(`options.powerUpNames.${type}`)}
-            />
-          ))}
+      <span>
+        {t('options.summary', {
+          time: t(`options.times.${options.time}`),
+          sharks: t(`options.sharkSpeeds.${options.sharks}`)
+        })}
+      </span>
+      <span className="lobby-power-ups">
+        {options.powerUps.length === 0
+          ? t('options.noPowerUps')
+          : options.powerUps.map((type) => (
+              <img
+                key={type}
+                className="lobby-power-up"
+                src={`/art/icons/${type}.webp`}
+                alt={t(`options.powerUpNames.${type}`)}
+                title={t(`options.powerUpNames.${type}`)}
+              />
+            ))}
+      </span>
     </span>
   );
 };

@@ -9,6 +9,7 @@ type WinnerProps = {
 	onBack: () => void; // back to the lobby (a rematch)
 	onExit: () => void; // leaves the lobby
 	backLabel?: string; // the text of the onBack button (the local mode has no lobby)
+	local?: boolean; // local match: the fish are "Player 1" and "Player 2", shown in the chosen language
 };
 
 // The power-ups on the left and the diamonds on the right (% of the screen)
@@ -22,7 +23,7 @@ const DECORATIONS: Decoration[] = [
 ];
 
 // One player of the match: the portrait, the name, the diamonds and the deaths
-function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
+function Result({ player, name, winner }: { player: PlayerView; name: string; winner: boolean }) {
 	const { t } = useTranslation();
 	// left the match (or did not come back): their numbers stay, but faded
 	const gone = player.status === "left" || player.status === "disconnected";
@@ -35,7 +36,7 @@ function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
 	return (
 		<li className={className}>
 			<img className="result-portrait" src={`/art/portraits/${player.character}.webp`} alt="" />
-			<span className="result-name">{player.username}</span>
+			<span className="result-name">{name}</span>
 			<span className="result-numbers">
 				<img className="result-icon" src="/sprites/icon-diamond.webp" alt={t("winner.diamonds")} /> {player.diamonds}
 				<span className="result-deaths" aria-label={t("winner.deaths")}>☠ {player.deaths}</span>
@@ -46,9 +47,11 @@ function Result({ player, winner }: { player: PlayerView; winner: boolean }) {
 
 // The end of the match: who won (the fish on the turtle) and how everyone did.
 // A draw (the time ran out with a tie at the top) has no winner: only the turtle
-export default function Winner({ final, onBack, onExit, backLabel }: WinnerProps) {
+export default function Winner({ final, onBack, onExit, backLabel, local }: WinnerProps) {
 	const { t } = useTranslation();
+	const nameOf = (player: PlayerView) => (local ? t("game.localPlayer", { n: player.slot + 1 }) : player.username);
 	let winner: PlayerView | null = null;
+
 	if (final.winnerSlot !== null) {
 		winner = final.players[final.winnerSlot];
 	}
@@ -82,7 +85,7 @@ export default function Winner({ final, onBack, onExit, backLabel }: WinnerProps
 					src={winnerArt}
 					alt=""
 				/>
-				{winner && (<p className="winner-line">{t("winner.isWinner", { username: winner.username })}</p>)}
+				{winner && (<p className="winner-line">{t("winner.isWinner", { username: nameOf(winner) })}</p>)}
 				{!winner && <p className="winner-line">{t("winner.nobody")}</p>}
 				<p className="winner-reason">
 					{reason}
@@ -90,7 +93,7 @@ export default function Winner({ final, onBack, onExit, backLabel }: WinnerProps
 
 				<ul className="results">
 					{final.players.map((player) => (
-						<Result key={player.slot} player={player} winner={player.slot === final.winnerSlot} />
+						<Result key={player.slot} player={player} name={nameOf(player)} winner={player.slot === final.winnerSlot} />
 					))}
 				</ul>
 

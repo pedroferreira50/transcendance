@@ -102,8 +102,8 @@ function fullLobby() {
 
 describe("readSettings", () => {
 	test("accepts 2, 3 or 4 seats with random or a map for that number", () => {
-		expect(readSettings({ seats: 2, map: "random" })).toEqual({ seats: 2, map: "random", options: defaultOptions() });
-		expect(readSettings({ seats: 3, map: mapsFor(3)[0] })).toEqual({ seats: 3, map: mapsFor(3)[0], options: defaultOptions() });
+		expect(readSettings({ seats: 2, map: "random" })).toStrictEqual({ seats: 2, map: "random" });
+		expect(readSettings({ seats: 3, map: mapsFor(3)[0] })).toStrictEqual({ seats: 3, map: mapsFor(3)[0] });
 	});
 
 	test("with the options of the match, or refused if they are wrong", () => {
@@ -193,6 +193,21 @@ describe("lobby", () => {
 		expect(lastOf(bia, "lobby:update").options).toEqual(options);
 		ana.send("lobby:settings", { seats: 2, map: "random", options: { ...options, powerUps: ["shark"] } });
 		expect(lastOf(bia, "lobby:update").options).toEqual(options);
+	});
+
+	test("settings without options: the lobby keeps the ones it has", () => {
+		const { ana, bia } = fullLobby();
+		const options = { time: "long", sharks: "fast", powerUps: ["freeze"] };
+		ana.send("lobby:settings", { seats: 2, map: "random", options });
+		ana.send("lobby:settings", { seats: 3, map: "random" });
+		expect(lastOf(bia, "lobby:update").seats).toBe(3);
+		expect(lastOf(bia, "lobby:update").options).toEqual(options);
+	});
+
+	test("create without options: the default ones", () => {
+		const ana = server.connect("s1", 1, "ana");
+		ana.send("lobby:create", { seats: 2, map: "random" });
+		expect(lastOf(ana, "lobby:joined").options).toEqual(defaultOptions());
 	});
 
 	test("settings: never fewer seats than players inside", () => {

@@ -1,6 +1,7 @@
 .lobby-room {
 	flex: 1;
 	width: min(100%, 80rem);
+	min-width: 0; /* never wider than the screen, even if something inside is */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -57,6 +58,7 @@
 
 /* "LARGE 2 · 2 PLAYERS" and the SETTINGS of the host beside it */
 .lobby-info {
+	max-width: 100%;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -83,6 +85,13 @@
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: center;
+	gap: 0.3em 0.8em;
+	text-align: center;
+}
+
+.lobby-power-ups {
+	display: inline-flex;
+	align-items: center;
 	gap: 0.3em;
 }
 
@@ -93,6 +102,7 @@
 
 /* the seats side by side; on phones 2 in a row */
 .seats {
+	width: 100%;
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -117,7 +127,8 @@
 		opacity: 0.6;
 	}
 
-	@media (max-width: 700px) {
+	/* phones standing up (a phone lying down is short: it keeps the sizes above, that also follow the height) */
+	@media (max-width: 700px) and (min-height: 501px) {
 		--portrait: 22vw;
 
 		width: 22vw;
@@ -185,6 +196,7 @@
 
 /* the 4 fish; the one of others can not be chosen */
 .fish-choice {
+	max-width: 100%;
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
@@ -226,7 +238,7 @@
 		}
 	}
 
-	@media (max-width: 700px) {
+	@media (max-width: 700px) and (min-height: 501px) {
 		width: 16vw;
 	}
 }

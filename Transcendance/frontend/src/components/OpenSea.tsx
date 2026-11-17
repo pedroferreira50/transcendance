@@ -117,6 +117,7 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 		return (
 			<Winner
 				final={resumedEnd}
+				local={resumed.local}
 				backLabel={resumed.local ? t("winner.playAgain") : lobby ? undefined : t("lobby.lobbies")}
 				onBack={() => closeResumed(resumed.local ? "local" : "lobby")}
 				onExit={() => {
