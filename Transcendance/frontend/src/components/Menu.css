@@ -25,3 +25,9 @@
 .menu .form-message {
 	margin-top: 2vh;
 }
+
+@media (pointer: coarse) {
+	.menu .menu-local-button {
+		display: none;
+	}
+}

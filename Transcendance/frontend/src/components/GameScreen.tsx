@@ -7,6 +7,7 @@ import { loadMapImage, loadSprites, type Sprites } from "../game/sprites";
 import { socket } from "../socket";
 import { BackIcon } from "./Screen";
 import TouchControls from "./TouchControls";
+import usePointerCoarse from "./usePointerCoarse";
 import "./GameScreen.css";
 
 // The size the sprites and the map images were made at: never stretch them beyond it
@@ -54,7 +55,7 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	const [connected, setConnected] = useState(socket.connected); // false: the RECONNECTING message
 	const [leaveConfirm, setLeaveConfirm] = useState(false);
 	// phones and tablets (the main way to point is a finger); it does not change while the screen is open
-	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
+	const touch = usePointerCoarse();
 
 	// Once, when the screen opens: load the sprites and the image of the map
 	useEffect(() => {
