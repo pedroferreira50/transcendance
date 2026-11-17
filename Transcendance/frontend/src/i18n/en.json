@@ -72,6 +72,18 @@
   },
   "profile": {
     "title": "PROFILE",
+	"progression": "PROGRESSION",
+	"xp": "XP",
+	"level": "LEVEL",
+	"onlineWins": "ONLINE WINS",
+	"winsUntilTen": "WINS TO 10",
+	"achievements": {
+		"title": "ACHIEVEMENTS",
+		"empty": "No achievements unlocked yet.",
+		"no_death_win": "Win without dying",
+		  "fast_exit": "Exit in under 60 moves",
+		  "ten_online_wins": "10 online wins"
+	},
     "online": "ONLINE",
     "totals": "TOTALS",
     "matches": "MATCHES",
@@ -87,7 +99,7 @@
     "history": "HISTORY",
     "logout": "LOGOUT",
     "errors": {
-      "load": "Could not load your statistics."
+      "load": "Could not load your profile."
     }
   },
   "history": {
