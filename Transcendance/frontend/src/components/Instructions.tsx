@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import usePointerCoarse from "./usePointerCoarse";
 import { useTranslation } from "react-i18next";
 import Screen from "./Screen";
 import "./Instructions.css";
@@ -131,7 +132,7 @@ function PlayerKeys({ name, children }: { name: string; children: ReactNode }) {
 export default function Instructions({ onBack }: InstructionsProps) {
 	const { t } = useTranslation();
 	// phones and tablets: the same test as GameScreen. There the local mode (one keyboard) does not exist
-	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
+	const touch = usePointerCoarse();
 
 		const goals: Rule[] = [
 		{ icon: "diamond", text: t("instructions.goals.diamonds") },
