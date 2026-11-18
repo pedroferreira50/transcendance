@@ -72,6 +72,19 @@
   },
   "profile": {
     "title": "PERFIL",
+	"progression": "PROGRESSÃO",
+	"xp": "XP",
+	"level": "NÍVEL",
+	"onlineWins": "VITÓRIAS ONLINE",
+	"winsUntilTen": "VITÓRIAS EM FALTA",
+	"achievements": {
+	  "title": "CONQUISTAS",
+	  "empty": "Ainda não desbloqueaste conquistas.",
+	  "no_death_win": "Vitória sem morrer",
+	  "fast_exit": "Saída em menos de 60 movimentos",
+	  "ten_online_wins": "10 vitórias online"
+	},
+	"online": "ONLINE",
     "online": "ONLINE",
     "totals": "TOTAIS",
     "matches": "PARTIDAS",
@@ -87,7 +100,7 @@
     "history": "HISTÓRICO",
     "logout": "SAIR",
     "errors": {
-      "load": "Não foi possível carregar as tuas estatísticas."
+      "load": "Não foi possível carregar o teu perfil."
     }
   },
   "history": {
