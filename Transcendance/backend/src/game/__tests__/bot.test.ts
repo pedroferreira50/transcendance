@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { chooseTarget, dangerCells, decide, distances, findPath, look, newMemory, wantsPowerUp } from "../bot";
+import { chooseTarget, dangerCells, decide, distances, findPath, keyDelay, look, newMemory, wantsPowerUp } from "../bot";
 import { playMatch, randomOptions } from "../botArena";
-import { BOT_LEVELS, defaultOptions } from "../config";
+import { BOT_LEVELS, MOVE_COOLDOWN_MS, defaultOptions } from "../config";
 import { readOptions } from "../gameSocket";
 import { step } from "../GameRoom";
 import { loadMap, parseMap } from "../mapLoader";
@@ -426,6 +426,20 @@ describe("decide", () => {
 		state.players[0].frozenUntil = 0;
 		state.status = "finished";
 		expect(decide(state, 0, 1000, memory, CAREFUL, OPTIONS, MIDDLE).dir).toBeNull();
+	});
+});
+
+describe("keyDelay", () => {
+	test("twice as fast while the speed power-up lasts, like a person pressing faster", () => {
+		const me = fish(0, at(1, 1), { speedUntil: 5000 });
+		expect(keyDelay(me, 4999, CAREFUL)).toBe(CAREFUL.stepMs / 2);
+		expect(keyDelay(me, 5000, CAREFUL)).toBe(CAREFUL.stepMs);
+		expect(keyDelay(undefined, 0, CAREFUL)).toBe(CAREFUL.stepMs);
+	});
+
+	test("even with speed, HARD is never faster than the server lets a fish move", () => {
+		for (const params of Object.values(BOT_LEVELS))
+			expect(params.stepMs / 2).toBeGreaterThanOrEqual(MOVE_COOLDOWN_MS / 2);
 	});
 });
 

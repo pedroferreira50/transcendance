@@ -2,7 +2,7 @@
 //	npm run bot-arena -- [levelA] [levelB] [matches] [--options]
 //	npm run bot-arena -- normal hard 200             -> 200 matches of NORMAL against HARD, default options
 //	npm run bot-arena -- easy normal 100 --options   -> each match with options drawn at random
-import { decide, newMemory } from "./bot";
+import { decide, keyDelay, newMemory } from "./bot";
 import { BOT_LEVEL_NAMES, BOT_LEVELS, MATCH_TIMES, MONSTER_INTERVAL_MS, POWERUP_TYPES, SHARK_SPEEDS, defaultOptions } from "./config";
 import { GameRoom } from "./GameRoom";
 import { loadMap, mapsFor, mapSize } from "./mapLoader";
@@ -51,7 +51,7 @@ export function playMatch(levels: [BotLevel, BotLevel], mapName: string, options
 		for (const bot of bots) {
 			if (now < bot.nextKey)
 				continue;
-			bot.nextKey = now + bot.params.stepMs;
+			bot.nextKey = now + keyDelay(room.state.players[bot.slot], now, bot.params);
 			const action = decide(room.state, bot.slot, now, bot.memory, bot.params, options, random);
 			if (action.usePowerUp)
 				room.usePowerUp(bot.slot, now);
@@ -82,7 +82,16 @@ export function randomOptions(random: () => number): MatchOptions {
 	};
 }
 
-type Totals = { matches: number; wins: number; losses: number; draws: number; diamonds: number; deaths: number; powerUpsUsed: number; idle: number };
+type Totals = { 
+	matches: number;
+	wins: number;
+	losses: number;
+	draws: number;
+	diamonds: number;
+	deaths: number;
+	powerUpsUsed: number;
+	idle: number
+};
 
 // Adds up the numbers of one level on one side (slot 0 or 1) of all the matches
 function totals(matches: ArenaMatch[], level: BotLevel, side: 0 | 1): Totals {

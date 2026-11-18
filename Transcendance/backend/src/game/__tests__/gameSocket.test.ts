@@ -455,7 +455,7 @@ describe("bot match", () => {
 	test("bot:start: the player is slot 0 (you = 0), the bot is a guest in slot 1 with another fish", () => {
 		const { starts, room } = setupBot();
 		expect(starts).toHaveLength(1);
-		expect(starts[0]).toMatchObject({ you: 0, local: false });
+		expect(starts[0]).toMatchObject({ you: 0, local: false, bot: { slot: 1, level: "normal" } });
 		expect(room.state.players.map((p) => p.username)).toEqual(["ana", "BOT"]);
 		expect(room.state.players.map((p) => p.userId)).toEqual([1, null]);
 		expect(room.state.players[1].character).not.toBe("goldfish");
@@ -505,7 +505,7 @@ describe("bot match", () => {
 		const again = fakeSocket("s2", 1);
 		registerGameEvents(again.socket, games);
 		expect(resumes).toHaveLength(1);
-		expect(resumes[0]).toMatchObject({ you: 0, local: false });
+		expect(resumes[0]).toMatchObject({ you: 0, local: false, bot: { slot: 1, level: "normal" } });
 		expect(games.find(1)!.room.state.players[0].status).toBe("playing");
 	});
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { defaultOptions } from "../game/options";
+import { CHARACTERS, defaultOptions } from "../game/options";
 import type { Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
 import { useTranslation } from "react-i18next";
 import { socket } from "../socket";
@@ -14,8 +14,6 @@ import "./LocalGame.css";
 type LocalGameProps = {
 	onExit: () => void; // back to the menu
 };
-
-const FISH: Character[] = ["goldfish", "betta", "angler", "puffer"];
 
 // PLAY LOCAL: two players on the same keyboard. The match runs on the server, like an online one:
 // the map, the options, the fish of each player, the match and the WINNER screen, all inside this component
@@ -89,7 +87,6 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 		return <Options initial={options} confirmLabel={t("options.next")} onChoose={(chosen) => { setOptions(chosen); setOptionsChosen(true); }} onBack={() => setMap(null)} />;
 
 	return (
-
 		<Screen title={t("local.fishTitle")} onBack={() => setOptionsChosen(false)}>
 			<div className="local-setup">
 				{[0, 1].map((slot) => (
@@ -98,7 +95,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 							{t("local.player", { n: slot + 1 })} <span className="local-keys">{keys[slot]}</span>
 						</p>
 						<div className="fish-choice" role="group" aria-label={t("local.fishOf", { n: slot + 1 })}>
-							{FISH.map((character) => {
+							{CHARACTERS.map((character) => {
 								const other = fish[1 - slot] === character; // the other player already has it
 								let className = "fish-option";
 								if (fish[slot] === character) {

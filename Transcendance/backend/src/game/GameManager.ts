@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "socket.io";
-import { decide, newMemory, type BotMemory } from "./bot";
+import { decide, keyDelay, newMemory, type BotMemory } from "./bot";
 import { BOT_LEVELS, BROADCAST_INTERVAL_MS, CHARACTERS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, defaultOptions } from "./config";
 import { GameRoom, type PlayerInfo } from "./GameRoom";
 import { loadMap, mapSize, pickMap, type PlayerCount } from "./mapLoader";
-import type { BotLevel, DynamicState, GameStart, GameState, MapInfo, MatchOptions } from "./types";
+import type { BotInfo, BotLevel, DynamicState, GameStart, GameState, MapInfo, MatchOptions } from "./types";
 import { saveMatch } from "../persistence";
 
 // The part of Socket.IO the manager uses. Like now and random in GameRoom, it comes from outside:
@@ -46,6 +46,7 @@ type Bot = {
 	slot: number;
 	level: BotLevel;
 	memory: BotMemory;
+	nextKey: number; // when it may press its next key (keyDelay)
 };
 
 // One match running: the rules (room) and everything around it
@@ -62,6 +63,11 @@ type Game = {
 	timers: ReturnType<typeof setInterval>[]; // all the intervals of the match, to stop them at the end
 	onEnd?: (final: DynamicState) => void;
 };
+
+// What the screen needs to know about the bot of a match (null = only people play)
+function botInfo(game: Game): BotInfo | null {
+	return game.bot ? { slot: game.bot.slot, level: game.bot.level } : null;
+}
 
 type MatchPersister = (state: GameState) => Promise<void>; // Saves a completed match and its player results.
 
@@ -100,7 +106,7 @@ export class GameManager {
 		// local: the two fish are guests (userId null), so the match never counts in anyone's results
 		const infos: PlayerInfo[] = local ? setup.players.map((p) => ({ ...p, userId: null })) : [...setup.players];
 		// vs BOT: the bot is one more fish, a guest, with a fish none of the players has
-		const bot: Bot | null = setup.bot ? { slot: infos.length, level: setup.bot, memory: newMemory() } : null;
+		const bot: Bot | null = setup.bot ? { slot: infos.length, level: setup.bot, memory: newMemory(), nextKey: 0 } : null;
 		if (bot) {
 			const free = CHARACTERS.filter((c) => !infos.some((p) => p.character === c));
 			infos.push({ userId: null, username: "BOT", character: free[Math.floor(this.random() * free.length)] });
@@ -120,7 +126,7 @@ export class GameManager {
 			// local: only one game:start (the two slots are the same socket), and "you" = null: both fish are theirs
 			if (local && slot > 0)
 				return;
-			const start: GameStart = { gameId: id, map, you: local ? null : slot, state, countdown: COUNTDOWN_SECONDS, local };
+			const start: GameStart = { gameId: id, map, you: local ? null : slot, state, countdown: COUNTDOWN_SECONDS, local, bot: botInfo(game) };
 			this.transport.toSocket(player.socketId, "game:start", start); // one by one: each player gets their own "you"
 		});
 
@@ -129,9 +135,10 @@ export class GameManager {
 		game.timers.push(setInterval(() => game.room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS[options.sharks]));
 		game.timers.push(setInterval(() => game.room.tickSecond(Date.now()), 1000));
 		game.timers.push(setInterval(() => this.broadcast(game), BROADCAST_INTERVAL_MS));
-		// the bot presses its keys at the pace of its level (decide ignores everything until the match is running)
+		// the bot presses its keys at the pace of its level, twice as fast with speed: the timer runs at the fast pace
+		// and botTurn skips the turns that come too early (decide ignores everything until the match is running)
 		if (bot)
-			game.timers.push(setInterval(() => this.botTurn(game, bot), BOT_LEVELS[bot.level].stepMs));
+			game.timers.push(setInterval(() => this.botTurn(game, bot), BOT_LEVELS[bot.level].stepMs / 2));
 		return id;
 	}
 
@@ -175,7 +182,7 @@ export class GameManager {
 		});
 		this.transport.join(socketId, game.channel);
 		// countdown 0: the next game:countdown (if any) shows the number, like for a spectator
-		const resume: GameStart = { gameId: game.id, map: game.map, you: game.local ? null : slot, state: game.room.snapshot(now), countdown: 0, local: game.local };
+		const resume: GameStart = { gameId: game.id, map: game.map, you: game.local ? null : slot, state: game.room.snapshot(now), countdown: 0, local: game.local, bot: botInfo(game) };
 		this.transport.toSocket(socketId, "game:resume", resume);
 	}
 
@@ -190,7 +197,7 @@ export class GameManager {
 		this.spectatorGame.set(socketId, gameId);
 		game.spectators.add(socketId);
 		this.transport.join(socketId, game.channel);
-		const start: GameStart = { gameId, map: game.map, you: null, state: game.room.snapshot(Date.now()), countdown: 0, local: false };
+		const start: GameStart = { gameId, map: game.map, you: null, state: game.room.snapshot(Date.now()), countdown: 0, local: false, bot: null };
 		this.transport.toSocket(socketId, "game:start", start);
 	}
 
@@ -215,7 +222,12 @@ export class GameManager {
 	// Asks the bot for its next key and plays it with the same commands as a keyboard
 	private botTurn(game: Game, bot: Bot): void {
 		const now = Date.now();
-		const action = decide(game.room.state, bot.slot, now, bot.memory, BOT_LEVELS[bot.level], game.options, this.random);
+		const params = BOT_LEVELS[bot.level];
+		// a quarter of stepMs of margin: a timer that fires a little early still counts
+		if (now < bot.nextKey - params.stepMs / 4)
+			return;
+		bot.nextKey = now + keyDelay(game.room.state.players[bot.slot], now, params);
+		const action = decide(game.room.state, bot.slot, now, bot.memory, params, game.options, this.random);
 		if (action.usePowerUp)
 			game.room.usePowerUp(bot.slot, now);
 		if (action.dir)

@@ -4,7 +4,7 @@ import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
 import "./Menu.css";
 
-export type MenuChoice = "local" | "online" | "instructions" | "leaderboard";
+export type MenuChoice = "local" | "bot" | "online" | "instructions" | "leaderboard";
 
 type MenuProps = {
 	username: string | null; // null: nobody logged in
@@ -58,6 +58,7 @@ export default function Menu({ username, notice, onChoose, onAccount, onBack }: 
 				<img className="menu-fish" src="/art/fish/goldfish.webp" alt="" />
 				<div className="button-row">
 					{!touch && <button className="menu-local-button sea-button" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
+					<button className="sea-button" onClick={() => onChoose("bot")}>{t("menu.bot")}</button>
 					<button className="sea-button" onClick={() => onChoose("online")}>{t("menu.online")}</button>
 					<button className="sea-button" onClick={() => onChoose("instructions")}>{t("menu.instructions")}</button>
 					<button className="sea-button" onClick={() => onChoose("leaderboard")}>{t("menu.leaderboard")}</button>

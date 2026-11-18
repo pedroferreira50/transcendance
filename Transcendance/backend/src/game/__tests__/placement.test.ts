@@ -23,7 +23,7 @@ function player(slot: number, pos: Position, status: Player["status"] = "playing
 	return {
 		userId: slot, username: `p${slot}`, slot, character: "goldfish", pos, spawn: pos,
 		diamonds: 0, moves: 0, deaths: 0, facing: "right", status, lastMoveAt: 0, respawnAt: 0,
-		invulnerableUntil: 0, frozenUntil: 0, speedUntil: 0, enchantedUntil: 0, powerUp: null, disconnectedAt: null,
+		invulnerableUntil: 0, frozenUntil: 0, speedUntil: 0, enchantedUntil: 0, powerUp: null, powerUpsUsed: 0, disconnectedAt: null,
 	};
 }
 
@@ -31,7 +31,7 @@ function state(map: MapData, parts: Partial<GameState> = {}): GameState {
 	return {
 		id: "t", mapName: "test", width: map.width, height: map.height, walls: map.walls, exit: map.exit,
 		goal: 5, players: [], monsters: [], monstersFrozenUntil: 0, diamonds: [], powerUps: [],
-		nextPowerUpAt: 0, endsAt: 0, status: "running", winnerSlot: null, endReason: null, local: false, ...parts,
+		nextPowerUpAt: 0, endsAt: 0, startedAt: null, endedAt: null, status: "running", winnerSlot: null, endReason: null, local: false, ...parts,
 	};
 }
 

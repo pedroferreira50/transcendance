@@ -197,6 +197,7 @@ export function wantsPowerUp(
 				&& (safePath.length >= 8 || (me.diamonds >= state.goal && safePath.length >= 3));
 		case "freeze": {
 			// someone is about to win, or a shark is touching it
+			// TODO: freeze as soon as a rival has all its diamonds, not only when it is already close to the turtle (HARD is hard enough for now)
 			const toExit = distances(state.walls, state.exit);
 			const rivalLeaving = view.others.some((o) => o.onMap && o.diamonds >= state.goal
 				&& (toExit.get(posKey(o.pos)) ?? Infinity) <= 6);
@@ -213,6 +214,11 @@ export function wantsPowerUp(
 			return longWay || cornered;
 		}
 	}
+}
+
+// How long until its next key: half of it while the speed power-up lasts, like a person pressing faster
+export function keyDelay(me: Player | undefined, now: number, params: BotParams): number {
+	return me && now < me.speedUntil ? params.stepMs / 2 : params.stepMs;
 }
 
 // One key of the bot: looks again if it is time, picks the target and the path, and returns the step and the power-up

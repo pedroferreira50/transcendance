@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import { socket } from '../socket';
 import { mapLabel, type PlayerCount } from '../game/maps';
+import { CHARACTERS } from '../game/options';
 import type { Character, DynamicState, GameStart, MatchOptions } from '../game/protocol';
 import GameScreen from './GameScreen';
 import MapSelect from './MapSelect';
@@ -31,8 +32,6 @@ type LobbyProps = {
   initialLobby: LobbyState;
   onBack: () => void;
 };
-
-const FISH: Character[] = ['goldfish', 'betta', 'angler', 'puffer'];
 
 // The SETTINGS of the host: closed, choosing the players, or choosing the map for that number
 // (and then the options for that map, while settingsMap is not null)
@@ -189,7 +188,7 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
         </ul>
 
         <div className="fish-choice" role="group" aria-label={t('lobby.chooseFish')}>
-          {FISH.map((fish) => {
+          {CHARACTERS.map((fish) => {
             const owner = lobby.players.find((player) => player.character === fish);
 			let fishClass = 'fish-option';
             if (owner && owner === me) {
