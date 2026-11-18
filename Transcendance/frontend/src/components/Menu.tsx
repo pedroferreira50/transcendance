@@ -1,4 +1,4 @@
-import { useState } from "react";
+import usePointerCoarse from  "./usePointerCoarse";
 import { useTranslation } from "react-i18next";
 import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
@@ -40,7 +40,7 @@ function AccountIcon() {
 export default function Menu({ username, notice, onChoose, onAccount, onBack }: MenuProps) {
 	const { t } = useTranslation();
 	// phones and tablets: the same test as GameScreen. There is no keyboard for the local mode
-	const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
+	const touch = usePointerCoarse();
 	// logged in: the profile of the user; if not: the login
 	let accountLabel = t("menu.login");
 	if (username !== null) {
@@ -57,7 +57,7 @@ export default function Menu({ username, notice, onChoose, onAccount, onBack }: 
 			<div className="menu">
 				<img className="menu-fish" src="/art/fish/goldfish.webp" alt="" />
 				<div className="button-row">
-					{!touch && <button className="sea-button" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
+					{!touch && <button className="menu-local-button sea-button" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
 					<button className="sea-button" onClick={() => onChoose("online")}>{t("menu.online")}</button>
 					<button className="sea-button" onClick={() => onChoose("instructions")}>{t("menu.instructions")}</button>
 					<button className="sea-button" onClick={() => onChoose("leaderboard")}>{t("menu.leaderboard")}</button>

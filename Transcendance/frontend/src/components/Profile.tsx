@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import type { Session } from '../types/Session';
 import type { StatsResponse, UserStats } from '../types/Stats';
+
+import type { ProgressionResponse } from '../types/Progression';
+
 import Screen from './Screen';
 import './Profile.css';
 
@@ -43,6 +46,7 @@ const StatsBlock: React.FC<StatsBlockProps> = ({ title, items }) => (
 const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout }) => {
   const { t } = useTranslation();
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [progression, setProgression] = useState<ProgressionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
@@ -50,27 +54,39 @@ const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadStats() {
+  async function loadStats() {
       try {
-        const response = await api(`/users/${session.id}/stats`);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+        const [statsResponse, progressionResponse] = await Promise.all([
+          api(`/users/${session.id}/stats`),
+          api('/progression')
+        ]);
+
+        if (!statsResponse.ok) {
+          throw new Error(`HTTP ${statsResponse.status}`);
+        }
+        if (!progressionResponse.ok) {
+          throw new Error(`HTTP ${progressionResponse.status}`);
         }
 
-        const data: StatsResponse = await response.json();
-        if (!cancelled)
+        const data: StatsResponse = await statsResponse.json();
+        const progressionData: ProgressionResponse = await progressionResponse.json();
+
+        if (!cancelled) {
           setStats(data.stats);
+          setProgression(progressionData);
+        }
       } catch (loadError) {
-        if (cancelled)
+        if (cancelled) {
           return;
+        }
         console.error(loadError);
         setError(t('profile.errors.load'));
       } finally {
-        if (!cancelled)
+        if (!cancelled) {
           setLoading(false);
+        }
       }
-    }
-
+    }    
     void loadStats();
 
     return () => {
@@ -100,8 +116,34 @@ const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout 
           </div>
         )}
 
-        {!loading && !error && stats && (
+        {!loading && !error && stats && progression && (
           <>
+              <StatsBlock
+              title={t('profile.progression')}
+              items={[
+                { label: t('profile.xp'), value: progression.totalXp },
+                { label: t('profile.level'), value: progression.level },
+				{ label: t('profile.onlineWins'), value: progression.multiplayerWins },
+				{ label: t('profile.winsUntilTen'), value: progression.winsUntilTen }
+              ]}
+            />
+			<section className="stats-block">
+			  <span className="gold-badge">{t('profile.achievements.title')}</span>
+
+			  {progression.achievements.length === 0 ? (
+				<p>{t('profile.achievements.empty')}</p>
+			  ) : (
+				<div className="stats">
+				  {progression.achievements.map((achievement) => (
+					<div className="text-box stat" key={achievement.achievementKey}>
+					  <span className="stat-name">
+						{t(`profile.achievements.${achievement.achievementKey}`)}
+					  </span>
+					</div>
+				  ))}
+				</div>
+			  )}
+			</section>
             <StatsBlock
               title={t('profile.online')}
               items={[
