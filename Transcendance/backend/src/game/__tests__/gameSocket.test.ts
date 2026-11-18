@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Socket } from "socket.io";
 import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, RECONNECT_TIMEOUT_MS, SIZE_RULES, defaultOptions } from "../config";
 import { GameManager, type MatchPlayer, type Transport } from "../GameManager";
-import { readDirection, readLocalSetup, readOptions, readSlot, registerGameEvents } from "../gameSocket";
+import { readBotSetup, readDirection, readLocalSetup, readOptions, readSlot, registerGameEvents } from "../gameSocket";
+import { mapsFor } from "../mapLoader";
 import type { GameStart } from "../types";
 import { seeded } from "./helpers";
 
@@ -406,5 +407,121 @@ describe("local match", () => {
 		registerGameEvents(guest.socket, new GameManager(transport, seeded(1), async () => {}));
 		guest.send("local:start", { map: "small-1", characters: ["goldfish", "betta"] });
 		expect(guest.emitted.map((e) => e.event)).toEqual(["local:error"]);
+	});
+});
+
+describe("readBotSetup", () => {
+	test("accepts a map for 2 players (or random), a fish and a level", () => {
+		expect(readBotSetup({ map: "small-1", character: "betta", level: "hard" }))
+			.toEqual({ map: "small-1", character: "betta", options: defaultOptions(), level: "hard" });
+		const options = { time: "long", sharks: "fast", powerUps: ["freeze"] };
+		expect(readBotSetup({ map: "random", character: "puffer", level: "easy", options })).toMatchObject({ options });
+	});
+
+	test("refuses anything else", () => {
+		const wrong = [
+			undefined,
+			null,
+			{ map: "small-1", character: "betta" },
+			{ map: "small-1", level: "easy" },
+			{ map: "nowhere", character: "betta", level: "easy" },
+			{ map: mapsFor(4).find((m) => !mapsFor(2).includes(m)), character: "betta", level: "easy" },
+			{ map: "small-1", character: "shark", level: "easy" },
+			{ map: "small-1", character: "betta", level: "impossible" },
+			{ map: "small-1", character: "betta", level: "easy", options: { time: "short" } },
+		];
+		for (const data of wrong)
+			expect(readBotSetup(data)).toBeNull();
+	});
+});
+
+describe("bot match", () => {
+	function setupBot(level = "normal", persist = vi.fn(async () => {})) {
+		const starts: GameStart[] = [];
+		const resumes: GameStart[] = [];
+		const games = new GameManager({ ...transport, toSocket: (_id, event, data) => {
+			if (event === "game:start")
+				starts.push(data as GameStart);
+			if (event === "game:resume")
+				resumes.push(data as GameStart);
+		} }, seeded(1), persist);
+		const ana = fakeSocket("s1", 1);
+		ana.socket.data.username = "ana";
+		registerGameEvents(ana.socket, games);
+		ana.send("bot:start", { map: "small-1", character: "goldfish", level });
+		return { games, ana, starts, resumes, persist, room: games.find(1)!.room };
+	}
+
+	test("bot:start: the player is slot 0 (you = 0), the bot is a guest in slot 1 with another fish", () => {
+		const { starts, room } = setupBot();
+		expect(starts).toHaveLength(1);
+		expect(starts[0]).toMatchObject({ you: 0, local: false });
+		expect(room.state.players.map((p) => p.username)).toEqual(["ana", "BOT"]);
+		expect(room.state.players.map((p) => p.userId)).toEqual([1, null]);
+		expect(room.state.players[1].character).not.toBe("goldfish");
+	});
+
+	test("random: a map for 2 fish (the player and the bot)", () => {
+		const games = new GameManager(transport, seeded(3), async () => {});
+		const ana = fakeSocket("s1", 1);
+		registerGameEvents(ana.socket, games);
+		ana.send("bot:start", { map: "random", character: "goldfish", level: "easy" });
+		expect(mapsFor(2)).toContain(games.find(1)!.room.state.mapName);
+	});
+
+	test("the bot plays by itself once the match is running, and not before", () => {
+		const { room } = setupBot("hard");
+		vi.advanceTimersByTime(COUNTDOWN_SECONDS * 1000 - 100);
+		expect(room.state.players[1].moves).toBe(0); // the countdown: nobody moves yet
+		vi.advanceTimersByTime(5000);
+		expect(room.state.players[1].moves).toBeGreaterThan(0);
+	});
+
+	test("the commands of the player move only their fish, whatever slot the data says", () => {
+		const { ana, room } = setupBot();
+		vi.advanceTimersByTime(STARTED_MS);
+		const bot = { ...room.state.players[1].pos };
+		room.state.players[1].frozenUntil = Date.now() + 10_000; // keep the bot still for the test
+		ana.send("game:move", { dir: "right", slot: 1 });
+		expect(room.state.players[0].pos).toEqual({ x: 2, y: 1 });
+		expect(room.state.players[1].pos).toEqual(bot);
+	});
+
+	test("game:leave is a forfeit: the bot wins, and the match is not saved", () => {
+		const { games, ana, room, persist } = setupBot();
+		vi.advanceTimersByTime(STARTED_MS);
+		ana.send("game:leave");
+		vi.advanceTimersByTime(BROADCAST_INTERVAL_MS);
+		expect(room.state.winnerSlot).toBe(1);
+		expect(room.state.endReason).toBe("forfeit");
+		expect(games.count).toBe(0);
+		expect(persist).not.toHaveBeenCalled();
+	});
+
+	test("a new socket of the player gets game:resume and plays again (an F5)", () => {
+		const { games, ana, resumes } = setupBot();
+		vi.advanceTimersByTime(STARTED_MS);
+		ana.send("disconnect");
+		const again = fakeSocket("s2", 1);
+		registerGameEvents(again.socket, games);
+		expect(resumes).toHaveLength(1);
+		expect(resumes[0]).toMatchObject({ you: 0, local: false });
+		expect(games.find(1)!.room.state.players[0].status).toBe("playing");
+	});
+
+	test("can not be watched", () => {
+		const { games, starts } = setupBot();
+		expect(() => games.spectate(starts[0].gameId, "w1", 3)).toThrow();
+	});
+
+	test("refuses bad data, a socket without login and a user already in a match", () => {
+		const { ana } = setupBot();
+		ana.send("bot:start", { map: "small-1", character: "goldfish", level: "normal" });
+		ana.send("bot:start", { map: "small-1", character: "goldfish", level: "god" });
+		expect(ana.emitted.map((e) => e.event)).toEqual(["bot:error", "bot:error"]);
+		const guest = fakeSocket("s9");
+		registerGameEvents(guest.socket, new GameManager(transport, seeded(1), async () => {}));
+		guest.send("bot:start", { map: "small-1", character: "goldfish", level: "normal" });
+		expect(guest.emitted.map((e) => e.event)).toEqual(["bot:error"]);
 	});
 });

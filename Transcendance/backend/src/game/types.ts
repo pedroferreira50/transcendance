@@ -11,12 +11,23 @@ export type Character = "goldfish" | "betta" | "angler" | "puffer";
 export type PowerUpType = "speed" | "freeze" | "enchant";
 export type MatchTime = "short" | "normal" | "long"; // relative to the time of the map size
 export type SharkSpeed = "slow" | "normal" | "fast";
+export type BotLevel = "easy" | "normal" | "hard";
 
 // What the host (or the local player) chooses for the match: the same map, different rules
 export type MatchOptions = {
 	time: MatchTime;
 	sharks: SharkSpeed;
 	powerUps: PowerUpType[]; // the ones that can appear (empty = none)
+};
+
+// How a bot level plays (BOT_LEVELS in config.ts): the same brain, different numbers
+export type BotParams = {
+	lookMs: number; // how often it looks at the map again (its reaction time)
+	stepMs: number; // how often it presses a key (the cooldown of the game allows 100 ms)
+	mistake: number; // chance of a wrong step, 0..1
+	safety: number; // how many cells it tries to keep between itself and a shark
+	stubborn: number; // chance of keeping its old target when a better one shows up, 0..1
+	tactics: boolean; // false: uses a power-up as soon as it has one; true: waits for the right moment
 };
 
 // What a .ber file turns into after parseMap()

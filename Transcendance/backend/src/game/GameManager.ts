@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "socket.io";
-import { BROADCAST_INTERVAL_MS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, defaultOptions } from "./config";
+import { decide, newMemory, type BotMemory } from "./bot";
+import { BOT_LEVELS, BROADCAST_INTERVAL_MS, CHARACTERS, COUNTDOWN_SECONDS, MONSTER_INTERVAL_MS, defaultOptions } from "./config";
 import { GameRoom, type PlayerInfo } from "./GameRoom";
 import { loadMap, mapSize, pickMap, type PlayerCount } from "./mapLoader";
-import type { DynamicState, GameStart, GameState, MapInfo, MatchOptions } from "./types";
+import type { BotLevel, DynamicState, GameStart, GameState, MapInfo, MatchOptions } from "./types";
 import { saveMatch } from "../persistence";
 
 // The part of Socket.IO the manager uses. Like now and random in GameRoom, it comes from outside:
@@ -36,7 +37,15 @@ export type MatchSetup = {
 	map: string; // "random" or the name of a map for this number of players
 	local?: boolean; // 1v1 on one keyboard: both slots are the same user and the same socket
 	options?: MatchOptions; // the time, the sharks and the power-ups (default defaultOptions())
+	bot?: BotLevel; // PLAY vs BOT: one more fish, after the players, played by the server at this level
 	onEnd?: (final: DynamicState) => void; // called when the match is over (the lobby goes back to "ready")
+};
+
+// The bot of a match: its fish, its level and what it remembers between two decisions (bot.ts)
+type Bot = {
+	slot: number;
+	level: BotLevel;
+	memory: BotMemory;
 };
 
 // One match running: the rules (room) and everything around it
@@ -47,6 +56,8 @@ type Game = {
 	map: MapInfo;
 	players: MatchPlayer[];
 	local: boolean;
+	options: MatchOptions;
+	bot: Bot | null; // null: only people play
 	spectators: Set<string>;
 	timers: ReturnType<typeof setInterval>[]; // all the intervals of the match, to stop them at the end
 	onEnd?: (final: DynamicState) => void;
@@ -83,16 +94,22 @@ export class GameManager {
 		for (const player of setup.players) // refuses the match if one of the players is already in another one
 			if (this.userGame.has(player.userId))
 				throw new Error(`${player.username} is already in a match`); // Lobby handles and displays the error
-		const mapName = pickMap(setup.players.length as PlayerCount, setup.map, this.random); // "random" -> one of the maps for this number of players
 		const id = randomUUID(); // example: "3f2a9c1e-7b4d-4e8a-9c3f-1a2b3c4d5e6f"
 		const local = setup.local ?? false;
 		const options = setup.options ?? defaultOptions();
 		// local: the two fish are guests (userId null), so the match never counts in anyone's results
-		const infos = local ? setup.players.map((p) => ({ ...p, userId: null })) : setup.players;
+		const infos: PlayerInfo[] = local ? setup.players.map((p) => ({ ...p, userId: null })) : [...setup.players];
+		// vs BOT: the bot is one more fish, a guest, with a fish none of the players has
+		const bot: Bot | null = setup.bot ? { slot: infos.length, level: setup.bot, memory: newMemory() } : null;
+		if (bot) {
+			const free = CHARACTERS.filter((c) => !infos.some((p) => p.character === c));
+			infos.push({ userId: null, username: "BOT", character: free[Math.floor(this.random() * free.length)] });
+		}
+		const mapName = pickMap(infos.length as PlayerCount, setup.map, this.random); // "random" -> one of the maps for this number of fish
 		const room = new GameRoom(id, mapName, loadMap(mapName), mapSize(mapName), infos, { local, match: options, random: this.random });
 		// the fixed part of the map (walls, turtle) goes only once, here, and never again in game:state
 		const map: MapInfo = { name: mapName, width: room.state.width, height: room.state.height, walls: room.state.walls, exit: room.state.exit };
-		const game: Game = { id, channel: `game:${id}`, room, map, players: setup.players, local, spectators: new Set(), timers: [], onEnd: setup.onEnd };
+		const game: Game = { id, channel: `game:${id}`, room, map, players: setup.players, local, options, bot, spectators: new Set(), timers: [], onEnd: setup.onEnd };
 		this.games.set(id, game);
 
 		const state = room.snapshot(Date.now());
@@ -112,6 +129,9 @@ export class GameManager {
 		game.timers.push(setInterval(() => game.room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS[options.sharks]));
 		game.timers.push(setInterval(() => game.room.tickSecond(Date.now()), 1000));
 		game.timers.push(setInterval(() => this.broadcast(game), BROADCAST_INTERVAL_MS));
+		// the bot presses its keys at the pace of its level (decide ignores everything until the match is running)
+		if (bot)
+			game.timers.push(setInterval(() => this.botTurn(game, bot), BOT_LEVELS[bot.level].stepMs));
 		return id;
 	}
 
@@ -162,7 +182,7 @@ export class GameManager {
 	// Lets a socket watch a running match without controlling a fish.
 	spectate(gameId: string, socketId: string, userId: number): void {
 		const game = this.games.get(gameId);
-		if (!game || game.local || game.room.state.status === "finished")
+		if (!game || game.local || game.bot || game.room.state.status === "finished")
 			throw new Error("This match can not be watched.");
 		if (this.userGame.has(userId))
 			throw new Error("You are already in a match.");
@@ -190,6 +210,16 @@ export class GameManager {
 	// How many matches are running (for the tests and, later, the logs)
 	get count(): number {
 		return this.games.size;
+	}
+
+	// Asks the bot for its next key and plays it with the same commands as a keyboard
+	private botTurn(game: Game, bot: Bot): void {
+		const now = Date.now();
+		const action = decide(game.room.state, bot.slot, now, bot.memory, BOT_LEVELS[bot.level], game.options, this.random);
+		if (action.usePowerUp)
+			game.room.usePowerUp(bot.slot, now);
+		if (action.dir)
+			game.room.move(bot.slot, action.dir, now);
 	}
 
 	// 3, 2, 1 one per second; at 0 the clock of the match starts. Called once, by createGame
@@ -228,7 +258,8 @@ export class GameManager {
 			clearInterval(timer);
 		const final = game.room.snapshot(Date.now());
 		this.transport.toChannel(game.channel, "game:end", final);
-		if (game.room.state.startedAt !== null) {
+		// a match against the bot is practice: it does not count in anyone's results
+		if (game.room.state.startedAt !== null && !game.bot) {
 			void this.persistMatch(game.room.state).catch((error: unknown) => {
 				console.error(`Failed to save match ${game.id}`, error);
 			});

@@ -1,7 +1,9 @@
 // Play a local match in the terminal, without the browser: npm run debug [map]
 // P1: WASD + R    P2: arrows + L    Q or Ctrl+C: quit
+// Against the bot: npm run debug [map] bot [easy|normal|hard]  (P2 is the bot; P1 also plays with the arrows + L)
 import { emitKeypressEvents } from "node:readline";
-import { MONSTER_INTERVAL_MS } from "./config";
+import { decide, newMemory } from "./bot";
+import { BOT_LEVEL_NAMES, BOT_LEVELS, MONSTER_INTERVAL_MS, defaultOptions } from "./config";
 import { GameRoom, type PlayerInfo } from "./GameRoom";
 import { loadMap, mapSize } from "./mapLoader";
 import type { Direction, GameEvent, PlayerView, PowerUpType } from "./types";
@@ -29,6 +31,14 @@ const KEYS: Record<string, [number, Direction | "power"]> = {
 };
 
 const POWERUP_CHARS: Record<PowerUpType, string> = { speed: "s", freeze: "f", enchant: "e" };
+
+// npm run debug small-1 bot hard: P2 is the bot, at that level (normal if none or unknown)
+const botLevel = process.argv[3] === "bot" ? (BOT_LEVEL_NAMES.find((l) => l === process.argv[4]) ?? "normal") : null;
+if (botLevel) {
+	PLAYERS[1].username = `BOT ${botLevel}`;
+	for (const key of ["up", "left", "down", "right", "l"])
+		KEYS[key][0] = 0; // the arrows and L move P1 too: the bot needs no keys
+}
 
 if (!process.stdin.isTTY) {
 	console.error("debug.ts needs a terminal (it reads the keys one by one)");
@@ -108,7 +118,7 @@ function draw(now: number): void {
 		lines.push(`GAME OVER: ${winner} wins (${snap.endReason})   Q to quit`);
 	}
 	else
-		lines.push("P1: WASD + R   P2: arrows + L   Q: quit");
+		lines.push(botLevel ? "P1: WASD + R (or arrows + L)   Q: quit" : "P1: WASD + R   P2: arrows + L   Q: quit");
 	lines.push("", ...log.slice(-5));
 	// \x1b[H = cursor to the top, \x1b[K = clear the rest of the line, \x1b[J = clear below
 	process.stdout.write("\x1b[H" + lines.map((line) => line + "\x1b[K").join("\n") + "\x1b[J");
@@ -141,6 +151,18 @@ process.stdin.on("keypress", (_text: string, key: { name?: string; ctrl?: boolea
 
 setInterval(() => room.tickMonsters(Date.now()), MONSTER_INTERVAL_MS.normal);
 setInterval(() => room.tickSecond(Date.now()), 1000);
+// the bot: one key every stepMs, like in the GameManager
+if (botLevel) {
+	const memory = newMemory();
+	setInterval(() => {
+		const now = Date.now();
+		const action = decide(room.state, 1, now, memory, BOT_LEVELS[botLevel], defaultOptions(), Math.random);
+		if (action.usePowerUp)
+			room.usePowerUp(1, now);
+		if (action.dir)
+			room.move(1, action.dir, now);
+	}, BOT_LEVELS[botLevel].stepMs);
+}
 setInterval(() => {
 	const now = Date.now();
 	if (room.state.status === "countdown" && now >= startAt)

@@ -305,7 +305,7 @@ const STEPS: Record<Direction, Position> = {
 	right: { x: 1, y: 0 },
 };
 
-function step(pos: Position, dir: Direction): Position {
+export function step(pos: Position, dir: Direction): Position {
 	return { x: pos.x + STEPS[dir].x, y: pos.y + STEPS[dir].y };
 }
 

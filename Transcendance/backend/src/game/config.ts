@@ -1,4 +1,4 @@
-import type { Character, MapSize, MatchOptions, MatchTime, PowerUpType, SharkSpeed } from "./types";
+import type { BotLevel, BotParams, Character, MapSize, MatchOptions, MatchTime, PowerUpType, SharkSpeed } from "./types";
 
 export const MOVE_COOLDOWN_MS = 100;
 export const RESPAWN_DELAY_MS = 3000;
@@ -27,6 +27,20 @@ export const MONSTER_INTERVAL_MS: Record<SharkSpeed, number> = { slow: 750, norm
 export function defaultOptions(): MatchOptions {
 	return { time: "normal", sharks: "normal", powerUps: [...POWERUP_TYPES] };
 }
+
+// The levels of the bot, in the order of the LEVEL screen
+export const BOT_LEVEL_NAMES: BotLevel[] = ["easy", "normal", "hard"];
+
+// The levels of the bot (bot.ts). No level presses keys as fast as a person holding one down (about 10 per second)
+export const BOT_LEVELS: Record<BotLevel, BotParams> = {
+	easy:   { lookMs: 900, stepMs: 230, mistake: 0.15, safety: 1, stubborn: 0.5,  tactics: false },
+	normal: { lookMs: 500, stepMs: 190, mistake: 0.08, safety: 1, stubborn: 0.25, tactics: true },
+	hard:   { lookMs: 250, stepMs: 140, mistake: 0.03, safety: 2, stubborn: 0.1,  tactics: true },
+};
+// a power-up that costs at most this many steps more than the best diamond is worth the detour
+export const BOT_POWERUP_DETOUR = 4;
+// the last seconds of the match: a bot that is losing takes more risks
+export const BOT_HURRY_MS = 30_000;
 
 export type SizeRules = {
 	players: number[]; // how many players this size accepts
