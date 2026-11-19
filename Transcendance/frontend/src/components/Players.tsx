@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { PlayerCount } from "../game/maps";
 import Screen from "./Screen";
-import "./Players.css";
 
 type PlayersProps = {
 	onChoose: (players: PlayerCount) => void;
@@ -17,9 +16,9 @@ export default function Players({ onChoose, onBack, min = 2 }: PlayersProps) {
 
 	return (
 		<Screen title={t("lobby.playersTitle")} onBack={onBack}>
-			<div className="players">
+			<div className="flex flex-1 flex-col justify-center gap-[clam(1rem,3vh,2rem)]">
 				{COUNTS.map((count) => (
-					<button key={count} className="sea-button" onClick={() => onChoose(count)} disabled={count < min}>
+					<button key={count} className="sea-button min-w-[8em]" onClick={() => onChoose(count)} disabled={count < min}>
 						{t("lobby.players", { count })}
 					</button>
 				))}
