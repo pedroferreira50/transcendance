@@ -10,7 +10,6 @@ import Options from "./Options";
 import Screen from "./Screen";
 import Winner from "./Winner";
 import "./Lobby.css";
-import "./LocalGame.css";
 
 type LocalGameProps = {
 	onExit: () => void; // back to the menu
@@ -89,11 +88,11 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 	return (
 		<Screen title={t("local.fishTitle")} onBack={() => setOptionsChosen(false)}>
-			<div className="local-setup">
+			<div className="flex flex-1 flex-col items-center justify-center gap-screen">
 				{[0, 1].map((slot) => (
-					<div key={slot} className="local-player">
-						<p className="local-player-name">
-							{t("local.player", { n: slot + 1 })} <span className="local-keys">{keys[slot]}</span>
+					<div key={slot} className="flex flex-col items-center gap-[0.4em]">
+						<p className="m-0 text-center font-button text-player tracking-[0.06em] text-sea-light">
+							{t("local.player", { n: slot + 1 })} <span className="ml-[0.6em] font-text text-[0.6em] tracking-normal opacity-85">{keys[slot]}</span>
 						</p>
 						<div className="fish-choice" role="group" aria-label={t("local.fishOf", { n: slot + 1 })}>
 							{CHARACTERS.map((character) => {

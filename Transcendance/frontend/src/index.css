@@ -1,106 +1,156 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/* Tailwind without its reset (Preflight): the screens still in plain CSS keep the look they had */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme); /* the default scale: --spacing (gap-4 = 4 x 0.25rem = 1rem), colors, text sizes... */
+@import "tailwindcss/utilities.css" layer(utilities);
+/* the base of every screen (frame, buttons, boxes) in the components layer: a utility class wins over it without ! */
+@import "./components/Screen.css" layer(components);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+/* The colors and fonts of Screen.css as Tailwind classes (text-sea-light, bg-sea-box, font-button...).
+   inline: the classes use the variables of Screen.css, so changing a color there still changes every screen */
+@theme inline {
+  --color-sea-center: var(--sea-center);
+  --color-sea-sides: var(--sea-sides);
+  --color-sea-light: var(--sea-light); /* text-sea-light, bg-sea-light, border-sea-light... */
+  --color-sea-text: var(--sea-text);
+  --color-sea-box: var(--sea-box);
+  --color-sea-box-hover: var(--sea-box-hover);
+  --font-title: var(--font-title); /* font-title */
+  --font-button: var(--font-button); /* font-button */
+  --font-text: var(--font-text); /* font-text */
 }
 
-@media (prefers-color-scheme: dark) {
+/* The screen sizes the CSS files already use, as prefixes: phone:flex-col, short:leading-[1.5]... */
+@custom-variant phone (@media (max-width: 700px)); /* narrow: phones */
+@custom-variant short (@media (max-height: 500px)); /* low: phones lying down */
+@custom-variant standing (@media (max-width: 700px) and (min-height: 501px)); /* phones standing up */
+
+/* The sizes of the screens, by name: each one grows with the screen between a phone and a 1080p monitor */
+@theme {
+  --spacing-screen: clamp(1rem, 3vh, 2rem); /* gap-screen: the space between the blocks of a screen */
+  --spacing-cards: clamp(0.8rem, 2vw, 2rem); /* gap-cards: the space between the cards of MAP */
+
+  --text-story: clamp(0.9rem, min(1.5vw, 2.6vh), 1.6rem); /* text-story: the story of the INTRO */
+  --text-message: clamp(1rem, min(1.8vw, 3vh), 1.5rem); /* text-message: "No lobbies yet", "Loading..." */
+  --text-hint: clamp(0.85rem, min(1.4vw, 2.6vh), 1.2rem); /* text-hint: the line under a level of the bot */
+  --text-player: clamp(1.3rem, min(2.4vw, 4.2vh), 2.4rem); /* text-player: "PLAYER 1" of PLAY LOCAL */
+  --text-card: clamp(1.2rem, min(2vw, 3.6vh), 2rem); /* text-card: the name of a map */
+  --text-username: clamp(1.6rem, min(5vw, 8vh), 4rem); /* text-username: the name on the PROFILE */
+  --text-button-menu: clamp(1.6rem, min(2.9vw, 5.5vh), 3.4rem); /* text-button-menu: the buttons of the MENU */
+  --text-button-small: clamp(1.1rem, min(2vw, 3.6vh), 2rem); /* text-button-small: JOIN and WATCH */
+}
+
+/* w-column-4: the width of one card in a row of 4 cards, with gap-cards between them (MapSelect).
+   The * is the number written in the class: w-column-2, w-column-3... */
+@utility w-column-* {
+  width: calc((100% - (--value(integer) - 1) * var(--spacing-cards)) / --value(integer));
+}
+
+/* The defaults of the page (fonts, h1, p...): in the base layer, so the classes of Screen.css and Tailwind win over them */
+@layer base {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
+    --text: #6b6375;
+    --text-h: #08060d;
+    --bg: #fff;
+    --border: #e5e4e7;
+    --code-bg: #f4f3ec;
+    --accent: #aa3bff;
+    --accent-bg: rgba(170, 59, 255, 0.1);
+    --accent-border: rgba(170, 59, 255, 0.5);
+    --social-bg: rgba(244, 243, 236, 0.5);
     --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+      rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+    --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, Consolas, monospace;
+
+    font: 18px/145% var(--sans);
+    letter-spacing: 0.18px;
+    color-scheme: light dark;
+    color: var(--text);
+    background: var(--bg);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    @media (max-width: 1024px) {
+      font-size: 16px;
+    }
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text: #9ca3af;
+      --text-h: #f3f4f6;
+      --bg: #16171d;
+      --border: #2e303a;
+      --code-bg: #1f2028;
+      --accent: #c084fc;
+      --accent-bg: rgba(192, 132, 252, 0.15);
+      --accent-border: rgba(192, 132, 252, 0.5);
+      --social-bg: rgba(47, 48, 58, 0.5);
+      --shadow:
+        rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    }
+
+    #social .button-icon {
+      filter: invert(1) brightness(2);
+    }
   }
-}
 
-#root {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  #root {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  body {
+    margin: 0;
   }
-}
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+  h1,
+  h2 {
+    font-family: var(--heading);
+    font-weight: 500;
+    color: var(--text-h);
+  }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  h1 {
+    font-size: 56px;
+    letter-spacing: -1.68px;
+    margin: 32px 0;
+    @media (max-width: 1024px) {
+      font-size: 36px;
+      margin: 20px 0;
+    }
+  }
+  h2 {
+    font-size: 24px;
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    margin: 0 0 8px;
+    @media (max-width: 1024px) {
+      font-size: 20px;
+    }
+  }
+  p {
+    margin: 0;
+  }
+
+  code,
+  .counter {
+    font-family: var(--mono);
+    display: inline-flex;
+    border-radius: 4px;
+    color: var(--text-h);
+  }
+
+  code {
+    font-size: 15px;
+    line-height: 135%;
+    padding: 4px 8px;
+    background: var(--code-bg);
+  }
 }
