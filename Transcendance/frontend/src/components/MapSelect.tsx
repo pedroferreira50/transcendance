@@ -29,7 +29,7 @@ export default function MapSelect({ players, onChoose, onBack }: MapSelectProps)
 			<div className="map-select">
 				<div className="map-grid">
 					{mapsFor(players).map((name) => (
-						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name)} onClick={() => onChoose(name)} />
+						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name, t)} onClick={() => onChoose(name)} />
 					))}
 					<MapCard image="/art/bubbles/empty.webp" label={t("lobby.random")} onClick={() => onChoose("random")} />
 				</div>

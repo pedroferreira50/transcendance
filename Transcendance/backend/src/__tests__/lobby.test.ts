@@ -164,14 +164,14 @@ describe("lobby", () => {
 		const { code } = fullLobby();
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:join", { code });
-		expect(lastOf(cris, "lobby:error")).toBe("Lobby is full.");
+		expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.full" });
 	});
 
 	test("a malformed join payload is rejected without crashing", () => {
 		const cris = server.connect("s3", 3, "cris");
 		for (const data of [null, undefined, {}, { code: 1 }]) {
 			cris.send("lobby:join", data);
-			expect(lastOf(cris, "lobby:error")).toBe("Invalid lobby code.");
+			expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.invalidCode" });
 		}
 		expect(cris.rooms.size).toBe(0);
 	});
@@ -222,7 +222,7 @@ describe("lobby", () => {
 	test("character: two players can not have the same fish", () => {
 		const { bia } = fullLobby();
 		bia.send("lobby:character", "goldfish");
-		expect(lastOf(bia, "lobby:error")).toBe("That fish was already chosen.");
+		expect(lastOf(bia, "lobby:error")).toEqual({ code: "lobby.fishTaken" });
 		expect(lastOf(bia, "lobby:update").players[1].character).toBe("betta");
 	});
 
@@ -230,7 +230,7 @@ describe("lobby", () => {
 		const ana = server.connect("s1", 1, "ana");
 		ana.send("lobby:create");
 		ana.send("lobby:ready");
-		expect(lastOf(ana, "lobby:error")).toBe("Choose a fish first.");
+		expect(lastOf(ana, "lobby:error")).toEqual({ code: "lobby.chooseFish" });
 	});
 });
 
@@ -275,7 +275,7 @@ describe("start", () => {
 		ana.send("lobby:start");
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:join", { code });
-		expect(lastOf(cris, "lobby:error")).toBe("Match already in progress.");
+		expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.matchInProgress" });
 		const updates = ana.received.length;
 		ana.send("lobby:settings", { seats: 3, map: "random" });
 		ana.send("lobby:character", "puffer");
@@ -288,7 +288,7 @@ describe("start", () => {
 			throw new Error("ana is already in a match");
 		});
 		ana.send("lobby:start");
-		expect(lastOf(bia, "lobby:error")).toBe("ana is already in a match");
+		expect(lastOf(bia, "lobby:error")).toEqual({ code: "lobby.startFailed" });
 	});
 });
 
@@ -326,11 +326,11 @@ describe("spectate", () => {
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:create");
 		cris.send("lobby:spectate", { code });
-		expect(lastOf(cris, "lobby:error")).toBe("You are already in a lobby.");
+		expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.alreadyInLobby" });
 		expect(spectate).not.toHaveBeenCalled();
 	});
 
-	test("the GameManager refuses: its message goes to the socket", () => {
+	test("the GameManager refuses: a generic code goes to the socket", () => {
 		const { ana, code } = fullLobby();
 		ana.send("lobby:start");
 		spectate.mockImplementation(() => {
@@ -338,7 +338,7 @@ describe("spectate", () => {
 		});
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:spectate", { code });
-		expect(lastOf(cris, "lobby:error")).toBe("This match can not be watched.");
+		expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.watchFailed" });
 	});
 });
 
@@ -442,7 +442,7 @@ describe("connection dropped", () => {
 		setup.onEnd!({ winnerSlot: null } as DynamicState);
 		const cris = server.connect("s3", 3, "cris");
 		cris.send("lobby:join", { code });
-		expect(lastOf(cris, "lobby:error")).toBe("Lobby not found.");
+		expect(lastOf(cris, "lobby:error")).toEqual({ code: "lobby.notFound" });
 	});
 
 	test("lobby:leave also leaves the room: no more lobby:update for that socket", () => {

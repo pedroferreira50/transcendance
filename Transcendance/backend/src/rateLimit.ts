@@ -8,12 +8,12 @@ type Bucket = {
 type RateLimitOptions = {
     windowMs: number;
     max: number;
-    message?: string;
+    code?: string;
 };
 
 // Fixed-window, in-memory limiter: enough for this single-process backend
 // and it avoids adding a dependency just to protect the auth endpoints.
-export function createRateLimiter({ windowMs, max, message }: RateLimitOptions) {
+export function createRateLimiter({ windowMs, max, code }: RateLimitOptions) {
     const buckets = new Map<string, Bucket>();
     let lastPrune = 0;
 
@@ -41,7 +41,7 @@ export function createRateLimiter({ windowMs, max, message }: RateLimitOptions) 
         if (bucket.count > max) {
             res.setHeader("Retry-After", String(Math.ceil((bucket.resetAt - now) / 1000)));
             res.status(429).json({
-                message: message ?? "Too many attempts. Try again later."
+                code: code ?? "auth.rateLimited"
             });
             return;
         }

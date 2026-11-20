@@ -10,13 +10,13 @@ const router = Router();
 const registerLimiter = createRateLimiter({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    message: "Too many registration attempts. Try again later."
+    code: "auth.rateLimitedRegister"
 });
 
 const loginLimiter = createRateLimiter({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: "Too many login attempts. Try again later."
+    code: "auth.rateLimitedLogin"
 });
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,35 +33,36 @@ router.post("/register", registerLimiter, async (req, res) => {
         typeof email !== "string" || email === ""
     ) {
         res.status(400).json({
-            message: "Username, email and password are required."
+            code: "auth.requiredFields"
         });
         return;
     }
 
     if (!USERNAME_REGEX.test(username)) {
         res.status(400).json({
-            message: "Username must be 3 to 16 characters, using only letters, numbers and _."
+            code: "auth.invalidUsername"
         });
         return;
     }
 
     if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
         res.status(400).json({
-            message: "Invalid email."
+            code: "auth.invalidEmail"
         });
         return;
     }
 
     if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
         res.status(400).json({
-            message: `Password must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters.`
+            code: "auth.passwordLength",
+            params: { min: PASSWORD_MIN, max: PASSWORD_MAX }
         });
         return;
     }
 
     if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
         res.status(400).json({
-            message: "Password must contain at least one letter and one number."
+            code: "auth.passwordCharacters"
         });
         return;
     }
@@ -81,7 +82,7 @@ router.post("/register", registerLimiter, async (req, res) => {
         console.log(`User registered: ${username}`);
 
         res.status(201).json({
-            message: "Registration successful!"
+            code: "auth.registerSuccess"
         });
     } catch (error) {
         if (
@@ -89,7 +90,7 @@ router.post("/register", registerLimiter, async (req, res) => {
             error.message.includes("UNIQUE constraint failed: users.email")
         ) {
             res.status(409).json({
-                message: "Email is already in use."
+                code: "auth.emailInUse"
             });
             return;
         }
@@ -99,7 +100,7 @@ router.post("/register", registerLimiter, async (req, res) => {
             error.message.includes("UNIQUE constraint failed")
         ) {
             res.status(409).json({
-                message: "Username is already taken."
+                code: "auth.usernameTaken"
             });
             return;
         }
@@ -107,7 +108,7 @@ router.post("/register", registerLimiter, async (req, res) => {
         console.error(error);
 
         res.status(500).json({
-            message: "Could not register user."
+            code: "auth.registerFailed"
         });
     }
 });
@@ -120,14 +121,14 @@ router.post("/login", loginLimiter, async (req, res) => {
         typeof password !== "string" || password === ""
     ) {
         res.status(400).json({
-            message: "Username and password are required."
+            code: "auth.loginRequiredFields"
         });
         return;
     }
 
     if (password.length > PASSWORD_MAX) {
         res.status(401).json({
-            message: "Invalid username or password."
+            code: "auth.invalidCredentials"
         });
         return;
     }
@@ -152,7 +153,7 @@ router.post("/login", loginLimiter, async (req, res) => {
 
         if (!user) {
             res.status(401).json({
-                message: "Invalid username or password."
+                code: "auth.invalidCredentials"
             });
             return;
         }
@@ -164,7 +165,7 @@ router.post("/login", loginLimiter, async (req, res) => {
 
         if (!passwordCorrect) {
             res.status(401).json({
-                message: "Invalid username or password."
+                code: "auth.invalidCredentials"
             });
             return;
         }
@@ -172,7 +173,7 @@ router.post("/login", loginLimiter, async (req, res) => {
         setAuthCookie(res, user.id);
 
         res.json({
-            message: "Login successful!",
+            code: "auth.loginSuccess",
             id: user.id,
             username: user.username,
             wins: user.wins,
@@ -184,7 +185,7 @@ router.post("/login", loginLimiter, async (req, res) => {
         console.error(error);
 
         res.status(500).json({
-            message: "Could not log in."
+            code: "auth.loginFailed"
         });
     }
 });

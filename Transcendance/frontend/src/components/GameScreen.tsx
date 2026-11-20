@@ -62,8 +62,8 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 	useEffect(() => {
 		Promise.all([loadSprites(), loadMapImage(start.map.name)])
 			.then(([sprites, mapImage]) => setAssets({ sprites, mapImage }))
-			.catch((err: Error) => setError(err.message));
-	}, [start.map.name]);
+			.catch(() => setError(t("game.assetLoadFailed")));
+	}, [start.map.name, t]);
 
 	// What the server sends during the match
 	useEffect(() => {
