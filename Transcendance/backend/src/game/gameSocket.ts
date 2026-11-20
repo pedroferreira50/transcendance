@@ -1,9 +1,9 @@
 import type { Server, Socket } from "socket.io";
-import { CHARACTERS, MATCH_TIMES, POWERUP_TYPES, SHARK_SPEEDS, defaultOptions } from "./config";
+import { BOT_LEVEL_NAMES, CHARACTERS, MATCH_TIMES, POWERUP_TYPES, SHARK_SPEEDS, defaultOptions } from "./config";
 import type { GameManager } from "./GameManager";
 import { DIRECTIONS } from "./GameRoom";
 import { mapsFor } from "./mapLoader";
-import type { Character, Direction, MatchOptions } from "./types";
+import type { BotLevel, Character, Direction, MatchOptions } from "./types";
 
 // What the browser sends can be anything (an old version, a bug, someone typing in the console):
 // only { dir: "up" | "down" | "left" | "right" } becomes a Direction, everything else is null
@@ -69,6 +69,30 @@ export function readLocalSetup(data: unknown): LocalSetup | null {
 	return { map, characters: [first, second], options };
 }
 
+export type BotSetup = {
+	map: string; // "random" or a map for 2 players
+	character: Character; // the fish of the player (the bot gets another one)
+	options: MatchOptions;
+	level: BotLevel;
+};
+
+// Checks bot:start { map, character, options?, level }: a BotSetup, or null if anything is wrong
+export function readBotSetup(data: unknown): BotSetup | null {
+	if (typeof data !== "object" || data === null || !("map" in data) || !("character" in data) || !("level" in data))
+		return null;
+	const options = readOptions("options" in data ? data.options : undefined);
+	if (!options)
+		return null;
+	const { map } = data;
+	if (typeof map !== "string" || (map !== "random" && !mapsFor(2).includes(map)))
+		return null;
+	const character = CHARACTERS.find((c) => c === data.character);
+	const level = BOT_LEVEL_NAMES.find((l) => l === data.level);
+	if (!character || !level)
+		return null;
+	return { map, character, options, level };
+}
+
 // server.ts will call, once: every socket that connects gets the game events
 export function setupGameSocket(io: Server, games: GameManager): void {
 	io.on("connection", (socket) => registerGameEvents(socket, games));
@@ -108,6 +132,23 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 			games.createGame({ players, map: setup.map, local: true, options: setup.options });
 		} catch (error) {
 			socket.emit("local:error", error instanceof Error ? error.message : "Could not start the match.");
+		}
+	});
+
+	// PLAY vs BOT: starts a match of this user (slot 0) against a bot (slot 1); it is not saved
+	socket.on("bot:start", (data: unknown) => {
+		const userId: unknown = socket.data.userId;
+		const username: unknown = socket.data.username;
+		const setup = readBotSetup(data);
+		if (typeof userId !== "number" || !setup) {
+			socket.emit("bot:error", "Choose a map, a fish and a level.");
+			return;
+		}
+		const player = { userId, username: typeof username === "string" ? username : "Player", character: setup.character, socketId: socket.id };
+		try {
+			games.createGame({ players: [player], map: setup.map, options: setup.options, bot: setup.level });
+		} catch (error) {
+			socket.emit("bot:error", error instanceof Error ? error.message : "Could not start the match.");
 		}
 	});
 

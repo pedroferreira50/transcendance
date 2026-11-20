@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import type { DynamicState, EndReason, PlayerView } from "../game/protocol";
+import { fishName } from "../game/names";
+import type { BotInfo, DynamicState, EndReason, PlayerView } from "../game/protocol";
 import type { Decoration } from "./Decorations";
 import Screen from "./Screen";
 import "./Winner.css";
@@ -10,6 +11,7 @@ type WinnerProps = {
 	onExit: () => void; // leaves the lobby
 	backLabel?: string; // the text of the onBack button (the local mode has no lobby)
 	local?: boolean; // local match: the fish are "Player 1" and "Player 2", shown in the chosen language
+	bot?: BotInfo | null; // PLAY vs BOT: the fish of the bot, shown as "BOT · NORMAL"
 };
 
 // The power-ups on the left and the diamonds on the right (% of the screen)
@@ -47,9 +49,9 @@ function Result({ player, name, winner }: { player: PlayerView; name: string; wi
 
 // The end of the match: who won (the fish on the turtle) and how everyone did.
 // A draw (the time ran out with a tie at the top) has no winner: only the turtle
-export default function Winner({ final, onBack, onExit, backLabel, local }: WinnerProps) {
+export default function Winner({ final, onBack, onExit, backLabel, local = false, bot = null }: WinnerProps) {
 	const { t } = useTranslation();
-	const nameOf = (player: PlayerView) => (local ? t("game.localPlayer", { n: player.slot + 1 }) : player.username);
+	const nameOf = (player: PlayerView) => fishName(player.slot, player.username, local, bot, t);
 	let winner: PlayerView | null = null;
 
 	if (final.winnerSlot !== null) {

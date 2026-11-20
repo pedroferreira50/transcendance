@@ -12,6 +12,7 @@ export type Character = "goldfish" | "betta" | "angler" | "puffer";
 export type PowerUpType = "speed" | "freeze" | "enchant";
 export type MatchTime = "short" | "normal" | "long"; // relative to the time of the map size
 export type SharkSpeed = "slow" | "normal" | "fast";
+export type BotLevel = "easy" | "normal" | "hard";
 
 // What the host (or the local players) choose for the match
 export type MatchOptions = {
@@ -76,6 +77,12 @@ export type MapInfo = {
 	exit: Position;
 };
 
+// The bot of a match, for the screen: which fish it is and its level
+export type BotInfo = {
+	slot: number;
+	level: BotLevel;
+};
+
 // game:start, sent once to each player, and game:resume, for a player who came back (F5, the internet returned, another tab)
 export type GameStart = {
 	gameId: string;
@@ -84,4 +91,5 @@ export type GameStart = {
 	state: DynamicState;
 	countdown: number; // seconds before the match begins: the first game:countdown can arrive before the screen listens
 	local: boolean; // local match: the screen sends the slot with each command
+	bot: BotInfo | null; // PLAY vs BOT: the fish of the bot (null = only people play)
 };

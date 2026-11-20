@@ -16,6 +16,7 @@
   "menu": {
     "title": "OPEN SEA",
     "local": "JOGAR LOCAL",
+    "bot": "JOGAR vs BOT",
     "online": "JOGAR ONLINE",
     "instructions": "INSTRUÇÕES",
     "leaderboard": "CLASSIFICAÇÃO",
@@ -72,19 +73,18 @@
   },
   "profile": {
     "title": "PERFIL",
-	"progression": "PROGRESSÃO",
-	"xp": "XP",
-	"level": "NÍVEL",
-	"onlineWins": "VITÓRIAS ONLINE",
-	"winsUntilTen": "VITÓRIAS EM FALTA",
-	"achievements": {
-	  "title": "CONQUISTAS",
-	  "empty": "Ainda não desbloqueaste conquistas.",
-	  "no_death_win": "Vitória sem morrer",
-	  "fast_exit": "Saída em menos de 60 movimentos",
-	  "ten_online_wins": "10 vitórias online"
-	},
-	"online": "ONLINE",
+    "progression": "PROGRESSÃO",
+    "xp": "XP",
+    "level": "NÍVEL",
+    "onlineWins": "VITÓRIAS ONLINE",
+    "winsUntilTen": "VITÓRIAS EM FALTA",
+    "achievements": {
+      "title": "CONQUISTAS",
+      "empty": "Ainda não desbloqueaste conquistas.",
+      "no_death_win": "Vitória sem morrer",
+      "fast_exit": "Saída em menos de 60 movimentos",
+      "ten_online_wins": "10 vitórias online"
+    },
     "online": "ONLINE",
     "totals": "TOTAIS",
     "matches": "PARTIDAS",
@@ -166,6 +166,23 @@
     "keys2": "SETAS · L",
     "start": "INICIAR",
     "fishOf": "Peixe do jogador {{n}}"
+  },
+  "bot": {
+    "fishTitle": "SEU PEIXE",
+    "levelTitle": "NÍVEL",
+    "chooseFish": "Escolha o seu peixe",
+    "chooseLevel": "Escolha o nível do bot",
+    "levels": {
+      "easy": "FÁCIL",
+      "normal": "NORMAL",
+      "hard": "DIFÍCIL"
+    },
+    "about": {
+      "easy": "Lento e distraído: bom para aprender o jogo.",
+      "normal": "Joga bem, mas ainda erra.",
+      "hard": "Rápido e cuidadoso: difícil de vencer."
+    },
+    "name": "BOT ({{level}})"
   },
   "options": {
     "title": "OPÇÕES",

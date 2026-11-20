@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { socket } from "../socket";
 import type { DynamicState, GameStart } from "../game/protocol";
 import type { Session } from "../types/Session";
+import BotGame from "./BotGame";
 import CreateLobby from "./CreateLobby";
 import GameScreen from "./GameScreen";
 import History from "./History";
@@ -19,7 +20,7 @@ import Register from "./Register";
 import WatchGame from "./WatchGame";
 import Winner from "./Winner";
 
-export type OpenSeaPage = "intro" | "menu" | "instructions" | "leaderboard" | "login" | "register" | "profile" | "history" | "lobbies" | "create" | "lobby" | "local" | "watch";
+export type OpenSeaPage = "intro" | "menu" | "instructions" | "leaderboard" | "login" | "register" | "profile" | "history" | "lobbies" | "create" | "lobby" | "local" | "bot" | "watch";
 
 type OpenSeaProps = {
 	session: Session | null; // null: nobody logged in
@@ -91,7 +92,16 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 		if (final)
 			setResumedEnd(final);
 		else
-			closeResumed(resumed && resumed.local ? "local" : "lobby");
+			closeResumed(resumed ? afterMatch(resumed) : "lobby");
+	}
+
+	// where a resumed match goes back to: the choices of PLAY LOCAL or PLAY vs BOT, or the lobby room
+	function afterMatch(match: GameStart): OpenSeaPage {
+		if (match.local)
+			return "local";
+		if (match.bot)
+			return "bot";
+		return "lobby";
 	}
 
 	// out of the resumed match: online back to its lobby room, local back to the choice of the map and the fish
@@ -118,8 +128,9 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 			<Winner
 				final={resumedEnd}
 				local={resumed.local}
-				backLabel={resumed.local ? t("winner.playAgain") : lobby ? undefined : t("lobby.lobbies")}
-				onBack={() => closeResumed(resumed.local ? "local" : "lobby")}
+				bot={resumed.bot}
+				backLabel={resumed.local || resumed.bot ? t("winner.playAgain") : lobby ? undefined : t("lobby.lobbies")}
+				onBack={() => closeResumed(afterMatch(resumed))}
 				onExit={() => {
 					if (lobby)
 						socket.emit("lobby:leave");
@@ -205,6 +216,9 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 	// PLAY LOCAL: the map, the two fish and the match on this keyboard
 	if (page === "local" && session)
 		return <LocalGame onExit={() => setPage("menu")} />;
+	// PLAY vs BOT: the map, the options, the fish and the level, then the match against the bot
+	if (page === "bot" && session)
+		return <BotGame onExit={() => setPage("menu")} />;
 	// the lobby room (and the match, that opens inside it)
 	if (page === "lobby" && session && lobby)
 		return <Lobby initialLobby={lobby} onBack={() => setPage("lobbies")} />;
@@ -223,6 +237,8 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 					setPage("leaderboard");
 				else if (choice === "online")
 					openWithLogin("lobbies");
+				else if (choice === "bot")
+					openWithLogin("bot");
 				else
 					openWithLogin("local");
 			}}

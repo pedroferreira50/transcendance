@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { createInput, type Command, type InputMode } from "../game/input";
 import type { DynamicState, GameStart } from "../game/protocol";
+import { fishName } from "../game/names";
 import { drawFrame, trackSharks, type SharkMemory } from "../game/renderer";
 import { loadMapImage, loadSprites, type Sprites } from "../game/sprites";
 import { socket } from "../socket";
@@ -155,7 +156,7 @@ export default function GameScreen({ mode, start, onEnd }: GameScreenProps) {
 				mySlot: start.you,
 				showWalls: showWalls.current,
 				sharks: sharks.current,
-				names: start.local ? state.current.players.map((p) => t("game.localPlayer", { n: p.slot + 1 })) : undefined,
+				names: state.current.players.map((p) => fishName(p.slot, p.username, start.local, start.bot, t)),
 			});
 			frame = requestAnimationFrame(draw);
 		};

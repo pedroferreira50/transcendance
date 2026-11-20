@@ -1,0 +1,36 @@
+/* the 3 levels side by side: the button and, under it, what the level is like */
+.bot-levels {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	gap: clamp(1rem, 3vw, 3rem);
+
+	& .sea-button {
+		min-width: 6em;
+	}
+
+	/* phones standing up: no room on the side, one under the other */
+	@media (max-width: 700px) and (min-height: 501px) {
+		flex-direction: column;
+		align-items: center;
+	}
+}
+
+.bot-level {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4em;
+}
+
+.bot-level-about {
+	margin: 0;
+	max-width: 12em;
+	font-size: clamp(0.85rem, min(1.4vw, 2.6vh), 1.2rem);
+	text-align: center;
+	color: var(--sea-light);
+
+	@media (max-width: 700px) and (min-height: 501px) {
+		max-width: 18em;
+	}
+}

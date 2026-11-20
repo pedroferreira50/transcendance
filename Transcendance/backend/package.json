@@ -12,6 +12,7 @@
     "start": "prisma migrate deploy && node dist/server.js",
     "test": "vitest",
     "debug": "tsx src/game/debug.ts",
+    "bot-arena": "tsx src/game/botArena.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",

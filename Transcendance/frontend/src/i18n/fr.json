@@ -16,6 +16,7 @@
   "menu": {
     "title": "OPEN SEA",
     "local": "JOUER EN LOCAL",
+    "bot": "JOUER vs BOT",
     "online": "JOUER EN LIGNE",
     "instructions": "INSTRUCTIONS",
     "leaderboard": "CLASSEMENT",
@@ -72,19 +73,18 @@
   },
   "profile": {
     "title": "PROFIL",
-	"progression": "PROGRESSION",
-	"xp": "XP",
-	"level": "NIVEAU",
-	"onlineWins": "VICTOIRES EN LIGNE",
-	"winsUntilTen": "VICTOIRES RESTANTES",
-	"achievements": {
-	  "title": "SUCCÈS",
-	  "empty": "Aucun succès débloqué pour l'instant.",
-	  "no_death_win": "Victoire sans mourir",
-	  "fast_exit": "Sortie en moins de 60 déplacements",
-	  "ten_online_wins": "10 victoires en ligne"
-	},
-	"online": "EN LIGNE",
+    "progression": "PROGRESSION",
+    "xp": "XP",
+    "level": "NIVEAU",
+    "onlineWins": "VICTOIRES EN LIGNE",
+    "winsUntilTen": "VICTOIRES RESTANTES",
+    "achievements": {
+      "title": "SUCCÈS",
+      "empty": "Aucun succès débloqué pour l'instant.",
+      "no_death_win": "Victoire sans mourir",
+      "fast_exit": "Sortie en moins de 60 déplacements",
+      "ten_online_wins": "10 victoires en ligne"
+    },
     "online": "EN LIGNE",
     "totals": "TOTAUX",
     "matches": "PARTIES",
@@ -166,6 +166,23 @@
     "keys2": "FLÈCHES · L",
     "start": "COMMENCER",
     "fishOf": "Poisson du joueur {{n}}"
+  },
+  "bot": {
+    "fishTitle": "VOTRE POISSON",
+    "levelTitle": "NIVEAU",
+    "chooseFish": "Choisissez votre poisson",
+    "chooseLevel": "Choisissez le niveau du bot",
+    "levels": {
+      "easy": "FACILE",
+      "normal": "NORMAL",
+      "hard": "DIFFICILE"
+    },
+    "about": {
+      "easy": "Lent et distrait : idéal pour apprendre le jeu.",
+      "normal": "Joue bien, mais fait encore des erreurs.",
+      "hard": "Rapide et prudent : difficile à battre."
+    },
+    "name": "BOT ({{level}})"
   },
   "options": {
     "title": "OPTIONS",

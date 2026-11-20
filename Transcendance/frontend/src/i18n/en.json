@@ -16,6 +16,7 @@
   "menu": {
     "title": "OPEN SEA",
     "local": "PLAY LOCAL",
+    "bot": "PLAY vs BOT",
     "online": "PLAY ONLINE",
     "instructions": "INSTRUCTIONS",
     "leaderboard": "LEADERBOARD",
@@ -72,18 +73,18 @@
   },
   "profile": {
     "title": "PROFILE",
-	"progression": "PROGRESSION",
-	"xp": "XP",
-	"level": "LEVEL",
-	"onlineWins": "ONLINE WINS",
-	"winsUntilTen": "WINS TO 10",
-	"achievements": {
-		"title": "ACHIEVEMENTS",
-		"empty": "No achievements unlocked yet.",
-		"no_death_win": "Win without dying",
-		  "fast_exit": "Exit in under 60 moves",
-		  "ten_online_wins": "10 online wins"
-	},
+    "progression": "PROGRESSION",
+    "xp": "XP",
+    "level": "LEVEL",
+    "onlineWins": "ONLINE WINS",
+    "winsUntilTen": "WINS TO 10",
+    "achievements": {
+      "title": "ACHIEVEMENTS",
+      "empty": "No achievements unlocked yet.",
+      "no_death_win": "Win without dying",
+      "fast_exit": "Exit in under 60 moves",
+      "ten_online_wins": "10 online wins"
+    },
     "online": "ONLINE",
     "totals": "TOTALS",
     "matches": "MATCHES",
@@ -165,6 +166,23 @@
     "keys2": "ARROWS · L",
     "start": "START",
     "fishOf": "Fish of player {{n}}"
+  },
+  "bot": {
+    "fishTitle": "YOUR FISH",
+    "levelTitle": "LEVEL",
+    "chooseFish": "Choose your fish",
+    "chooseLevel": "Choose the level of the bot",
+    "levels": {
+      "easy": "EASY",
+      "normal": "NORMAL",
+      "hard": "HARD"
+    },
+    "about": {
+      "easy": "Slow and distracted: good to learn the game.",
+      "normal": "Plays well, but still makes mistakes.",
+      "hard": "Fast and careful: hard to beat."
+    },
+    "name": "BOT ({{level}})"
   },
   "options": {
     "title": "OPTIONS",

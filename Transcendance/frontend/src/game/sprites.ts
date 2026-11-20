@@ -1,10 +1,10 @@
 // Loads every image of the game before the first frame
-import type { Character, PowerUpType } from "./protocol";
+import { CHARACTERS } from "./options";
+import type { PowerUpType } from "./protocol";
 
 // name ("goldfish-right", "diamonds-5/3"...) -> image already loaded
 export type Sprites = Record<string, HTMLImageElement>;
 
-const CHARACTERS: Character[] = ["goldfish", "betta", "angler", "puffer"];
 const POWERUPS: PowerUpType[] = ["speed", "freeze", "enchant"];
 const SHARKS = ["shark", "shark-frozen", "shark-enchanted"];
 
