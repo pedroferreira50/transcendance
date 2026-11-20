@@ -73,18 +73,18 @@
   },
   "profile": {
     "title": "PROFIL",
-    "progression": "PROGRESSION",
-    "xp": "XP",
-    "level": "NIVEAU",
-    "onlineWins": "VICTOIRES EN LIGNE",
-    "winsUntilTen": "VICTOIRES RESTANTES",
-    "achievements": {
-      "title": "SUCCÈS",
-      "empty": "Aucun succès débloqué pour l'instant.",
-      "no_death_win": "Victoire sans mourir",
-      "fast_exit": "Sortie en moins de 60 déplacements",
-      "ten_online_wins": "10 victoires en ligne"
-    },
+	"progression": "PROGRESSION",
+	"xp": "XP",
+	"level": "NIVEAU",
+	"onlineWins": "VICTOIRES EN LIGNE",
+	"winsUntilTen": "VICTOIRES RESTANTES",
+	"achievements": {
+	  "title": "SUCCÈS",
+	  "empty": "Aucun succès débloqué pour l'instant.",
+	  "no_death_win": "Victoire sans mourir",
+	  "fast_exit": "Sortie en moins de 60 déplacements",
+	  "ten_online_wins": "10 victoires en ligne"
+	},
     "online": "EN LIGNE",
     "totals": "TOTAUX",
     "matches": "PARTIES",
@@ -211,6 +211,12 @@
     "summary": "TEMPS {{time}} · REQUINS {{sharks}}",
     "noPowerUps": "SANS BONUS"
   },
+  "fishNames": {
+    "goldfish": "rouge",
+    "betta": "combattant",
+    "angler": "baudroie",
+    "puffer": "ballon"
+  },
   "winner": {
     "winner": "VAINQUEUR",
     "draw": "ÉGALITÉ",
@@ -229,8 +235,17 @@
     "diamonds": "diamants",
     "deaths": "morts"
   },
+  "maps": {
+    "small-1": "PETIT 1",
+    "small-2": "PETIT 2",
+    "medium-1": "MOYEN 1",
+    "medium-2": "MOYEN 2",
+    "large-1": "GRAND 1",
+    "large-2": "GRAND 2"
+  },
   "game": {
     "loading": "Chargement...",
+    "assetLoadFailed": "Impossible de charger les éléments du jeu.",
     "leave": "Quitter la partie",
     "watching": "EN OBSERVATION",
     "reconnecting": "RECONNEXION...",
@@ -271,6 +286,47 @@
       "changes": "Nous pouvons mettre à jour ces conditions. La version actuelle est toujours publiée sur cette page, avec la date ci-dessus. Continuer à utiliser le jeu après une modification signifie que vous acceptez les nouvelles conditions.",
       "contactTitle": "Contact",
       "contact": "Les questions sur ces conditions peuvent être envoyées à l'équipe Open Sea à support@opensea.local."
+    }
+  },
+  "errors": {
+    "unknown": "Une erreur est survenue.",
+    "auth": {
+      "rateLimitedLogin": "Trop de tentatives de connexion. Réessayez plus tard.",
+      "rateLimitedRegister": "Trop de tentatives d'inscription. Réessayez plus tard.",
+      "rateLimited": "Trop de tentatives. Réessayez plus tard.",
+      "requiredFields": "Le nom d'utilisateur, l'email et le mot de passe sont requis.",
+      "invalidUsername": "Le nom d'utilisateur doit comporter de 3 à 16 caractères, uniquement des lettres, des chiffres et _.",
+      "invalidEmail": "Email invalide.",
+      "passwordLength": "Le mot de passe doit comporter de {{min}} à {{max}} caractères.",
+      "passwordCharacters": "Le mot de passe doit contenir au moins une lettre et un chiffre.",
+      "registerSuccess": "Inscription réussie !",
+      "emailInUse": "Cet email est déjà utilisé.",
+      "usernameTaken": "Ce nom d'utilisateur est déjà utilisé.",
+      "registerFailed": "Impossible d'inscrire l'utilisateur.",
+      "loginRequiredFields": "Le nom d'utilisateur et le mot de passe sont requis.",
+      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide.",
+      "loginSuccess": "Connexion réussie !",
+      "loginFailed": "Impossible de se connecter.",
+      "notLoggedIn": "Vous n'êtes pas connecté.",
+      "userNotFound": "Utilisateur introuvable.",
+      "authFailed": "Impossible d'authentifier."
+    },
+    "lobby": {
+      "alreadyInLobby": "Vous êtes déjà dans un salon.",
+      "invalidCode": "Code de salon invalide.",
+      "notFound": "Salon introuvable.",
+      "matchInProgress": "Une partie est déjà en cours.",
+      "full": "Le salon est plein.",
+      "noMatchToWatch": "Il n'y a aucune partie à regarder.",
+      "startFailed": "Impossible de démarrer la partie.",
+      "watchFailed": "Impossible de regarder la partie.",
+      "tooManyPlayers": "Il y a plus de joueurs dans le salon que ce nombre.",
+      "fishTaken": "Ce poisson a déjà été choisi.",
+      "chooseFish": "Choisissez d'abord un poisson."
+    },
+    "game": {
+      "invalidLocalSetup": "Choisissez une carte et deux poissons différents.",
+      "startFailed": "Impossible de démarrer la partie."
     }
   }
 }

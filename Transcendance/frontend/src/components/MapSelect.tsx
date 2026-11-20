@@ -31,7 +31,7 @@ export default function MapSelect({ players, onChoose, onBack }: MapSelectProps)
 			<div className="flex w-full flex-1 flex-col items-center justify-center">
 				<div className="flex w-[min(100%,60rem,140vh)] flex-wrap justify-center gap-cards">
 					{mapsFor(players).map((name) => (
-						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name)} onClick={() => onChoose(name)} />
+						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name, t)} onClick={() => onChoose(name)} />
 					))}
 					<MapCard image="/art/bubbles/empty.webp" label={t("lobby.random")} onClick={() => onChoose("random")} />
 				</div>

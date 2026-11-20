@@ -211,6 +211,12 @@
     "summary": "{{time}} TIME · {{sharks}} SHARKS",
     "noPowerUps": "NO POWER-UPS"
   },
+  "fishNames": {
+    "goldfish": "goldfish",
+    "betta": "betta",
+    "angler": "angler",
+    "puffer": "puffer"
+  },
   "winner": {
     "winner": "WINNER",
     "draw": "DRAW",
@@ -229,8 +235,17 @@
     "diamonds": "diamonds",
     "deaths": "deaths"
   },
+  "maps": {
+    "small-1": "SMALL 1",
+    "small-2": "SMALL 2",
+    "medium-1": "MEDIUM 1",
+    "medium-2": "MEDIUM 2",
+    "large-1": "LARGE 1",
+    "large-2": "LARGE 2"
+  },
   "game": {
     "loading": "Loading...",
+    "assetLoadFailed": "Could not load the game assets.",
     "leave": "Leave the match",
     "watching": "WATCHING",
     "reconnecting": "RECONNECTING...",
@@ -271,6 +286,47 @@
       "changes": "We may update these terms. The current version is always published on this page, with the date above. Continued use after a change means you accept the new terms.",
       "contactTitle": "Contact",
       "contact": "Questions about these terms can be sent to the Open Sea team at support@opensea.local."
+    }
+  },
+  "errors": {
+    "unknown": "Something went wrong.",
+    "auth": {
+      "rateLimitedLogin": "Too many login attempts. Try again later.",
+      "rateLimitedRegister": "Too many registration attempts. Try again later.",
+      "rateLimited": "Too many attempts. Try again later.",
+      "requiredFields": "Username, email and password are required.",
+      "invalidUsername": "Username must be 3 to 16 characters, using only letters, numbers and _.",
+      "invalidEmail": "Invalid email.",
+      "passwordLength": "Password must be {{min}} to {{max}} characters.",
+      "passwordCharacters": "Password must contain at least one letter and one number.",
+      "registerSuccess": "Registration successful!",
+      "emailInUse": "Email is already in use.",
+      "usernameTaken": "Username is already taken.",
+      "registerFailed": "Could not register user.",
+      "loginRequiredFields": "Username and password are required.",
+      "invalidCredentials": "Invalid username or password.",
+      "loginSuccess": "Login successful!",
+      "loginFailed": "Could not log in.",
+      "notLoggedIn": "Not logged in.",
+      "userNotFound": "User not found.",
+      "authFailed": "Could not authenticate."
+    },
+    "lobby": {
+      "alreadyInLobby": "You are already in a lobby.",
+      "invalidCode": "Invalid lobby code.",
+      "notFound": "Lobby not found.",
+      "matchInProgress": "Match already in progress.",
+      "full": "Lobby is full.",
+      "noMatchToWatch": "There is no match to watch.",
+      "startFailed": "Could not start the match.",
+      "watchFailed": "Could not watch the match.",
+      "tooManyPlayers": "There are more players than that in the lobby.",
+      "fishTaken": "That fish was already chosen.",
+      "chooseFish": "Choose a fish first."
+    },
+    "game": {
+      "invalidLocalSetup": "Choose a map and two different fish.",
+      "startFailed": "Could not start the match."
     }
   }
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { User } from "../types/User";
 import { api } from "../api";
+import { localizedError } from "../i18n";
 import Screen from "./Screen";
 
 type RegisterProps = {
@@ -84,7 +85,7 @@ function Register({ onLogin }: RegisterProps) {
 
 			const data = await response.json();
 
-			setMessage(data.message);
+			setMessage(localizedError(t, data));
 		} catch (error) {
 			console.error(error);
 			setMessage(t("auth.errors.connect"));

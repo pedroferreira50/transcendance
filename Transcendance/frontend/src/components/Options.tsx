@@ -8,7 +8,7 @@ import "./Options.css";
 type OptionsProps = {
 	initial: MatchOptions; // what is chosen when the screen opens
 	confirmLabel: string; // already translated: t("options.create"), t("options.save"), t("options.next")
-	message?: string; // the answer of the server when it refuses ("You are already in a lobby.")
+	message?: string; // the already localized answer of the server when it refuses
 	onChoose: (options: MatchOptions) => void;
 	onBack: () => void;
 };

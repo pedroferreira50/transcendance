@@ -18,7 +18,9 @@ export function mapsFor(players: PlayerCount): string[] {
 	return MAPS.filter((map) => map.players.includes(players)).map((map) => map.name);
 }
 
-// "medium-1" -> "MEDIUM 1"
-export function mapLabel(name: string): string {
-	return name.replace("-", " ").toUpperCase();
+// "medium-1" -> a localized map name
+export function mapLabel(name: string, t: (key: string) => string): string {
+	if (name === "random")
+		return t("lobby.random");
+	return t(`maps.${name}`);
 }

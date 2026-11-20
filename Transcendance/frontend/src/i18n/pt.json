@@ -96,7 +96,7 @@
     "diamonds": "DIAMANTES",
     "moves": "MOVIMENTOS",
     "deaths": "MORTES",
-    "powerUps": "POWER-UPS",
+    "powerUps": "PODERES",
     "history": "HISTÓRICO",
     "logout": "SAIR",
     "errors": {
@@ -211,6 +211,12 @@
     "summary": "TEMPO {{time}} · TUBARÕES {{sharks}}",
     "noPowerUps": "SEM PODERES"
   },
+  "fishNames": {
+    "goldfish": "dourado",
+    "betta": "betta",
+    "angler": "pescador",
+    "puffer": "balao"
+  },
   "winner": {
     "winner": "VENCEDOR",
     "draw": "EMPATE",
@@ -229,14 +235,23 @@
     "diamonds": "diamantes",
     "deaths": "mortes"
   },
+  "maps": {
+    "small-1": "PEQUENO 1",
+    "small-2": "PEQUENO 2",
+    "medium-1": "MÉDIO 1",
+    "medium-2": "MÉDIO 2",
+    "large-1": "GRANDE 1",
+    "large-2": "GRANDE 2"
+  },
   "game": {
     "loading": "Carregando...",
+    "assetLoadFailed": "Não foi possível carregar os recursos do jogo.",
     "leave": "Sair da partida",
     "watching": "ASSISTINDO",
     "reconnecting": "RECONECTANDO...",
     "stopWatching": "Parar de assistir",
     "leaveConfirmTitle": "SAIR DA PARTIDA?",
-    "powerUp": "power-up",
+    "powerUp": "poder",
     "localPlayer": "Jogador {{n}}"
   },
   "legal": {
@@ -271,6 +286,47 @@
       "changes": "Podemos atualizar estes termos. A versão atual está sempre publicada nesta página, com a data acima. Continuar a usar o jogo após uma alteração significa que você aceita os novos termos.",
       "contactTitle": "Contato",
       "contact": "Dúvidas sobre estes termos podem ser enviadas à equipe do Open Sea em support@opensea.local."
+    }
+  },
+  "errors": {
+    "unknown": "Algo deu errado.",
+    "auth": {
+      "rateLimitedLogin": "Muitas tentativas de login. Tente novamente mais tarde.",
+      "rateLimitedRegister": "Muitas tentativas de cadastro. Tente novamente mais tarde.",
+      "rateLimited": "Muitas tentativas. Tente novamente mais tarde.",
+      "requiredFields": "Nome de usuário, email e senha são obrigatórios.",
+      "invalidUsername": "O nome de usuário deve ter de 3 a 16 caracteres, usando apenas letras, números e _.",
+      "invalidEmail": "Email inválido.",
+      "passwordLength": "A senha deve ter de {{min}} a {{max}} caracteres.",
+      "passwordCharacters": "A senha deve conter pelo menos uma letra e um número.",
+      "registerSuccess": "Cadastro realizado!",
+      "emailInUse": "Este email já está em uso.",
+      "usernameTaken": "Este nome de usuário já está em uso.",
+      "registerFailed": "Não foi possível cadastrar o usuário.",
+      "loginRequiredFields": "Nome de usuário e senha são obrigatórios.",
+      "invalidCredentials": "Nome de usuário ou senha inválidos.",
+      "loginSuccess": "Login realizado!",
+      "loginFailed": "Não foi possível entrar.",
+      "notLoggedIn": "Você não está conectado.",
+      "userNotFound": "Usuário não encontrado.",
+      "authFailed": "Não foi possível autenticar."
+    },
+    "lobby": {
+      "alreadyInLobby": "Você já está em uma sala.",
+      "invalidCode": "Código de sala inválido.",
+      "notFound": "Sala não encontrada.",
+      "matchInProgress": "Uma partida já está em andamento.",
+      "full": "A sala está cheia.",
+      "noMatchToWatch": "Não há nenhuma partida para assistir.",
+      "startFailed": "Não foi possível iniciar a partida.",
+      "watchFailed": "Não foi possível assistir à partida.",
+      "tooManyPlayers": "Há mais jogadores na sala do que esse número.",
+      "fishTaken": "Esse peixe já foi escolhido.",
+      "chooseFish": "Escolha um peixe primeiro."
+    },
+    "game": {
+      "invalidLocalSetup": "Escolha um mapa e dois peixes diferentes.",
+      "startFailed": "Não foi possível iniciar a partida."
     }
   }
 }
