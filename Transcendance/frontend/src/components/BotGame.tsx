@@ -88,12 +88,15 @@ export default function BotGame({ onExit }: BotGameProps) {
 			<Screen title={t("bot.fishTitle")} onBack={() => setOptionsChosen(false)}>
 				<div className="local-setup">
 					<div className="fish-choice" role="group" aria-label={t("bot.chooseFish")}>
-						{CHARACTERS.map((character) => (
-							<button key={character} className="fish-option" onClick={() => setFish(character)} aria-label={character}>
-								<img src={`/art/fish/${character}.webp`} alt="" />
-								<span className="fish-name">{character}</span>
-							</button>
-						))}
+						{CHARACTERS.map((character) => {
+							const label = t(`fishNames.${character}`);
+							return (
+								<button key={character} className="fish-option" onClick={() => setFish(character)} aria-label={label}>
+									<img src={`/art/fish/${character}.webp`} alt="" />
+									<span className="fish-name">{label}</span>
+								</button>
+							);
+						})}
 					</div>
 				</div>
 			</Screen>
