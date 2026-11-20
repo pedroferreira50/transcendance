@@ -102,6 +102,8 @@
 
 /* the seats side by side; on phones 2 in a row */
 .seats {
+	--gap: clamp(0.8rem, 3vw, 3rem);
+
 	width: 100%;
 	margin: 0;
 	padding: 0;
@@ -109,7 +111,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-	gap: clamp(0.8rem, 3vw, 3rem);
+	gap: var(--gap);
 }
 
 /* the width is for the name; the portrait (--portrait) also follows the height, so 4 seats fit in short screens */
@@ -117,7 +119,7 @@
 	--portrait: min(12vw, 14vh, 11rem);
 
 	position: relative;
-	width: clamp(5.5rem, 12vw, 11rem);
+	width: clamp(6.5rem, 16vw, 13rem);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -126,12 +128,18 @@
 	&.empty .seat-portrait {
 		opacity: 0.6;
 	}
+	/* WAITING... is not a username: it can go to a second line ("EN ATTENTE...") */
+	&.empty .seat-name {
+		white-space: normal;
+		text-align: center;
+		letter-spacing: normal;
+	}
 
 	/* phones standing up (a phone lying down is short: it keeps the sizes above, that also follow the height) */
 	@media (max-width: 700px) and (min-height: 501px) {
 		--portrait: 22vw;
 
-		width: 22vw;
+		width: calc((100% - var(--gap)) / 2); /* 2 in a row, as wide as they can */
 	}
 }
 
@@ -201,10 +209,16 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: clamp(0.5rem, 2vw, 2rem);
+
+	@media (max-width: 700px) and (min-height: 501px) {
+		gap: 0.25rem;
+	}
 }
 
 .fish-option {
-	width: clamp(3rem, min(10vw, 10vh), 9rem);
+	--fish: clamp(3rem, min(10vw, 10vh), 9rem);
+
+	min-width: var(--fish);
 	padding: 0.3rem;
 	border: var(--line) solid transparent;
 	border-radius: 1rem;
@@ -212,7 +226,8 @@
 	cursor: pointer;
 
 	& img {
-		width: 100%;
+		width: calc(var(--fish) - 0.6rem);
+		margin-inline: auto;
 		aspect-ratio: 3 / 2;
 		object-fit: contain;
 		display: block;
@@ -238,8 +253,11 @@
 		}
 	}
 
+	/* phones standing up: less room around the name, so the 4 fish still fit in one row */
 	@media (max-width: 700px) and (min-height: 501px) {
-		width: 16vw;
+		--fish: 14vw;
+
+		padding-inline: 0.15rem;
 	}
 }
 
