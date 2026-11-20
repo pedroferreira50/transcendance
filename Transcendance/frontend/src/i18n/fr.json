@@ -327,6 +327,10 @@
     "game": {
       "invalidLocalSetup": "Choisissez une carte et deux poissons différents.",
       "startFailed": "Impossible de démarrer la partie."
+    },
+    "bot": {
+      "invalidSetup": "Choisissez une carte, un poisson et un niveau.",
+      "startFailed": "Impossible de démarrer la partie."
     }
   }
 }

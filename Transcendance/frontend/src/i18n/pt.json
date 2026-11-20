@@ -215,7 +215,7 @@
     "goldfish": "dourado",
     "betta": "betta",
     "angler": "pescador",
-    "puffer": "balao"
+    "puffer": "balão"
   },
   "winner": {
     "winner": "VENCEDOR",
@@ -326,6 +326,10 @@
     },
     "game": {
       "invalidLocalSetup": "Escolha um mapa e dois peixes diferentes.",
+      "startFailed": "Não foi possível iniciar a partida."
+    },
+    "bot": {
+      "invalidSetup": "Escolha um mapa, um peixe e um nível.",
       "startFailed": "Não foi possível iniciar a partida."
     }
   }

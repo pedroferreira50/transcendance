@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BOT_LEVELS, CHARACTERS, defaultOptions } from "../game/options";
 import type { BotInfo, BotLevel, Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
+import { localizedError } from "../i18n";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
 import MapSelect from "./MapSelect";
@@ -31,19 +32,22 @@ export default function BotGame({ onExit }: BotGameProps) {
 		socket.connect();
 
 		function handleConnectError(error: Error) {
-			let nextMessage = error.message;
-			if (socket.active) {
-				nextMessage = t("lobby.errors.connect");
-			}
+			const nextMessage = socket.active
+				? t("lobby.errors.connect")
+				: localizedError(t, error.message);
 			setMessage(nextMessage);
 		}
 
+		function handleBotError(payload: unknown) {
+			setMessage(localizedError(t, payload));
+		}
+
 		socket.on("game:start", setMatch);
-		socket.on("bot:error", setMessage);
+		socket.on("bot:error", handleBotError);
 		socket.on("connect_error", handleConnectError);
 		return () => {
 			socket.off("game:start", setMatch);
-			socket.off("bot:error", setMessage);
+			socket.off("bot:error", handleBotError);
 			socket.off("connect_error", handleConnectError);
 		};
 	}, [t]);
@@ -82,12 +86,15 @@ export default function BotGame({ onExit }: BotGameProps) {
 			<Screen title={t("bot.fishTitle")} onBack={() => setOptionsChosen(false)}>
 				<div className="flex flex-1 flex-col items-center justify-center gap-screen">
 					<div className="fish-choice" role="group" aria-label={t("bot.chooseFish")}>
-						{CHARACTERS.map((character) => (
-							<button key={character} className="fish-option" onClick={() => setFish(character)} aria-label={character}>
-								<img src={`/art/fish/${character}.webp`} alt="" />
-								<span className="fish-name">{character}</span>
-							</button>
-						))}
+						{CHARACTERS.map((character) => {
+							const label = t(`fishNames.${character}`);
+							return (
+								<button key={character} className="fish-option" onClick={() => setFish(character)} aria-label={label}>
+									<img src={`/art/fish/${character}.webp`} alt="" />
+									<span className="fish-name">{label}</span>
+								</button>
+							);
+						})}
 					</div>
 				</div>
 			</Screen>
