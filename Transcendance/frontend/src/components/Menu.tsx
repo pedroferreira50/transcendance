@@ -53,16 +53,16 @@ export default function Menu({ username, notice, onChoose, onAccount, onBack }: 
 
 	return (
 		<Screen title={t("menu.title")} onBack={onBack} corner={account} decorations={DECORATIONS}>
-			 <div className="menu flex flex-1 flex-col items-center pb-[6vh]">
-				<img className="menu-fish mt-[2vh] mb-[4vh] min-h-0 w-[min(34vw,100%)] flex-[1_1_0] object-contain" src="/art/fish/goldfish.webp" alt="" />
-				<div className="button-row [&_.sea-button]:!text-[clamp(1.6rem,min(2.9vw,5.5vh),3.4rem)]">
-					{!touch && <button className="menu-local-button sea-button [@media(pointer:coarse)]:hidden" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
+			<div className="flex flex-1 flex-col items-center pb-[6vh]">
+				<img className="mt-[2vh] mb-[4vh] min-h-0 w-[min(34vw,100%)] flex-[1_1_0] object-contain" src="/art/fish/goldfish.webp" alt="" />
+				<div className="button-row *:text-button-menu">
+					{!touch && <button className="sea-button" onClick={() => onChoose("local")}>{t("menu.local")}</button>}
 					<button className="sea-button" onClick={() => onChoose("bot")}>{t("menu.bot")}</button>
 					<button className="sea-button" onClick={() => onChoose("online")}>{t("menu.online")}</button>
 					<button className="sea-button" onClick={() => onChoose("instructions")}>{t("menu.instructions")}</button>
 					<button className="sea-button" onClick={() => onChoose("leaderboard")}>{t("menu.leaderboard")}</button>
 				</div>
-				{notice && <p className="form-message !mt-[2vh]" role="status">{notice}</p>}
+				{notice && <p className="form-message mt-[2vh]" role="status">{notice}</p>}
 			</div>
 		</Screen>
 	);

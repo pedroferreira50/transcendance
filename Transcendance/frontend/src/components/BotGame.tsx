@@ -9,8 +9,6 @@ import Options from "./Options";
 import Screen from "./Screen";
 import Winner from "./Winner";
 import "./Lobby.css";
-import "./LocalGame.css";
-import "./BotGame.css";
 
 type BotGameProps = {
 	onExit: () => void; // back to the menu
@@ -82,7 +80,7 @@ export default function BotGame({ onExit }: BotGameProps) {
 	if (fish === null)
 		return (
 			<Screen title={t("bot.fishTitle")} onBack={() => setOptionsChosen(false)}>
-				<div className="local-setup">
+				<div className="flex flex-1 flex-col items-center justify-center gap-screen">
 					<div className="fish-choice" role="group" aria-label={t("bot.chooseFish")}>
 						{CHARACTERS.map((character) => (
 							<button key={character} className="fish-option" onClick={() => setFish(character)} aria-label={character}>
@@ -98,14 +96,14 @@ export default function BotGame({ onExit }: BotGameProps) {
 	// LEVEL: each button starts the match at that level
 	return (
 		<Screen title={t("bot.levelTitle")} onBack={() => setFish(null)}>
-			<div className="local-setup">
-				<div className="bot-levels" role="group" aria-label={t("bot.chooseLevel")}>
+			<div className="flex flex-1 flex-col items-center justify-center gap-screen">
+				<div className="flex items-start justify-center gap-[clamp(1rem,3vw,3rem)] standing:flex-col standing:items-center" role="group" aria-label={t("bot.chooseLevel")}>
 					{BOT_LEVELS.map((level) => (
-						<div key={level} className="bot-level">
-							<button className="sea-button" onClick={() => start(level)}>
+						<div key={level} className="flex flex-col items-center gap-[0.4em]">
+							<button className="sea-button min-w-[6em]" onClick={() => start(level)}>
 								{t(`bot.levels.${level}`)}
 							</button>
-							<p className="bot-level-about">{t(`bot.about.${level}`)}</p>
+							<p className="m-0 max-w-[12em] text-center text-hint text-sea-light standing:max-w-[18em]">{t(`bot.about.${level}`)}</p>
 						</div>
 					))}
 				</div>

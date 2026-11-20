@@ -1,7 +1,6 @@
 import type { Decoration } from "./Decorations";
 import { useTranslation } from "react-i18next";
 import Screen from "./Screen";
-import "./Intro.css";
 
 type IntroProps = {
 	onPlay: () => void;
@@ -24,9 +23,11 @@ export default function Intro({ onPlay }: IntroProps) {
 
 	return (
 		<Screen title={t("menu.title")} decorations={DECORATIONS}>
-			<div className="intro">
-				<p className="text-box story">{t("intro.story")}</p>
-				<button className="sea-button intro-play" onClick={onPlay}>{t("intro.play")}</button>
+			<div className="flex flex-1 flex-col items-center justify-evenly gap-[clamp(0.75rem,5vh,4rem)]">
+				<p className="balloon max-w-[min(30em,40vw)] text-center text-story leading-[1.7] phone:max-w-[30em] short:max-w-[30em] short:leading-[1.5]">
+					{t("intro.story")}
+				</p>
+				<button className="sea-button min-w-[min(70vw,8em)]" onClick={onPlay}>{t("intro.play")}</button>
 			</div>
 		</Screen>
 	);

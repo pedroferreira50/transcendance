@@ -18,6 +18,8 @@ type LocalGameProps = {
 // the map, the options, the fish of each player, the match and the WINNER screen, all inside this component
 export default function LocalGame({ onExit }: LocalGameProps) {
 	const { t } = useTranslation();
+	// The keys of each player (the same as input.ts)
+	const keys = [t("local.keys"), t("local.keys2")];
 	const [map, setMap] = useState<string | null>(null); // null: still choosing the map
 	const [options, setOptions] = useState<MatchOptions>(defaultOptions()); // kept when the « of FISH goes back to OPTIONS
 	const [optionsChosen, setOptionsChosen] = useState(false); // false: still on the OPTIONS screen
@@ -85,11 +87,11 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 	return (
 		<Screen title={t("local.fishTitle")} onBack={() => setOptionsChosen(false)}>
-			<div className="local-setup flex flex-1 flex-col items-center justify-center gap-[clamp(0.75rem,3vh,2rem)]">
+			<div className="flex flex-1 flex-col items-center justify-center gap-screen">
 				{[0, 1].map((slot) => (
-					<div key={slot} className="local-player flex flex-col items-center gap-[0.4em]">
-						<p className="local-player-name m-0 text-center font-[family-name:var(--font-button)] text-[length:clamp(1.3rem,min(2.4vw,4.2vh),2.4rem)] tracking-[0.06em] text-[color:var(--sea-light)]">
-							{t("local.player", { n: slot + 1 })}  <span className="local-keys ml-[0.6em] font-[family-name:var(--font-text)] text-[0.6em] tracking-normal opacity-[0.85]"></span>
+					<div key={slot} className="flex flex-col items-center gap-[0.4em]">
+						<p className="m-0 text-center font-button text-player tracking-[0.06em] text-sea-light">
+							{t("local.player", { n: slot + 1 })} <span className="ml-[0.6em] font-text text-[0.6em] tracking-normal opacity-85">{keys[slot]}</span>
 						</p>
 						<div className="fish-choice" role="group" aria-label={t("local.fishOf", { n: slot + 1 })}>
 							{CHARACTERS.map((character) => {
