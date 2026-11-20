@@ -518,10 +518,15 @@ describe("bot match", () => {
 		const { ana } = setupBot();
 		ana.send("bot:start", { map: "small-1", character: "goldfish", level: "normal" });
 		ana.send("bot:start", { map: "small-1", character: "goldfish", level: "god" });
-		expect(ana.emitted.map((e) => e.event)).toEqual(["bot:error", "bot:error"]);
+		expect(ana.emitted).toEqual([
+			{ event: "bot:error", data: { code: "bot.startFailed" } },
+			{ event: "bot:error", data: { code: "bot.invalidSetup" } },
+		]);
 		const guest = fakeSocket("s9");
 		registerGameEvents(guest.socket, new GameManager(transport, seeded(1), async () => {}));
 		guest.send("bot:start", { map: "small-1", character: "goldfish", level: "normal" });
-		expect(guest.emitted.map((e) => e.event)).toEqual(["bot:error"]);
+		expect(guest.emitted).toEqual([
+			{ event: "bot:error", data: { code: "bot.invalidSetup" } },
+		]);
 	});
 });

@@ -327,6 +327,10 @@
     "game": {
       "invalidLocalSetup": "Choose a map and two different fish.",
       "startFailed": "Could not start the match."
+    },
+    "bot": {
+      "invalidSetup": "Choose a map, a fish and a level.",
+      "startFailed": "Could not start the match."
     }
   }
 }
