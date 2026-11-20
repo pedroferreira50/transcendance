@@ -526,7 +526,7 @@ describe("bot match", () => {
 		registerGameEvents(guest.socket, new GameManager(transport, seeded(1), async () => {}));
 		guest.send("bot:start", { map: "small-1", character: "goldfish", level: "normal" });
 		expect(guest.emitted).toEqual([
-			{ event: "bot:error", data: { code: "bot.invalidSetup" } },
+			{ event: "bot:error", data: { code: "auth.notLoggedIn" } },
 		]);
 	});
 });

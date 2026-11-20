@@ -140,7 +140,11 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 		const userId: unknown = socket.data.userId;
 		const username: unknown = socket.data.username;
 		const setup = readBotSetup(data);
-		if (typeof userId !== "number" || !setup) {
+		if (typeof userId !== "number") {
+			socket.emit("bot:error", { code: "auth.notLoggedIn" });
+			return;
+		}
+		if (!setup) {
 			socket.emit("bot:error", { code: "bot.invalidSetup" });
 			return;
 		}
