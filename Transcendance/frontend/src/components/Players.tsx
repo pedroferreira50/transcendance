@@ -16,7 +16,7 @@ export default function Players({ onChoose, onBack, min = 2 }: PlayersProps) {
 
 	return (
 		<Screen title={t("lobby.playersTitle")} onBack={onBack}>
-			<div className="flex flex-1 flex-col justify-center gap-[clam(1rem,3vh,2rem)]">
+			<div className="flex flex-1 flex-col justify-center gap-screen">
 				{COUNTS.map((count) => (
 					<button key={count} className="sea-button min-w-[8em]" onClick={() => onChoose(count)} disabled={count < min}>
 						{t("lobby.players", { count })}

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Decorations, { type Decoration } from "./Decorations";
 import LanguageSwitcher from "./LanguageSwitcher";
-import "./Screen.css";
 
 type ScreenProps = {
 	title?: string;
