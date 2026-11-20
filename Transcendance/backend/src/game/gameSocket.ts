@@ -140,15 +140,19 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 		const userId: unknown = socket.data.userId;
 		const username: unknown = socket.data.username;
 		const setup = readBotSetup(data);
-		if (typeof userId !== "number" || !setup) {
-			socket.emit("bot:error", "Choose a map, a fish and a level.");
+		if (typeof userId !== "number") {
+			socket.emit("bot:error", { code: "auth.notLoggedIn" });
+			return;
+		}
+		if (!setup) {
+			socket.emit("bot:error", { code: "bot.invalidSetup" });
 			return;
 		}
 		const player = { userId, username: typeof username === "string" ? username : "Player", character: setup.character, socketId: socket.id };
 		try {
 			games.createGame({ players: [player], map: setup.map, options: setup.options, bot: setup.level });
-		} catch (error) {
-			socket.emit("bot:error", error instanceof Error ? error.message : "Could not start the match.");
+		} catch {
+			socket.emit("bot:error", { code: "bot.startFailed" });
 		}
 	});
 
