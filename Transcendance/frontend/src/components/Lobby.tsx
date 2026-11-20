@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from "react-i18next";
+import { localizedError } from '../i18n';
 import { socket } from '../socket';
 import { mapLabel, type PlayerCount } from '../game/maps';
 import { CHARACTERS } from '../game/options';
@@ -52,19 +53,22 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
     function handleKicked() {
       onBack();
     }
+    function handleLobbyError(payload: unknown) {
+      setMessage(localizedError(t, payload));
+    }
 
     socket.on('lobby:update', setLobby);
-    socket.on('lobby:error', setMessage);
+    socket.on('lobby:error', handleLobbyError);
     socket.on('game:start', setMatch);
     socket.on('lobby:kicked', handleKicked);
 
     return () => {
       socket.off('lobby:update', setLobby);
-      socket.off('lobby:error', setMessage);
+      socket.off('lobby:error', handleLobbyError);
       socket.off('game:start', setMatch);
       socket.off('lobby:kicked', handleKicked);
     };
-  }, [onBack]);
+  }, [onBack, t]);
 
   // every click asks the server something: the old message does not apply anymore
   function send(event: string, data?: unknown) {
@@ -141,7 +145,7 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
     }
   }
 
-  let mapName = mapLabel(lobby.map);
+  let mapName = mapLabel(lobby.map, t);
   if (lobby.map === 'random') {
     mapName = t('lobby.random');
   }
@@ -194,16 +198,17 @@ const Lobby: React.FC<LobbyProps> = ({ initialLobby, onBack }) => {
             if (owner && owner === me) {
               fishClass = 'fish-option mine';
             }
+            const label = t(`fishNames.${fish}`);
             return (
               <button
                 key={fish}
                 className={fishClass}
                 disabled={owner !== undefined && owner !== me}
                 onClick={() => send('lobby:character', fish)}
-                aria-label={fish}
+                aria-label={label}
               >
                 <img src={`/art/fish/${fish}.webp`} alt="" />
-                <span className='fish-name'>{fish}</span>
+                <span className='fish-name'>{label}</span>
               </button>
             );
           })}

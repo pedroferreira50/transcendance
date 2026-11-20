@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PlayerCount } from "../game/maps";
 import { defaultOptions } from "../game/options";
+import { localizedError } from "../i18n";
 import { socket } from "../socket";
 import type { LobbyState } from "./Lobby";
 import MapSelect from "./MapSelect";
@@ -21,14 +22,18 @@ export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
 	const [message, setMessage] = useState("");
 
 	useEffect(() => {
+		function handleLobbyError(payload: unknown) {
+			setMessage(localizedError(t, payload));
+		}
+
 		socket.connect(); // already connected by the LOBBIES screen: then it does nothing
 		socket.on("lobby:joined", onCreated);
-		socket.on("lobby:error", setMessage);
+		socket.on("lobby:error", handleLobbyError);
 		return () => {
 			socket.off("lobby:joined", onCreated);
-			socket.off("lobby:error", setMessage);
+			socket.off("lobby:error", handleLobbyError);
 		};
-	}, [onCreated]);
+	}, [onCreated, t]);
 
 	if (players === null)
 		return <Players onChoose={setPlayers} onBack={onBack} />;

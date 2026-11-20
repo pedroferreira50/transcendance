@@ -99,7 +99,7 @@ export class GameManager {
 	createGame(setup: MatchSetup): string {
 		for (const player of setup.players) // refuses the match if one of the players is already in another one
 			if (this.userGame.has(player.userId))
-				throw new Error(`${player.username} is already in a match`); // Lobby handles and displays the error
+				throw new Error(`${player.username} is already in a match`); // Lobby maps this to a generic error code
 		const id = randomUUID(); // example: "3f2a9c1e-7b4d-4e8a-9c3f-1a2b3c4d5e6f"
 		const local = setup.local ?? false;
 		const options = setup.options ?? defaultOptions();

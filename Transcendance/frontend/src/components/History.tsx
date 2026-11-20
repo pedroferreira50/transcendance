@@ -13,10 +13,6 @@ type HistoryProps = {
   onBack: () => void;
 };
 
-function characterLabel(character: string) {
-  return character.charAt(0).toUpperCase() + character.slice(1);
-}
-
 // The player's online matches, newest first. The server enforces that userId is
 // the logged-in user, so this screen only has to show what it receives.
 const History: React.FC<HistoryProps> = ({ userId, onBack }) => {
@@ -108,8 +104,10 @@ const History: React.FC<HistoryProps> = ({ userId, onBack }) => {
               {data.matches.map((match) => (
                 <li className="text-box history-row" key={match.id}>
                   <span className="history-date">{formatDate(match.endedAt)}</span>
-                  <span className="history-map">{mapLabel(match.mapName)}</span>
-                  <span className="history-character">{characterLabel(match.character)}</span>
+                  <span className="history-map">{mapLabel(match.mapName, t)}</span>
+                  <span className="history-character">
+                    {t(`fishNames.${match.character}`, { defaultValue: match.character })}
+                  </span>
                   <span className="history-opponents">
                     {match.opponents.map((opponent) => opponent.username).join(', ')}
                   </span>

@@ -8,7 +8,7 @@ export function setupSocketAuth(io: Server) {
         const userId = token ? verifyToken(token) : null;
 
         if (userId === null) {
-            next(new Error("Not logged in."));
+            next(new Error("auth.notLoggedIn"));
             return;
         }
 
@@ -21,7 +21,7 @@ export function setupSocketAuth(io: Server) {
             const user = statement.get(userId) as { username: string } | undefined;
 
             if (!user) {
-                next(new Error("User not found."));
+                next(new Error("auth.userNotFound"));
                 return;
             }
 
@@ -30,7 +30,7 @@ export function setupSocketAuth(io: Server) {
             next();
         } catch (error) {
             console.error(error);
-            next(new Error("Could not authenticate."));
+            next(new Error("auth.authFailed"));
         }
     });
 }

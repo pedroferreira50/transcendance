@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { localizedError } from '../i18n';
 import { socket } from '../socket';
 import { mapLabel } from '../game/maps';
 import type { GameStart } from '../game/protocol';
@@ -37,13 +38,13 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
     }
 
     // socket.active: true = a temporary failure (the server is off...), the socket tries again by itself;
-    // false = the server refused the connection, and error.message says why ("Not logged in.")
+    // false = the server refused the connection, and error.message carries an error code
     function handleConnectError(error: Error) {
-      let message = error.message;
-      if (socket.active) {
-        message = t('lobby.errors.connect');
-      }
+      const message = socket.active ? t('lobby.errors.connect') : localizedError(t, error.message);
       setError(message);
+    }
+    function handleLobbyError(payload: unknown) {
+      setError(localizedError(t, payload));
     }
 
     // connected (again): the old error does not apply anymore
@@ -54,7 +55,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
     socket.on('lobbyList:update', setLobbies);
     socket.on('lobby:joined', handleJoined);
     socket.on('game:start', onWatch);
-    socket.on('lobby:error', setError);
+    socket.on('lobby:error', handleLobbyError);
     socket.on('connect_error', handleConnectError);
     socket.on('connect', handleConnect);
 
@@ -62,7 +63,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
       socket.off('lobbyList:update', setLobbies);
       socket.off('lobby:joined', handleJoined);
       socket.off('game:start', onWatch);
-      socket.off('lobby:error', setError);
+      socket.off('lobby:error', handleLobbyError);
       socket.off('connect_error', handleConnectError);
       socket.off('connect', handleConnect);
     };
@@ -83,7 +84,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
             {lobbies.map((lobby) => (
               <li key={lobby.code} className="text-box lobby-row">
                 <span className="lobby-host">{lobby.hostUsername}</span>
-                <span className="lobby-map">{mapLabel(lobby.map)}</span>
+                <span className="lobby-map">{mapLabel(lobby.map, t)}</span>
                 <span className="lobby-count">{lobby.playerCount}/{lobby.seats}</span>
                 <LobbyAction
                   lobby={lobby}

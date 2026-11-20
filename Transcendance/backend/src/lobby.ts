@@ -179,9 +179,9 @@ function startMatch(io: Server, games: GameManager, lobby: Lobby) {
             options: lobby.options,
             onEnd: (final) => endMatch(io, lobby, final)
         });
-    } catch (error) {
+    } catch {
         // e.g. one of the players is still in another match
-        io.to(lobby.code).emit("lobby:error", error instanceof Error ? error.message : "Could not start the match.");
+        io.to(lobby.code).emit("lobby:error", { code: "lobby.startFailed" });
         return;
     }
 
@@ -299,7 +299,7 @@ export function setupLobby(io: Server, games: GameManager) {
         // (2 players and a random map until the host changes it).
         socket.on("lobby:create", (data: unknown) => {
             if (isUserInLobby(socket.data.username)) {
-                socket.emit("lobby:error", "You are already in a lobby.");
+                socket.emit("lobby:error", { code: "lobby.alreadyInLobby" });
                 return;
             }
 
@@ -333,29 +333,29 @@ export function setupLobby(io: Server, games: GameManager) {
             const code = readCode(data);
 
             if (code === null) {
-                socket.emit("lobby:error", "Invalid lobby code.");
+                socket.emit("lobby:error", { code: "lobby.invalidCode" });
                 return;
             }
 
             if (isUserInLobby(socket.data.username)) {
-                socket.emit("lobby:error", "You are already in a lobby.");
+                socket.emit("lobby:error", { code: "lobby.alreadyInLobby" });
                 return;
             }
 
             const lobby = lobbies.get(code);
 
             if (!lobby) {
-                socket.emit("lobby:error", "Lobby not found.");
+                socket.emit("lobby:error", { code: "lobby.notFound" });
                 return;
             }
 
             if (lobby.gameId !== null) {
-                socket.emit("lobby:error", "Match already in progress.");
+                socket.emit("lobby:error", { code: "lobby.matchInProgress" });
                 return;
             }
 
             if (lobby.players.length >= lobby.seats) {
-                socket.emit("lobby:error", "Lobby is full.");
+                socket.emit("lobby:error", { code: "lobby.full" });
                 return;
             }
 
@@ -376,19 +376,19 @@ export function setupLobby(io: Server, games: GameManager) {
             const lobby = code === null ? undefined : lobbies.get(code);
 
             if (!lobby || lobby.gameId === null) {
-                socket.emit("lobby:error", "There is no match to watch.");
+                socket.emit("lobby:error", { code: "lobby.noMatchToWatch" });
                 return;
             }
 
             if (isUserInLobby(socket.data.username)) {
-                socket.emit("lobby:error", "You are already in a lobby.");
+                socket.emit("lobby:error", { code: "lobby.alreadyInLobby" });
                 return;
             }
 
             try {
                 games.spectate(lobby.gameId, socket.id, socket.data.userId);
-            } catch (error) {
-                socket.emit("lobby:error", error instanceof Error ? error.message : "Could not watch the match.");
+            } catch {
+                socket.emit("lobby:error", { code: "lobby.watchFailed" });
                 return;
             }
 
@@ -407,7 +407,7 @@ export function setupLobby(io: Server, games: GameManager) {
             }
 
             if (settings.seats < lobby.players.length) {
-                socket.emit("lobby:error", "There are more players than that in the lobby.");
+                socket.emit("lobby:error", { code: "lobby.tooManyPlayers" });
                 return;
             }
 
@@ -441,7 +441,7 @@ export function setupLobby(io: Server, games: GameManager) {
             }
 
             if (lobby.players.some((other) => other !== player && other.character === character)) {
-                socket.emit("lobby:error", "That fish was already chosen.");
+                socket.emit("lobby:error", { code: "lobby.fishTaken" });
                 return;
             }
 
@@ -472,7 +472,7 @@ export function setupLobby(io: Server, games: GameManager) {
             }
 
             if (!player.character) {
-                socket.emit("lobby:error", "Choose a fish first.");
+                socket.emit("lobby:error", { code: "lobby.chooseFish" });
                 return;
             }
 

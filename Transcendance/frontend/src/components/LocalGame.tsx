@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CHARACTERS, defaultOptions } from "../game/options";
 import type { Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
+import { localizedError } from "../i18n";
 import { useTranslation } from "react-i18next";
 import { socket } from "../socket";
 import GameScreen from "./GameScreen";
@@ -34,21 +35,21 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 		socket.connect();
 
 		// the same as LobbySelect: socket.active = it tries again by itself (the server is off...);
-		// false = the server refused the connection, and error.message says why
+		// false = the server refused the connection, and error.message carries an error code
 		function handleConnectError(error: Error) {
-			let nextMessage = error.message;
-			if (socket.active) {
-				nextMessage = t("lobby.errors.connect");
-			}
+			const nextMessage = socket.active ? t("lobby.errors.connect") : localizedError(t, error.message);
 			setMessage(nextMessage);
+		}
+		function handleLocalError(payload: unknown) {
+			setMessage(localizedError(t, payload));
 		}
 
 		socket.on("game:start", setMatch);
-		socket.on("local:error", setMessage);
+		socket.on("local:error", handleLocalError);
 		socket.on("connect_error", handleConnectError);
 		return () => {
 			socket.off("game:start", setMatch);
-			socket.off("local:error", setMessage);
+			socket.off("local:error", handleLocalError);
 			socket.off("connect_error", handleConnectError);
 		};
 	}, [t]);
@@ -101,16 +102,17 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 								if (fish[slot] === character) {
 									className = "fish-option mine";
 								}
+								const label = t(`fishNames.${character}`);
 								return (
 									<button
 										key={character}
 										className={className}
 										disabled={other}
 										onClick={() => choose(slot, character)}
-										aria-label={character}
+										aria-label={label}
 									>
 										<img src={`/art/fish/${character}.webp`} alt="" />
-										<span className="fish-name">{character}</span>
+										<span className="fish-name">{label}</span>
 									</button>
 								);
 							})}

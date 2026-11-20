@@ -122,7 +122,7 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 		const userId: unknown = socket.data.userId;
 		const setup = readLocalSetup(data);
 		if (typeof userId !== "number" || !setup) {
-			socket.emit("local:error", "Choose a map and two different fish.");
+			socket.emit("local:error", { code: "game.invalidLocalSetup" });
 			return;
 		}
 		const players = setup.characters.map((character, slot) => (
@@ -130,8 +130,8 @@ export function registerGameEvents(socket: Socket, games: GameManager): void {
 		));
 		try {
 			games.createGame({ players, map: setup.map, local: true, options: setup.options });
-		} catch (error) {
-			socket.emit("local:error", error instanceof Error ? error.message : "Could not start the match.");
+		} catch {
+			socket.emit("local:error", { code: "game.startFailed" });
 		}
 	});
 

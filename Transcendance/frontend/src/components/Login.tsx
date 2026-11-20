@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../api";
+import { localizedError } from "../i18n";
 import type { Session } from "../types/Session";
 import Screen from "./Screen";
 
@@ -43,7 +44,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 
 			const data = await response.json();
 
-			setMessage(data.message);
+			setMessage(localizedError(t, data));
 
 			if (response.ok) {
 				onLoginSuccess({
