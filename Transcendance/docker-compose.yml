@@ -1,8 +1,20 @@
 services:
+  # The only entry point: HTTPS on 8443 (8080 redirects to it).
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - certs:/etc/nginx/certs
+    depends_on:
+      - frontend
+      - backend
+
   frontend:
     build: ./frontend
-    ports:
-      - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -16,8 +28,6 @@ services:
     build: ./backend
     env_file:
       - ./backend/.env
-    ports:
-      - "3000:3000"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -28,3 +38,4 @@ services:
 
 volumes:
   backend-data:
+  certs:

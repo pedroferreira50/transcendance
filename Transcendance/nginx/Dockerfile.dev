@@ -1,0 +1,8 @@
+# Development nginx: HTTPS in front of the Vite dev server and the backend.
+# Reuses the self-signed certificate script of the production image.
+FROM nginx:alpine
+RUN apk add --no-cache openssl
+COPY dev.conf /etc/nginx/conf.d/default.conf
+COPY self-signed-cert.sh /docker-entrypoint.d/40-self-signed-cert.sh
+RUN chmod +x /docker-entrypoint.d/40-self-signed-cert.sh
+EXPOSE 80 443
