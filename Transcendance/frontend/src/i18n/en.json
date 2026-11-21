@@ -4,6 +4,7 @@
     "loading": "Loading...",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "credits": "Credits",
     "language": "Language",
     "yes": "Yes",
     "no": "No",
@@ -287,6 +288,24 @@
       "contactTitle": "Contact",
       "contact": "Questions about these terms can be sent to the Open Sea team at support@opensea.local."
     }
+  },
+  "credits": {
+    "title": "Credits",
+    "intro": "Open Sea is our ft_transcendence project, the last project of the common core of the 42 curriculum.",
+    "madeAt": "Made at 42 Lisboa.",
+    "teamTitle": "Team",
+    "pm": "Project Manager, developer",
+    "lead": "Technical Lead, developer",
+    "po": "Product Owner, developer",
+    "dev": "Developer",
+    "artTitle": "Art",
+    "artIntro": "The elements of the images were not drawn by the team. The screens and the maps of the mazes were composed by hand in Canva from these elements.",
+    "fish": "Fish and sharks:",
+    "elements": "The other elements and the templates of the screens were taken from",
+    "ai": "Some of these elements may have been created with AI by their own authors.",
+    "techTitle": "Technologies",
+    "thanksTitle": "Thanks",
+    "thanks": "Special thanks to a member of Luiz's family, who helped choose the elements and put together the art of the game in Canva."
   },
   "errors": {
     "unknown": "Something went wrong.",

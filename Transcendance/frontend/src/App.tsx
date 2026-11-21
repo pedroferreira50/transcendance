@@ -2,17 +2,20 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import OpenSea from "./components/OpenSea";
 import LegalPage from "./components/LegalPage";
+import CreditsPage from "./components/CreditsPage";
 import type { Session } from "./types/Session";
 import { api } from "./api";
 import { socket } from "./socket";
 
-// The two legal pages have their own URLs (/privacy and /terms), so they also work on a direct load
-function legalPageFromPath(): "privacy" | "terms" | null {
+// The two legal pages and the credits have their own URLs (/privacy, /terms and /credits), so they also work on a direct load
+function legalPageFromPath(): "privacy" | "terms" | "credits" | null {
 	const path = window.location.pathname.replace(/\/+$/, "");
 	if (path === "/privacy")
 		return "privacy";
 	if (path === "/terms")
 		return "terms";
+	if (path === "/credits")
+		return "credits";
 	return null;
 }
 
@@ -57,6 +60,8 @@ function App() {
 		setSession(null);
 	}
 
+	if (legalPage === "credits")
+		return <CreditsPage />;
 	if (legalPage)
 		return <LegalPage kind={legalPage} />;
 

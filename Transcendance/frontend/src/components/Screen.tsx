@@ -44,6 +44,7 @@ export default function Screen({ title, onBack, corner, decorations, children }:
 			<footer className="screen-footer">
 				<a href="/privacy">{t("common.privacy")}</a>
 				<a href="/terms">{t("common.terms")}</a>
+				<a href="/credits">{t("common.credits")}</a>
 				<LanguageSwitcher />
 			</footer>
 		</div>

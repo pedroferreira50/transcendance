@@ -51,6 +51,11 @@
 	color: #f2fcfc;
 }
 
+/* the links in the text (the credits): the same light color as the rest of the card */
+.legal-card section a {
+	color: #f2fcfc;
+}
+
 .legal-footer {
 	margin-top: 2rem;
 	padding-top: 1rem;
@@ -62,6 +67,13 @@
 
 	a {
 		color: #f2fcfc;
+	}
+
+	/* phones: the three links one over the other and the language under them (like the footer of the game) */
+	@media (max-width: 700px) {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.6rem;
 	}
 }
 
