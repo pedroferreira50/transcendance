@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { mapLabel, mapsFor, type PlayerCount } from "../game/maps";
 import Screen from "./Screen";
-import "./MapSelect.css";
 
 type MapSelectProps = {
 	players: PlayerCount;
@@ -9,12 +8,13 @@ type MapSelectProps = {
 	onBack: () => void;
 };
 
-// One card: the picture and the name under it
+// One card (sea-card of Screen.css), as wide as one of 4 columns, 2 on phones (w-column-*): the picture and the name under it.
+// Every picture in a box of the same shape (2:1, about the shape of the maps): the maps have different sizes
 function MapCard({ image, label, onClick }: { image: string; label: string; onClick: () => void }) {
 	return (
-		<button className="map-card" onClick={onClick}>
-			<img className="map-image" src={image} alt="" />
-			<span className="map-name">{label}</span>
+		<button className="sea-card w-column-4 phone:w-column-2 flex flex-col items-center gap-2" onClick={onClick}>
+			<img className="aspect-[2/1] w-full object-contain" src={image} alt="" />
+			<span className="font-button text-card tracking-[0.06em]">{label}</span>
 		</button>
 	);
 }
@@ -24,10 +24,12 @@ function MapCard({ image, label, onClick }: { image: string; label: string; onCl
 export default function MapSelect({ players, onChoose, onBack }: MapSelectProps) {
 	const { t } = useTranslation();
 
+	// 4 cards in a row on computers, 2 on phones; the last row in the middle.
+	// On short screens the 2 rows of cards also have to fit in the height (140vh)
 	return (
 		<Screen title={t("lobby.map")} onBack={onBack}>
-			<div className="map-select">
-				<div className="map-grid">
+			<div className="flex w-full flex-1 flex-col items-center justify-center">
+				<div className="flex w-[min(100%,60rem,140vh)] flex-wrap justify-center gap-cards">
 					{mapsFor(players).map((name) => (
 						<MapCard key={name} image={`/maps/${name}.webp`} label={mapLabel(name, t)} onClick={() => onChoose(name)} />
 					))}

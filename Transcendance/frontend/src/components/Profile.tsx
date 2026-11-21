@@ -7,7 +7,6 @@ import type { StatsResponse, UserStats } from '../types/Stats';
 import type { ProgressionResponse } from '../types/Progression';
 
 import Screen from './Screen';
-import './Profile.css';
 
 type ProfileProps = {
   session: Session;
@@ -18,27 +17,34 @@ type ProfileProps = {
 
 type StatItem = {
   label: string;
-  value: string | number;
+  value?: string | number; // without it, only the name (an achievement)
 };
 
-type StatsBlockProps = {
-  title: string;
-  items: StatItem[];
-};
+// One group: the gold badge with its name and, under it, what the group shows
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="flex flex-col items-center gap-[clamp(0.8rem,2.5vh,1.5rem)]">
+    <span className="gold-badge">{title}</span>
+    {children}
+  </section>
+);
+
+// The boxes side by side, one per item: the name on top, the number under it
+const Boxes: React.FC<{ items: StatItem[] }> = ({ items }) => (
+  <div className="flex flex-wrap justify-center gap-[clamp(0.6rem,2vw,1.5rem)]">
+    {items.map((item) => (
+      <div className="text-box flex min-w-[6em] flex-col items-center gap-[0.3rem]" key={item.label}>
+        <span>{item.label}</span>
+        {item.value !== undefined && <span className="font-button text-[2em] leading-none text-sea-light">{item.value}</span>}
+      </div>
+    ))}
+  </div>
+);
 
 // One group of numbers: the gold badge with its name and, under it, one box per total
-const StatsBlock: React.FC<StatsBlockProps> = ({ title, items }) => (
-  <section className="stats-block">
-    <span className="gold-badge">{title}</span>
-    <div className="stats">
-      {items.map((item) => (
-        <div className="text-box stat" key={item.label}>
-          <span className="stat-name">{item.label}</span>
-          <span className="stat-value">{item.value}</span>
-        </div>
-      ))}
-    </div>
-  </section>
+const StatsBlock: React.FC<{ title: string; items: StatItem[] }> = ({ title, items }) => (
+  <Section title={title}>
+    <Boxes items={items} />
+  </Section>
 );
 
 // The PROFILE screen: who is logged in, the totals calculated from their match
@@ -102,13 +108,14 @@ const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout 
 
   return (
     <Screen title={t('profile.title')} onBack={onBack}>
-      <div className="profile">
-        <p className="profile-name">{session.username}</p>
+      <div className="flex flex-1 flex-col items-center justify-evenly gap-[clamp(1rem,4vh,3rem)]">
+        {/* a long username breaks (wrap-anywhere) instead of going out of the screen */}
+        <p className="m-0 text-center font-title text-username tracking-[0.02em] text-sea-light wrap-anywhere">{session.username}</p>
 
-        {loading && <p className="profile-message">{t('common.loading')}</p>}
+        {loading && <p className="flex flex-col items-center gap-4 text-message">{t('common.loading')}</p>}
 
         {!loading && error && (
-          <div className="profile-message" role="alert">
+          <div className="flex flex-col items-center gap-4 text-message" role="alert">
             <p className="form-message">{error}</p>
             <button className="sea-button secondary" onClick={retry}>
               {t('common.retry')}
@@ -127,23 +134,13 @@ const Profile: React.FC<ProfileProps> = ({ session, onBack, onHistory, onLogout 
 				{ label: t('profile.winsUntilTen'), value: progression.winsUntilTen }
               ]}
             />
-			<section className="stats-block">
-			  <span className="gold-badge">{t('profile.achievements.title')}</span>
-
+			<Section title={t('profile.achievements.title')}>
 			  {progression.achievements.length === 0 ? (
 				<p>{t('profile.achievements.empty')}</p>
 			  ) : (
-				<div className="stats">
-				  {progression.achievements.map((achievement) => (
-					<div className="text-box stat" key={achievement.achievementKey}>
-					  <span className="stat-name">
-						{t(`profile.achievements.${achievement.achievementKey}`)}
-					  </span>
-					</div>
-				  ))}
-				</div>
+				<Boxes items={progression.achievements.map((achievement) => ({ label: t(`profile.achievements.${achievement.achievementKey}`) }))} />
 			  )}
-			</section>
+			</Section>
             <StatsBlock
               title={t('profile.online')}
               items={[

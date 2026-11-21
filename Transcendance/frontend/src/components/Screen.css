@@ -246,6 +246,42 @@
 	font-size: clamp(1rem, min(1.7vw, 3vh), 1.6rem);
 }
 
+/* the speech balloon of the INTRO: a box with a "tail" in the bottom left corner.
+   The tail is a triangle: a box without size where only the top and right borders have size */
+.balloon {
+	position: relative;
+	padding: 0.8em 1.2em;
+	background: var(--sea-box);
+	color: var(--sea-text);
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 100%;
+		left: 8%;
+		border-top: 2.5em solid var(--sea-box);
+		border-right: 4em solid transparent;
+	}
+}
+
+/* a card to click (the maps): the box of a button, but square */
+.sea-card {
+	box-sizing: border-box;
+	padding: 0.5rem;
+	border: var(--line) solid var(--sea-light);
+	background: var(--sea-box);
+	color: var(--sea-light);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--sea-box-hover);
+	}
+	&:focus-visible {
+		outline: var(--line) solid var(--sea-light);
+		outline-offset: 4px;
+	}
+}
+
 /* the gold "LOCAL" / "ONLINE" of the instructions (also HOST and READY in the lobby) */
 .gold-badge {
 	display: inline-block;
