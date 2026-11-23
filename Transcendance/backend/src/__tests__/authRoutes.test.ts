@@ -10,11 +10,14 @@ import {
 import express from "express";
 import { createServer, type Server } from "node:http";
 
-const { mockFindUnique } = vi.hoisted(() => ({
+const { mockFindUnique, mockGet } = vi.hoisted(() => ({
     mockFindUnique: vi.fn(),
+    mockGet: vi.fn(),
 }));
 
-vi.mock("../database", () => ({ default: {} }));
+vi.mock("../database", () => ({
+    default: { prepare: () => ({ get: mockGet }) },
+}));
 vi.mock("../prisma", () => ({
     default: { user: { findUnique: mockFindUnique } },
 }));
@@ -119,4 +122,67 @@ describe("GET /progression", () => {
 			winsUntilTen: 0,
 		});
 	});
+});
+
+describe("GET /session", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    test("answers null for a visitor, without an error status", async () => {
+        const response = await fetch(`${baseUrl}/session`);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toBeNull();
+        expect(mockGet).not.toHaveBeenCalled();
+    });
+
+    test("answers the logged-in user", async () => {
+        mockGet.mockReturnValue({
+            id: 7,
+            username: "player",
+            wins: 2,
+            losses: 1,
+            multiplayer_wins: 0,
+            multiplayer_losses: 3,
+        });
+
+        const response = await fetch(`${baseUrl}/session`, {
+            headers: { cookie: `token=${signToken(7)}` },
+        });
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({
+            id: 7,
+            username: "player",
+            wins: 2,
+            losses: 1,
+            multiplayerWins: 0,
+            multiplayerLosses: 3,
+        });
+        expect(mockGet).toHaveBeenCalledWith(7);
+    });
+
+    test("answers null and clears the cookie when the account no longer exists", async () => {
+        mockGet.mockReturnValue(undefined);
+
+        const response = await fetch(`${baseUrl}/session`, {
+            headers: { cookie: `token=${signToken(7)}` },
+        });
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toBeNull();
+        expect(response.headers.get("set-cookie")).toContain("token=;");
+    });
+
+    test("answers null and clears the cookie when the token is invalid", async () => {
+        const response = await fetch(`${baseUrl}/session`, {
+            headers: { cookie: "token=not-a-real-token" },
+        });
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toBeNull();
+        expect(response.headers.get("set-cookie")).toContain("token=;");
+        expect(mockGet).not.toHaveBeenCalled();
+    });
 });

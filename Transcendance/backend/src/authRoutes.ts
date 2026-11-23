@@ -2,7 +2,7 @@ import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
 import prisma from "./prisma";
-import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
+import { setAuthCookie, clearAuthCookie, requireAuth, tokenFromCookieHeader, verifyToken } from "./auth";
 import { createRateLimiter } from "./rateLimit";
 
 const router = Router();
@@ -190,24 +190,40 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 });
 
+type SessionUserRow = {
+    id: number;
+    username: string;
+    wins: number;
+    losses: number;
+    multiplayer_wins: number;
+    multiplayer_losses: number;
+};
+
+// The logged-in user as /me and /session answer it, or null if this id has no account
+function findSessionUser(userId: number) {
+    const user = db.prepare(`
+        SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
+        FROM users
+        WHERE id = ?
+    `).get(userId) as SessionUserRow | undefined;
+
+    if (!user) {
+        return null;
+    }
+
+    return {
+        id: user.id,
+        username: user.username,
+        wins: user.wins,
+        losses: user.losses,
+        multiplayerWins: user.multiplayer_wins,
+        multiplayerLosses: user.multiplayer_losses
+    };
+}
+
 router.get("/me", requireAuth, (req, res) => {
     try {
-        const statement = db.prepare(`
-            SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
-            FROM users
-            WHERE id = ?
-        `);
-
-        const user = statement.get(req.userId) as
-            | {
-                  id: number;
-                  username: string;
-                  wins: number;
-                  losses: number;
-                  multiplayer_wins: number;
-                  multiplayer_losses: number;
-              }
-            | undefined;
+        const user = req.userId === undefined ? null : findSessionUser(req.userId);
 
         if (!user) {
             clearAuthCookie(res);
@@ -217,14 +233,39 @@ router.get("/me", requireAuth, (req, res) => {
             return;
         }
 
-        res.json({
-            id: user.id,
-            username: user.username,
-            wins: user.wins,
-            losses: user.losses,
-            multiplayerWins: user.multiplayer_wins,
-            multiplayerLosses: user.multiplayer_losses
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Could not load user."
         });
+    }
+});
+
+// Who is logged in, without failing: 200 with the user, or 200 with null for a visitor.
+// App.tsx asks this on load, so a visitor does not get a 401 in the browser console
+router.get("/session", (req, res) => {
+    const token = tokenFromCookieHeader(req.headers.cookie);
+    const userId = token ? verifyToken(token) : null;
+
+    if (userId === null) {
+        // an expired or invalid cookie is forgotten too
+        if (token) {
+            clearAuthCookie(res);
+        }
+        res.json(null);
+        return;
+    }
+
+    try {
+        const user = findSessionUser(userId);
+
+        // the cookie is for an account that no longer exists (e.g. after make fclean): forget it
+        if (!user) {
+            clearAuthCookie(res);
+        }
+        res.json(user);
     } catch (error) {
         console.error(error);
 
