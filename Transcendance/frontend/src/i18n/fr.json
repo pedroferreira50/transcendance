@@ -4,6 +4,7 @@
     "loading": "Chargement...",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
+    "credits": "Crédits",
     "language": "Langue",
     "yes": "Oui",
     "no": "Non",
@@ -289,6 +290,24 @@
       "contactTitle": "Contact",
       "contact": "Les questions sur ces conditions peuvent être envoyées à l'équipe Open Sea à support@opensea.local."
     }
+  },
+  "credits": {
+    "title": "Crédits",
+    "intro": "Open Sea est notre projet ft_transcendence, le dernier projet du tronc commun du cursus 42.",
+    "madeAt": "Réalisé à 42 Lisboa.",
+    "teamTitle": "Équipe",
+    "pm": "Chef de projet, développeur",
+    "lead": "Responsable technique, développeur",
+    "po": "Product Owner, développeur",
+    "dev": "Développeur",
+    "artTitle": "Graphismes",
+    "artIntro": "Les éléments des images n'ont pas été dessinés par l'équipe. Les écrans et les cartes des labyrinthes ont été composés à la main sur Canva à partir de ces éléments.",
+    "fish": "Poissons et requins :",
+    "elements": "Les autres éléments et les modèles des écrans proviennent de",
+    "ai": "Certains de ces éléments ont peut-être été créés avec l'IA par leurs propres auteurs.",
+    "techTitle": "Technologies",
+    "thanksTitle": "Remerciements",
+    "thanks": "Un grand merci à un membre de la famille de Luiz, qui a aidé à choisir les éléments et à composer les graphismes du jeu sur Canva."
   },
   "errors": {
     "unknown": "Une erreur est survenue.",

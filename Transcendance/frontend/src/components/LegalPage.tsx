@@ -32,6 +32,7 @@ export default function LegalPage({ kind }: LegalPageProps) {
 				<footer className="legal-footer">
 					<a href="/privacy">{t("common.privacy")}</a>
 					<a href="/terms">{t("common.terms")}</a>
+					<a href="/credits">{t("common.credits")}</a>
 					<LanguageSwitcher />
 				</footer>
 			</article>

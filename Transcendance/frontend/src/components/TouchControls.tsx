@@ -3,8 +3,12 @@ import { useTranslation } from "react-i18next";
 import { toCommand, type Command } from "../game/input";
 import type { Direction } from "../game/protocol";
 
-// While a button is held, the move is sent again at this interval. Faster than any move cooldown
-// (150 ms, 75 ms with speed): the server ignores the extra ones, like when a key is held
+// A tap moves once. Held longer than this, the move starts repeating, like a key held on the keyboard
+// (a quick tap lasts more than the move cooldown, so without this wait one tap moved 2 or 3 times)
+const HOLD_DELAY_MS = 250;
+
+// While a button is held, the move is sent again at this interval. As fast as the shortest move cooldown
+// (100 ms, 50 ms with speed): the server ignores the extra ones, like when a key is held
 const REPEAT_MS = 50;
 
 // The size of each arrow: follows the height of the screen, so on a phone lying down the cross
@@ -47,15 +51,18 @@ export default function TouchControls({ send }: { send: (command: Command) => vo
 	const timer = useRef<number | undefined>(undefined);
 
 	const stop = () => {
-		clearInterval(timer.current);
+		clearTimeout(timer.current); // still waiting to start repeating
+		clearInterval(timer.current); // or already repeating
 		timer.current = undefined;
 	};
 
-	// once now, and again every REPEAT_MS while the finger stays on the button
+	// once now and, if the finger stays on the button, again every REPEAT_MS after HOLD_DELAY_MS
 	const start = (dir: Direction) => {
 		stop();
 		send(toCommand(dir));
-		timer.current = window.setInterval(() => send(toCommand(dir)), REPEAT_MS);
+		timer.current = window.setTimeout(() => {
+			timer.current = window.setInterval(() => send(toCommand(dir)), REPEAT_MS);
+		}, HOLD_DELAY_MS);
 	};
 
 	// the screen closed with a finger still on a button
