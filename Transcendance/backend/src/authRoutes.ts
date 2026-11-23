@@ -2,7 +2,7 @@ import { Router } from "express";
 import argon2 from "argon2";
 import db from "./database";
 import prisma from "./prisma";
-import { setAuthCookie, clearAuthCookie, requireAuth } from "./auth";
+import { setAuthCookie, clearAuthCookie, requireAuth, tokenFromCookieHeader, verifyToken } from "./auth";
 import { createRateLimiter } from "./rateLimit";
 
 const router = Router();
@@ -20,6 +20,7 @@ const loginLimiter = createRateLimiter({
 });
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_MAX = 254;
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,16}$/;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
@@ -45,7 +46,7 @@ router.post("/register", registerLimiter, async (req, res) => {
         return;
     }
 
-    if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
+    if (email.length > EMAIL_MAX || !EMAIL_REGEX.test(email.trim())) {
         res.status(400).json({
             code: "auth.invalidEmail"
         });
@@ -114,10 +115,11 @@ router.post("/register", registerLimiter, async (req, res) => {
 });
 
 router.post("/login", loginLimiter, async (req, res) => {
-    const { username, password } = req.body ?? {};
+    // identifier: the username or the email (an email has "@", a username never does)
+    const { identifier, password } = req.body ?? {};
 
     if (
-        typeof username !== "string" || username === "" ||
+        typeof identifier !== "string" || identifier.trim() === "" ||
         typeof password !== "string" || password === ""
     ) {
         res.status(400).json({
@@ -126,7 +128,17 @@ router.post("/login", loginLimiter, async (req, res) => {
         return;
     }
 
-    if (password.length > PASSWORD_MAX) {
+    if (identifier.length > EMAIL_MAX || password.length > PASSWORD_MAX) {
+        res.status(401).json({
+            code: "auth.invalidCredentials"
+        });
+        return;
+    }
+
+    const isEmail = identifier.includes("@");
+
+    // not an email: it can only match if it follows the username rules of the registration
+    if (!isEmail && !USERNAME_REGEX.test(identifier.trim())) {
         res.status(401).json({
             code: "auth.invalidCredentials"
         });
@@ -134,12 +146,18 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 
     try {
-        const statement = db.prepare(`
+        const statement = db.prepare(isEmail
+            ? `
+            SELECT * FROM users
+            WHERE email = ?
+        `
+            : `
             SELECT * FROM users
             WHERE username = ?
         `);
 
-        const user = statement.get(username) as
+        // emails are saved in lowercase at registration
+        const user = statement.get(isEmail ? identifier.trim().toLowerCase() : identifier.trim()) as
             | {
                   id: number;
                   username: string;
@@ -190,24 +208,40 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 });
 
+type SessionUserRow = {
+    id: number;
+    username: string;
+    wins: number;
+    losses: number;
+    multiplayer_wins: number;
+    multiplayer_losses: number;
+};
+
+// The logged-in user as /me and /session answer it, or null if this id has no account
+function findSessionUser(userId: number) {
+    const user = db.prepare(`
+        SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
+        FROM users
+        WHERE id = ?
+    `).get(userId) as SessionUserRow | undefined;
+
+    if (!user) {
+        return null;
+    }
+
+    return {
+        id: user.id,
+        username: user.username,
+        wins: user.wins,
+        losses: user.losses,
+        multiplayerWins: user.multiplayer_wins,
+        multiplayerLosses: user.multiplayer_losses
+    };
+}
+
 router.get("/me", requireAuth, (req, res) => {
     try {
-        const statement = db.prepare(`
-            SELECT id, username, wins, losses, multiplayer_wins, multiplayer_losses
-            FROM users
-            WHERE id = ?
-        `);
-
-        const user = statement.get(req.userId) as
-            | {
-                  id: number;
-                  username: string;
-                  wins: number;
-                  losses: number;
-                  multiplayer_wins: number;
-                  multiplayer_losses: number;
-              }
-            | undefined;
+        const user = req.userId === undefined ? null : findSessionUser(req.userId);
 
         if (!user) {
             clearAuthCookie(res);
@@ -217,14 +251,39 @@ router.get("/me", requireAuth, (req, res) => {
             return;
         }
 
-        res.json({
-            id: user.id,
-            username: user.username,
-            wins: user.wins,
-            losses: user.losses,
-            multiplayerWins: user.multiplayer_wins,
-            multiplayerLosses: user.multiplayer_losses
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Could not load user."
         });
+    }
+});
+
+// Who is logged in, without failing: 200 with the user, or 200 with null for a visitor.
+// App.tsx asks this on load, so a visitor does not get a 401 in the browser console
+router.get("/session", (req, res) => {
+    const token = tokenFromCookieHeader(req.headers.cookie);
+    const userId = token ? verifyToken(token) : null;
+
+    if (userId === null) {
+        // an expired or invalid cookie is forgotten too
+        if (token) {
+            clearAuthCookie(res);
+        }
+        res.json(null);
+        return;
+    }
+
+    try {
+        const user = findSessionUser(userId);
+
+        // the cookie is for an account that no longer exists (e.g. after make fclean): forget it
+        if (!user) {
+            clearAuthCookie(res);
+        }
+        res.json(user);
     } catch (error) {
         console.error(error);
 

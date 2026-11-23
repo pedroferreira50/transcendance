@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { localizedError } from '../i18n';
-import { socket } from '../socket';
+import { connectSocket, socket } from '../socket';
 import { mapLabel } from '../game/maps';
 import type { GameStart } from '../game/protocol';
 import type { LobbyState } from './Lobby';
@@ -29,7 +29,7 @@ const LobbySelect: React.FC<LobbySelectProps> = ({ onBack, onCreate, onLobbyJoin
   const [error, setError] = useState('');
 
   useEffect(() => {
-    socket.connect();
+    connectSocket();
     socket.emit('lobbyList:subscribe');
 
     function handleJoined(lobby: LobbyState) {

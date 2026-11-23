@@ -25,7 +25,7 @@ function App() {
 
 	const refreshSession = useCallback(async () => {
 		try {
-			const response = await api("/me");
+			const response = await api("/session");
 
 			if (response.ok) {
 				setSession(await response.json());

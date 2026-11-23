@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { BOT_LEVELS, CHARACTERS, defaultOptions } from "../game/options";
 import type { BotInfo, BotLevel, Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
 import { localizedError } from "../i18n";
-import { socket } from "../socket";
+import { connectSocket, socket } from "../socket";
 import GameScreen from "./GameScreen";
 import MapSelect from "./MapSelect";
 import Options from "./Options";
@@ -29,7 +29,7 @@ export default function BotGame({ onExit }: BotGameProps) {
 
 	useEffect(() => {
 		// the same as PLAY LOCAL: this screen connects the socket and listens to the start of the match
-		socket.connect();
+		connectSocket();
 
 		function handleConnectError(error: Error) {
 			const nextMessage = socket.active

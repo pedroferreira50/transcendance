@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { PlayerCount } from "../game/maps";
 import { defaultOptions } from "../game/options";
 import { localizedError } from "../i18n";
-import { socket } from "../socket";
+import { connectSocket, socket } from "../socket";
 import type { LobbyState } from "./Lobby";
 import MapSelect from "./MapSelect";
 import Options from "./Options";
@@ -26,7 +26,7 @@ export default function CreateLobby({ onBack, onCreated }: CreateLobbyProps) {
 			setMessage(localizedError(t, payload));
 		}
 
-		socket.connect(); // already connected by the LOBBIES screen: then it does nothing
+		connectSocket(); // already connected by the LOBBIES screen: then it does nothing
 		socket.on("lobby:joined", onCreated);
 		socket.on("lobby:error", handleLobbyError);
 		return () => {
