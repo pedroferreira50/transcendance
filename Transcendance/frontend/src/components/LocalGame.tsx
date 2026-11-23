@@ -3,7 +3,7 @@ import { CHARACTERS, defaultOptions } from "../game/options";
 import type { Character, DynamicState, GameStart, MatchOptions } from "../game/protocol";
 import { localizedError } from "../i18n";
 import { useTranslation } from "react-i18next";
-import { socket } from "../socket";
+import { connectSocket, socket } from "../socket";
 import GameScreen from "./GameScreen";
 import MapSelect from "./MapSelect";
 import Options from "./Options";
@@ -31,7 +31,7 @@ export default function LocalGame({ onExit }: LocalGameProps) {
 
 	useEffect(() => {
 		// the socket is created without connecting (autoConnect: false): the local mode connects it, like the LOBBIES screen
-		socket.connect();
+		connectSocket();
 
 		// the same as LobbySelect: socket.active = it tries again by itself (the server is off...);
 		// false = the server refused the connection, and error.message carries an error code

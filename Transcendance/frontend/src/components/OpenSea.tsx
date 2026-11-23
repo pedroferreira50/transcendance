@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { socket } from "../socket";
+import { connectSocket, socket } from "../socket";
 import type { DynamicState, GameStart } from "../game/protocol";
 import type { Session } from "../types/Session";
 import BotGame from "./BotGame";
@@ -48,7 +48,7 @@ export default function OpenSea({ session, onLogin, onLogout, onRefreshSession }
 	// so after an F5 the server can send game:resume if a match of this user is still running
 	useEffect(() => {
 		if (session)
-			socket.connect();
+			connectSocket();
 	}, [session]);
 
 	// the same account opened Open Sea somewhere else: the server closed this connection
