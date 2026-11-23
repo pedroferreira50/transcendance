@@ -20,6 +20,7 @@ const loginLimiter = createRateLimiter({
 });
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_MAX = 254;
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,16}$/;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
@@ -45,7 +46,7 @@ router.post("/register", registerLimiter, async (req, res) => {
         return;
     }
 
-    if (email.length > 254 || !EMAIL_REGEX.test(email.trim())) {
+    if (email.length > EMAIL_MAX || !EMAIL_REGEX.test(email.trim())) {
         res.status(400).json({
             code: "auth.invalidEmail"
         });
@@ -114,10 +115,11 @@ router.post("/register", registerLimiter, async (req, res) => {
 });
 
 router.post("/login", loginLimiter, async (req, res) => {
-    const { username, password } = req.body ?? {};
+    // identifier: the username or the email (an email has "@", a username never does)
+    const { identifier, password } = req.body ?? {};
 
     if (
-        typeof username !== "string" || username === "" ||
+        typeof identifier !== "string" || identifier.trim() === "" ||
         typeof password !== "string" || password === ""
     ) {
         res.status(400).json({
@@ -126,7 +128,17 @@ router.post("/login", loginLimiter, async (req, res) => {
         return;
     }
 
-    if (password.length > PASSWORD_MAX) {
+    if (identifier.length > EMAIL_MAX || password.length > PASSWORD_MAX) {
+        res.status(401).json({
+            code: "auth.invalidCredentials"
+        });
+        return;
+    }
+
+    const isEmail = identifier.includes("@");
+
+    // not an email: it can only match if it follows the username rules of the registration
+    if (!isEmail && !USERNAME_REGEX.test(identifier.trim())) {
         res.status(401).json({
             code: "auth.invalidCredentials"
         });
@@ -134,12 +146,18 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 
     try {
-        const statement = db.prepare(`
+        const statement = db.prepare(isEmail
+            ? `
+            SELECT * FROM users
+            WHERE email = ?
+        `
+            : `
             SELECT * FROM users
             WHERE username = ?
         `);
 
-        const user = statement.get(username) as
+        // emails are saved in lowercase at registration
+        const user = statement.get(isEmail ? identifier.trim().toLowerCase() : identifier.trim()) as
             | {
                   id: number;
                   username: string;

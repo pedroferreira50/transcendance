@@ -13,15 +13,15 @@ type LoginProps = {
 
 function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
     const { t } = useTranslation();
-    const [username, setUsername] = useState("");
+    const [identifier, setIdentifier] = useState(""); // the username or the email
     const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
-		if (username.trim() === "") {
-			setMessage(t("auth.errors.usernameEmpty"));
+		if (identifier.trim() === "") {
+			setMessage(t("auth.errors.usernameOrEmailEmpty"));
 			return;
 		}
 
@@ -37,7 +37,7 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
 					"Content-Type": "application/json"
 				},
 				body: JSON.stringify({
-					username: username.trim(),
+					identifier: identifier.trim(),
 					password
 				})
 			});
@@ -66,15 +66,15 @@ function Login({ onBack, onRegister, onLoginSuccess }: LoginProps) {
         <Screen title={t("auth.loginTitle")} onBack={onBack}>
             <form className="sea-form" onSubmit={handleSubmit} noValidate>
                 <label className="sea-field">
-                    {t("auth.username")}
+                    {t("auth.usernameOrEmail")}
                     <input
                         className="sea-input"
                         type="text"
                         autoComplete="username"
                         required
-                        maxLength={16}
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
+                        maxLength={254}
+                        value={identifier}
+                        onChange={(event) => setIdentifier(event.target.value)}
                     />
                 </label>
 
