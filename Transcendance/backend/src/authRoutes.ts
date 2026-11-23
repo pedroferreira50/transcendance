@@ -9,13 +9,13 @@ const router = Router();
 
 const registerLimiter = createRateLimiter({
     windowMs: 60 * 60 * 1000,
-    max: 5,
+    max: 50,
     code: "auth.rateLimitedRegister"
 });
 
 const loginLimiter = createRateLimiter({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 100,
     code: "auth.rateLimitedLogin"
 });
 
