@@ -1,0 +1,7 @@
+# Scripts and config files run inside Linux containers: always check them out
+# with LF line endings, even with Git for Windows (core.autocrlf=true).
+*.sh        text eol=lf
+*.conf      text eol=lf
+*.yml       text eol=lf
+Dockerfile* text eol=lf
+Makefile    text eol=lf
